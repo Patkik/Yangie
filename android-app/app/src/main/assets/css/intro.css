@@ -1,0 +1,142 @@
+/**
+ * intro.css
+ * Lightspeed Warp Intro & Persona Selection Stage Styling
+ */
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 1;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intro-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+}
+
+.intro-badge {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--color-mint, #4EC9B0);
+  text-transform: uppercase;
+  background: rgba(78, 201, 176, 0.12);
+  border: 1px solid rgba(78, 201, 176, 0.3);
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.intro-title {
+  font-family: var(--font-display, serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFF;
+  letter-spacing: 2px;
+  line-height: 1.2;
+}
+
+.intro-subtitle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #A6ADC8;
+}
+
+.persona-selection-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.persona-card {
+  background: rgba(19, 31, 48, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.persona-card:hover,
+.persona-card.selected {
+  border-color: var(--color-mint, #4EC9B0);
+  background: rgba(78, 201, 176, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px var(--color-mint-glow, rgba(78, 201, 176, 0.3));
+}
+
+.persona-card.yangiee:hover,
+.persona-card.yangiee.selected {
+  border-color: var(--color-pink-blush, #F5B7C0);
+  background: rgba(245, 183, 192, 0.15);
+  box-shadow: 0 10px 30px var(--color-pink-glow, rgba(245, 183, 192, 0.3));
+}
+
+.persona-avatar svg {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
+
+.persona-name {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFF;
+}
+
+.persona-role {
+  font-size: 11px;
+  color: #A6ADC8;
+}
+
+.intro-start-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--color-mint, #4EC9B0) 0%, #3BA892 100%);
+  border: none;
+  border-radius: 24px;
+  color: #11111B;
+  font-family: var(--font-heading, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 20px var(--color-mint-glow, rgba(78, 201, 176, 0.4));
+  transition: all 0.25s ease;
+}
+
+.intro-start-btn:active {
+  transform: scale(0.97);
+}

@@ -1,474 +1,308 @@
 /**
  * app.js
- * Core Application Lifecycle, Native AndroidHost Bridge, and Advanced App Updater.
- *
- * Provides bidirectional communication with Kotlin native container,
- * live OTA/APK progress tracking, in-settings updater hooks, and standalone web fallbacks.
+ * Master Application Bootstrap, Native Bridge, Lifecycle, & In-Settings Updater (ES6 Module)
  */
 
+import { KiroState } from './state.js';
+import { synthEngine } from './audio/synth.js';
+import { KiroSceneManager } from './three/scene.js';
+import { KiroIntroManager } from './three/intro.js';
+import { StarlightMessenger } from './ui/mailbox.js';
+
 // ============================================================================
-// 1. Native Notification & Lifecycle Hooks
+// 1. Native Lifecycle & Notification Bridges
 // ============================================================================
 
-function sendNativeNotification(title, message) {
+window.appLifecycle = {
+  isPaused: false,
+  pauseGame: () => {
+    window.appLifecycle.isPaused = true;
+    synthEngine.suspend();
+  },
+  resumeGame: () => {
+    window.appLifecycle.isPaused = false;
+    synthEngine.resume();
+  }
+};
+
+export function sendNativeNotification(title, message) {
   if (window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
     try {
       window.AndroidHost.sendNotification(title, message);
     } catch (e) {
       console.warn('Native notification bridge error:', e);
     }
-  } else {
-    console.log(`[Bridge Simulation] Notification Triggered:\nTitle: ${title}\nMessage: ${message}`);
-  }
-}
-
-window.appLifecycle = {
-  isPaused: false,
-
-  pauseGame: function () {
-    this.isPaused = true;
-    console.log('[Lifecycle] App minimized: Suspending WebGL and audio rendering.');
-    if (window.synthEngine) {
-      window.synthEngine.stopAll();
-    }
-  },
-
-  resumeGame: function () {
-    this.isPaused = false;
-    console.log('[Lifecycle] App resumed: Restoring WebGL and audio state.');
-    if (window.kiroSceneInstance) {
-      window.kiroSceneInstance.resize();
-    }
-  }
-};
-
-function onKiroWellRested() {
-  sendNativeNotification(
-    "Kiro feels amazing! ✨",
-    "Kiro is sparkling with a sweet golden aura. Come say hello!"
-  );
-}
-
-function checkKiroVitals(food, water) {
-  if (food <= 10) {
-    sendNativeNotification(
-      "Tummy Grumbles! 🍬",
-      "Kiro is feeling hungry... Feed them some sweet space star candies!"
-    );
-  } else if (water <= 10) {
-    sendNativeNotification(
-      "Thirsty Kiro! 💧",
-      "Kiro needs some refreshing water! Give them a drink."
-    );
   }
 }
 
 // ============================================================================
-// 2. Advanced App Updater Client (Settings & In-App UI Integration)
+// 2. In-Settings App Updater Client
 // ============================================================================
 
-window.AppUpdater = {
+export const AppUpdater = {
   repoOwner: 'Patkik',
   repoName: 'Yangie',
-  currentState: 'IDLE',
-  latestRelease: null,
 
-  isNative: function () {
-    return Boolean(window.AndroidHost && typeof window.AndroidHost.checkForUpdates === 'function');
-  },
+  isNative: () => Boolean(window.AndroidHost && typeof window.AndroidHost.checkForUpdates === 'function'),
 
-  getVersionInfo: function () {
-    if (this.isNative() && typeof window.AndroidHost.getAppVersionInfo === 'function') {
-      try {
-        return JSON.parse(window.AndroidHost.getAppVersionInfo());
-      } catch (e) {
-        console.warn('Failed parsing native version info:', e);
-      }
-    }
-    return {
-      currentVersion: localStorage.getItem('gn_installed_version') || '1.0.5',
-      isUsingOta: false,
-      nativeVersion: '1.0.0',
-      defaultRepo: `${this.repoOwner}/${this.repoName}`
-    };
-  },
+  performFullUpdate: function() {
+    const banner = document.getElementById('settings-status-banner');
+    const pBox = document.getElementById('settings-progress-box');
+    if (banner) banner.textContent = 'Connecting to GitHub Releases… 🔄';
+    if (pBox) pBox.style.display = 'flex';
 
-  checkForUpdates: function (force = true) {
-    if (this.isNative()) {
-      if (typeof showPopToast === 'function') {
-        showPopToast('Checking for celestial updates… 🌌', 2500);
-      }
-      window.AndroidHost.checkForUpdates(force);
-      return;
-    }
-
-    // Web-only fallback check via GitHub Releases API
-    this.checkWebUpdates(force);
-  },
-
-  performFullOneClickUpdate: function () {
     if (this.isNative() && typeof window.AndroidHost.performDirectUpdate === 'function') {
-      if (typeof showPopToast === 'function') {
-        showPopToast('Checking & downloading latest update… ⚡', 3000);
-      }
       window.AndroidHost.performDirectUpdate();
     } else if (this.isNative() && typeof window.AndroidHost.startOtaUpdate === 'function') {
       window.AndroidHost.startOtaUpdate();
     } else {
-      this.checkWebUpdates(true);
+      this.checkWeb();
     }
   },
 
-  checkWebUpdates: async function (force = false) {
-    if (typeof showPopToast === 'function') {
-      showPopToast('Checking GitHub Releases… 🔄', 2500);
-    }
+  checkWeb: async function() {
     try {
-      const url = `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest?t=${Date.now()}`;
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest?t=${Date.now()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const release = await res.json();
-      
-      const currentVer = (localStorage.getItem('gn_installed_version') || '1.0.5').replace(/^v/i, '');
-      const remoteVer = (release.tag_name || '1.0.0').replace(/^v/i, '');
+      const rel = await res.json();
+      const current = KiroState.get('installedVersion').replace(/^v/i, '');
+      const remote = (rel.tag_name || '1.0.0').replace(/^v/i, '');
 
-      if (remoteVer !== currentVer || force) {
-        this.latestRelease = release;
-        this.showUpdateModal({
-          tagName: release.tag_name,
-          title: release.name || release.tag_name,
-          releaseNotes: release.body || 'New celestial update available.',
-          hasOta: true,
-          hasApk: Array.isArray(release.assets) && release.assets.some(a => a.name.endsWith('.apk'))
-        });
+      const banner = document.getElementById('settings-status-banner');
+      if (remote !== current) {
+        if (banner) banner.textContent = `New update ${rel.tag_name} found! Refreshing… ✨`;
+        localStorage.setItem('gn_installed_version', rel.tag_name);
+        setTimeout(() => window.location.reload(true), 1200);
       } else {
-        if (typeof showPopToast === 'function') {
-          showPopToast(`You are on the latest version (v${currentVer}) ✨`, 3000);
-        }
+        if (banner) banner.textContent = `Sanctuary is on the latest version (v${current}) ✨`;
+        const pBox = document.getElementById('settings-progress-box');
+        if (pBox) pBox.style.display = 'none';
       }
     } catch (e) {
-      console.warn('Web update check error:', e);
-      if (typeof showPopToast === 'function') {
-        showPopToast('Could not reach GitHub Releases', 3000);
-      }
+      const banner = document.getElementById('settings-status-banner');
+      if (banner) banner.textContent = 'Could not reach GitHub Releases.';
     }
   },
 
-  startOtaUpdate: function () {
-    if (this.isNative() && typeof window.AndroidHost.startOtaUpdate === 'function') {
-      window.AndroidHost.startOtaUpdate();
-    } else {
-      // Standalone web cache clear and reload
-      this.simulateWebUpdate();
-    }
-  },
-
-  startApkUpdate: function () {
-    if (this.isNative() && typeof window.AndroidHost.startApkUpdate === 'function') {
-      window.AndroidHost.startApkUpdate();
-    } else if (this.latestRelease?.html_url) {
-      window.open(this.latestRelease.html_url, '_blank');
-    }
-  },
-
-  applyOtaAndReload: function () {
-    if (this.isNative() && typeof window.AndroidHost.applyUpdateAndReload === 'function') {
-      window.AndroidHost.applyUpdateAndReload();
-    } else {
-      window.location.reload(true);
-    }
-  },
-
-  rollbackToBundled: function () {
-    if (this.isNative() && typeof window.AndroidHost.clearOtaUpdates === 'function') {
-      window.AndroidHost.clearOtaUpdates();
-    } else {
-      localStorage.clear();
-      window.location.reload(true);
-    }
-  },
-
-  simulateWebUpdate: async function () {
-    this.onNativeEvent({
-      type: 'DOWNLOADING',
-      target: 'Web Assets',
-      progress: { percent: 45, bytesRead: 1450000, totalBytes: 3200000, speedBytesPerSec: 524000 }
-    });
-
-    setTimeout(async () => {
-      if ('caches' in window) {
-        try {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        } catch (e) {}
-      }
-      if ('serviceWorker' in navigator) {
-        try {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          for (let r of regs) await r.unregister();
-        } catch (e) {}
-      }
-      if (this.latestRelease?.tag_name) {
-        localStorage.setItem('gn_installed_version', this.latestRelease.tag_name);
-      }
-      this.onNativeEvent({
-        type: 'OTA_READY',
-        version: this.latestRelease?.tag_name || '1.0.6',
-        releaseNotes: 'Web caches refreshed successfully.'
-      });
-    }, 1200);
-  },
-
-  // ==========================================
-  // Native Event Handler Dispatcher
-  // ==========================================
-
-  onNativeEvent: function (event) {
-    console.log('[AppUpdater Event]', event);
-    this.currentState = event.type;
-
-    const sBanner = document.getElementById('settings-status-banner');
-    const sProgressBox = document.getElementById('settings-progress-box');
+  onNativeEvent: function(event) {
+    const banner = document.getElementById('settings-status-banner');
+    const pBox = document.getElementById('settings-progress-box');
+    const pTarget = document.getElementById('settings-progress-target');
+    const pPct = document.getElementById('settings-progress-pct');
+    const pBar = document.getElementById('settings-progress-bar');
+    const pSpeed = document.getElementById('settings-progress-speed');
 
     switch (event.type) {
       case 'CHECKING':
-        this.updateModalState('checking', 'Connecting to GitHub Releases…');
-        if (sBanner) sBanner.textContent = 'Connecting to GitHub Releases… 🔄';
+        if (banner) banner.textContent = 'Checking for updates on GitHub… 🔄';
         break;
 
       case 'AVAILABLE':
-        this.latestRelease = event.release;
-        if (sBanner) sBanner.textContent = `New update ${event.release.tagName || ''} available! Tap Update Sanctuary Now to install.`;
-        this.showUpdateModal(event.release);
+        if (banner) banner.textContent = `Update ${event.release.tagName} available! Downloading… ⚡`;
         break;
 
       case 'UP_TO_DATE':
-        if (typeof showPopToast === 'function') {
-          showPopToast(`App is fully up-to-date (${event.currentVersion}) ✨`, 3000);
-        }
-        if (sBanner) sBanner.textContent = `App is up-to-date (${event.currentVersion}) ✨`;
-        if (sProgressBox) sProgressBox.style.display = 'none';
-        this.hideUpdateModal();
+        if (banner) banner.textContent = `You are on the latest version (${event.currentVersion}) ✨`;
+        if (pBox) pBox.style.display = 'none';
         break;
 
       case 'DOWNLOADING':
-        this.updateDownloadProgress(event.target, event.progress);
-        break;
-
-      case 'EXTRACTING':
-        this.updateModalState('extracting', 'Unpacking celestial assets & validating integrity…');
-        if (sBanner) sBanner.textContent = 'Extracting and verifying celestial assets… ✨';
+        if (pBox) pBox.style.display = 'flex';
+        const pct = Math.max(0, Math.min(100, event.progress.percent || 0));
+        if (pTarget) pTarget.textContent = event.target || 'Downloading…';
+        if (pPct) pPct.textContent = `${pct}%`;
+        if (pBar) pBar.style.width = `${pct}%`;
+        const kbps = (event.progress.speedBytesPerSec / 1024).toFixed(1);
+        if (pSpeed) pSpeed.textContent = `${kbps} KB/s`;
         break;
 
       case 'OTA_READY':
-        if (sBanner) sBanner.textContent = `Update ${event.version} installed! Reloading sanctuary… ✨`;
-        this.showReadyState(event.version, event.releaseNotes, 'ota');
-        break;
-
-      case 'APK_READY':
-        if (sBanner) sBanner.textContent = `APK ${event.version} downloaded! Launching installer…`;
-        this.showReadyState(event.version, '', 'apk');
+        if (banner) banner.textContent = `Update ${event.version} installed! Reloading sanctuary… ✨`;
         break;
 
       case 'ERROR':
-        if (sBanner) sBanner.textContent = `Update check notice: ${event.message}`;
-        if (sProgressBox) sProgressBox.style.display = 'none';
-        this.showErrorState(event.message || 'An error occurred during update.');
+        if (banner) banner.textContent = `Notice: ${event.message}`;
+        if (pBox) pBox.style.display = 'none';
         break;
-    }
-  },
-
-  // ==========================================
-  // UI Modal Rendering & Management
-  // ==========================================
-
-  ensureModalElements: function () {
-    let modal = document.getElementById('updater-dialog-overlay');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'updater-dialog-overlay';
-      modal.className = 'updater-overlay';
-      modal.innerHTML = `
-        <div class="updater-card">
-          <div class="updater-glow-header">
-            <div class="updater-icon-ring">✨</div>
-            <div class="updater-title-col">
-              <span class="updater-badge" id="updater-version-badge">v1.0.6</span>
-              <h3 class="updater-title" id="updater-headline">Celestial Update Available</h3>
-            </div>
-            <button class="updater-close-btn" id="updater-close-btn" title="Dismiss">✕</button>
-          </div>
-
-          <div class="updater-body" id="updater-body">
-            <div class="updater-notes-box" id="updater-notes-box">
-              <div class="updater-notes-title">Release Notes</div>
-              <div class="updater-notes-text" id="updater-notes-text">Loading release details…</div>
-            </div>
-
-            <!-- Progress section (hidden by default) -->
-            <div class="updater-progress-wrap" id="updater-progress-wrap" style="display: none;">
-              <div class="updater-progress-meta">
-                <span id="updater-progress-target">Downloading…</span>
-                <span id="updater-progress-stats">0%</span>
-              </div>
-              <div class="updater-progress-bar-track">
-                <div class="updater-progress-bar-fill" id="updater-progress-bar-fill"></div>
-              </div>
-              <div class="updater-speed-text" id="updater-speed-text">0 KB/s</div>
-            </div>
-
-            <!-- Action buttons -->
-            <div class="updater-actions" id="updater-actions">
-              <button class="updater-btn updater-btn-primary" id="updater-btn-ota">
-                <span>⚡ Quick OTA Update</span>
-                <small>Instant reload</small>
-              </button>
-              <button class="updater-btn updater-btn-secondary" id="updater-btn-apk">
-                <span>📦 Install APK Binary</span>
-                <small>Native package</small>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-
-      document.getElementById('updater-close-btn').addEventListener('click', () => this.hideUpdateModal());
-      document.getElementById('updater-btn-ota').addEventListener('click', () => this.startOtaUpdate());
-      document.getElementById('updater-btn-apk').addEventListener('click', () => this.startApkUpdate());
-    }
-    return modal;
-  },
-
-  showUpdateModal: function (release) {
-    const modal = this.ensureModalElements();
-    const badge = document.getElementById('updater-version-badge');
-    const headline = document.getElementById('updater-headline');
-    const notesText = document.getElementById('updater-notes-text');
-    const progressWrap = document.getElementById('updater-progress-wrap');
-    const actions = document.getElementById('updater-actions');
-    const btnApk = document.getElementById('updater-btn-apk');
-
-    if (badge) badge.textContent = release.tagName || 'NEW';
-    if (headline) headline.textContent = release.title || 'Celestial Update Ready';
-    if (notesText) {
-      notesText.textContent = release.releaseNotes || 'Updated celestial sanctuary assets and logic.';
-    }
-
-    if (btnApk) {
-      btnApk.style.display = release.hasApk ? 'flex' : 'none';
-    }
-
-    if (progressWrap) progressWrap.style.display = 'none';
-    if (actions) actions.style.display = 'flex';
-
-    modal.classList.add('visible');
-  },
-
-  hideUpdateModal: function () {
-    const modal = document.getElementById('updater-dialog-overlay');
-    if (modal) modal.classList.remove('visible');
-  },
-
-  updateModalState: function (stateKey, message) {
-    this.ensureModalElements();
-    const notesText = document.getElementById('updater-notes-text');
-    if (notesText) notesText.textContent = message;
-  },
-
-  updateDownloadProgress: function (target, progress) {
-    this.ensureModalElements();
-    const progressWrap = document.getElementById('updater-progress-wrap');
-    const targetEl = document.getElementById('updater-progress-target');
-    const statsEl = document.getElementById('updater-progress-stats');
-    const fillEl = document.getElementById('updater-progress-bar-fill');
-    const speedEl = document.getElementById('updater-speed-text');
-    const actions = document.getElementById('updater-actions');
-
-    if (actions) actions.style.display = 'none';
-    if (progressWrap) progressWrap.style.display = 'block';
-
-    const percent = Math.max(0, Math.min(100, progress.percent >= 0 ? progress.percent : 0));
-    if (targetEl) targetEl.textContent = target || 'Downloading update…';
-    if (statsEl) statsEl.textContent = `${percent}%`;
-    if (fillEl) fillEl.style.width = `${percent}%`;
-
-    const kbps = (progress.speedBytesPerSec / 1024).toFixed(1);
-    const mbRead = (progress.bytesRead / (1024 * 1024)).toFixed(2);
-    const mbTotal = progress.totalBytes > 0 ? (progress.totalBytes / (1024 * 1024)).toFixed(2) : '?';
-
-    if (speedEl) {
-      speedEl.textContent = `${mbRead} MB / ${mbTotal} MB (${kbps} KB/s)`;
-    }
-
-    // Update in Settings modal as well
-    const sProgressBox = document.getElementById('settings-progress-box');
-    const sTarget = document.getElementById('settings-progress-target');
-    const sPct = document.getElementById('settings-progress-pct');
-    const sBar = document.getElementById('settings-progress-bar');
-    const sSpeed = document.getElementById('settings-progress-speed');
-    const sBanner = document.getElementById('settings-status-banner');
-
-    if (sProgressBox) sProgressBox.style.display = 'flex';
-    if (sTarget) sTarget.textContent = target || 'Downloading update…';
-    if (sPct) sPct.textContent = `${percent}%`;
-    if (sBar) sBar.style.width = `${percent}%`;
-    if (sSpeed) sSpeed.textContent = `${mbRead} MB / ${mbTotal} MB (${kbps} KB/s)`;
-    if (sBanner) sBanner.textContent = `Downloading update: ${percent}% completed. Will reload automatically upon completion.`;
-  },
-
-  showReadyState: function (version, notes, type) {
-    const modal = this.ensureModalElements();
-    const headline = document.getElementById('updater-headline');
-    const notesText = document.getElementById('updater-notes-text');
-    const progressWrap = document.getElementById('updater-progress-wrap');
-    const actions = document.getElementById('updater-actions');
-
-    if (headline) headline.textContent = type === 'apk' ? 'APK Ready to Install' : 'Update Applied ✨';
-    if (notesText) {
-      notesText.textContent = type === 'apk' 
-        ? 'The native APK package has been downloaded. Android Package Installer has been launched.' 
-        : `Version ${version} is ready! Tap below to reload the sanctuary.`;
-    }
-
-    if (progressWrap) progressWrap.style.display = 'none';
-    if (actions) {
-      actions.style.display = 'flex';
-      actions.innerHTML = `
-        <button class="updater-btn updater-btn-primary" id="updater-btn-reload" style="grid-column: 1 / -1;">
-          <span>🚀 Reload Sanctuary Now</span>
-        </button>
-      `;
-      document.getElementById('updater-btn-reload').addEventListener('click', () => this.applyOtaAndReload());
-    }
-
-    modal.classList.add('visible');
-  },
-
-  showErrorState: function (errorMsg) {
-    this.ensureModalElements();
-    const headline = document.getElementById('updater-headline');
-    const notesText = document.getElementById('updater-notes-text');
-    const progressWrap = document.getElementById('updater-progress-wrap');
-    const actions = document.getElementById('updater-actions');
-
-    if (headline) headline.textContent = 'Update Notice';
-    if (notesText) notesText.textContent = `Warning: ${errorMsg}`;
-    if (progressWrap) progressWrap.style.display = 'none';
-
-    if (actions) {
-      actions.style.display = 'flex';
-      actions.innerHTML = `
-        <button class="updater-btn updater-btn-secondary" id="updater-btn-retry" style="grid-column: 1 / -1;">
-          <span>↺ Try Again</span>
-        </button>
-      `;
-      document.getElementById('updater-btn-retry').addEventListener('click', () => this.checkForUpdates(true));
     }
   }
 };
 
-// Global exports
-window.sendNativeNotification = sendNativeNotification;
-window.onKiroWellRested = onKiroWellRested;
-window.checkKiroVitals = checkKiroVitals;
+window.AppUpdater = AppUpdater;
+
+// ============================================================================
+// 3. UI Controller & Bootstrap Initialization
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  let sceneManager = null;
+  let messenger = null;
+
+  // Initialize 3D Scene Manager
+  try {
+    sceneManager = new KiroSceneManager('webgl-canvas-container');
+  } catch (e) {
+    console.error('Failed initializing KiroSceneManager:', e);
+  }
+
+  // Initialize Starlight Messenger
+  try {
+    messenger = new StarlightMessenger('mailbox-modal');
+  } catch (e) {
+    console.error('Failed initializing StarlightMessenger:', e);
+  }
+
+  // Initialize Persona Selection Intro
+  try {
+    new KiroIntroManager('intro-overlay', (persona) => {
+      document.getElementById('app-ui').classList.add('visible');
+    });
+  } catch (e) {
+    console.error('Failed initializing KiroIntroManager:', e);
+  }
+
+  // Live Philippine Standard Time Clock
+  function updateClock() {
+    const clockEl = document.getElementById('live-clock');
+    const greetEl = document.getElementById('time-greeting');
+    if (!clockEl) return;
+
+    const now = new Date();
+    // UTC+8 calculation
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const pst = new Date(utc + (3600000 * 8));
+
+    const hours = pst.getHours();
+    const mins = String(pst.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const h12 = hours % 12 || 12;
+
+    clockEl.textContent = `${h12}:${mins} ${ampm} PST`;
+
+    if (greetEl) {
+      if (hours >= 5 && hours < 12) greetEl.textContent = 'GOOD MORNING';
+      else if (hours >= 12 && hours < 17) greetEl.textContent = 'GOOD AFTERNOON';
+      else if (hours >= 17 && hours < 21) greetEl.textContent = 'GOOD EVENING';
+      else greetEl.textContent = 'GOOD NIGHT';
+    }
+  }
+
+  updateClock();
+  setInterval(updateClock, 10000);
+
+  // Quick Action Buttons
+  const feedStarBtn = document.getElementById('btn-feed-star');
+  const feedDonutBtn = document.getElementById('btn-feed-donut');
+  const drinkWaterBtn = document.getElementById('btn-drink-water');
+  const mailboxNavBtn = document.getElementById('btn-nav-mailbox');
+  const settingsNavBtn = document.getElementById('btn-nav-settings');
+  const settingsCloseBtn = document.getElementById('settings-close-btn');
+  const updateNowBtn = document.getElementById('settings-update-now-btn');
+  const gyroToggleBtn = document.getElementById('settings-gyro-toggle');
+  const soundOceanBtn = document.getElementById('btn-sound-ocean');
+  const soundRainBtn = document.getElementById('btn-sound-rain');
+  const soundLofiBtn = document.getElementById('btn-sound-lofi');
+
+  if (feedStarBtn) feedStarBtn.addEventListener('click', () => KiroState.feed('star'));
+  if (feedDonutBtn) feedDonutBtn.addEventListener('click', () => KiroState.feed('donut'));
+  if (drinkWaterBtn) drinkWaterBtn.addEventListener('click', () => KiroState.drinkWater());
+  if (mailboxNavBtn) mailboxNavBtn.addEventListener('click', () => messenger?.open());
+
+  // Settings Modal Handlers
+  const settingsModal = document.getElementById('settings-modal');
+  if (settingsNavBtn) {
+    settingsNavBtn.addEventListener('click', () => {
+      const verBadge = document.getElementById('settings-current-ver-badge');
+      const verVal = document.getElementById('settings-val-version');
+      const cur = KiroState.get('installedVersion');
+      if (verBadge) verBadge.textContent = cur.startsWith('v') ? cur : `v${cur}`;
+      if (verVal) verVal.textContent = cur.startsWith('v') ? cur : `v${cur}`;
+      if (settingsModal) settingsModal.classList.add('open');
+    });
+  }
+
+  if (settingsCloseBtn) {
+    settingsCloseBtn.addEventListener('click', () => {
+      if (settingsModal) settingsModal.classList.remove('open');
+    });
+  }
+
+  if (updateNowBtn) {
+    updateNowBtn.addEventListener('click', () => AppUpdater.performFullUpdate());
+  }
+
+  if (gyroToggleBtn) {
+    gyroToggleBtn.addEventListener('click', () => {
+      const current = KiroState.get('gyroEnabled');
+      KiroState.setGyro(!current);
+      gyroToggleBtn.classList.toggle('active', !current);
+      gyroToggleBtn.textContent = !current ? 'ON' : 'OFF';
+    });
+  }
+
+  // Procedural Sound Toggles
+  let oceanVol = 0;
+  let rainVol = 0;
+  let lofiVol = 0;
+
+  if (soundOceanBtn) {
+    soundOceanBtn.addEventListener('click', () => {
+      synthEngine.init();
+      oceanVol = oceanVol > 0 ? 0 : 0.6;
+      KiroState.setVolume('ocean', oceanVol);
+      soundOceanBtn.classList.toggle('active', oceanVol > 0);
+    });
+  }
+
+  if (soundRainBtn) {
+    soundRainBtn.addEventListener('click', () => {
+      synthEngine.init();
+      rainVol = rainVol > 0 ? 0 : 0.5;
+      KiroState.setVolume('rain', rainVol);
+      soundRainBtn.classList.toggle('active', rainVol > 0);
+    });
+  }
+
+  if (soundLofiBtn) {
+    soundLofiBtn.addEventListener('click', () => {
+      synthEngine.init();
+      lofiVol = lofiVol > 0 ? 0 : 0.5;
+      KiroState.setVolume('lofi', lofiVol);
+      soundLofiBtn.classList.toggle('active', lofiVol > 0);
+    });
+  }
+
+  // Sleep Mode Long-Press Switch
+  const sleepBtn = document.getElementById('sleep-switch-btn');
+  const sleepProgress = document.getElementById('sleep-switch-progress');
+  let sleepTimer = null;
+  let sleepProgressVal = 0;
+
+  if (sleepBtn && sleepProgress) {
+    const startSleepPress = () => {
+      sleepProgressVal = 0;
+      sleepTimer = setInterval(() => {
+        sleepProgressVal += 4;
+        sleepProgress.style.width = `${sleepProgressVal}%`;
+        if (sleepProgressVal >= 100) {
+          clearInterval(sleepTimer);
+          const isSleeping = !KiroState.get('isSleeping');
+          KiroState.setSleep(isSleeping);
+          sleepBtn.querySelector('.btn-text').textContent = isSleeping ? 'Wake Kiro ✨' : 'Hold to Sleep 🌙';
+          document.getElementById('app-ui').classList.toggle('dissipated', isSleeping);
+        }
+      }, 50);
+    };
+
+    const cancelSleepPress = () => {
+      if (sleepTimer) clearInterval(sleepTimer);
+      sleepProgress.style.width = '0%';
+    };
+
+    sleepBtn.addEventListener('mousedown', startSleepPress);
+    sleepBtn.addEventListener('touchstart', startSleepPress, { passive: true });
+    sleepBtn.addEventListener('mouseup', cancelSleepPress);
+    sleepBtn.addEventListener('mouseleave', cancelSleepPress);
+    sleepBtn.addEventListener('touchend', cancelSleepPress);
+  }
+});
