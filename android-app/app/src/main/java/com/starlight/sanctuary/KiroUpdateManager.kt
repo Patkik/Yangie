@@ -205,6 +205,25 @@ class KiroUpdateManager(private val context: Context) {
     }
 
     fun getLocalUpdatePath(): String? {
+        val otaVerStr = prefs.getString(KEY_INSTALLED_OTA_VERSION, null)
+        if (otaVerStr.isNullOrEmpty()) {
+            if (updateDir.exists()) {
+                rollbackToBundled()
+            }
+            return null
+        }
+
+        val otaVer = SemVer.parse(otaVerStr)
+        val apkVer = SemVer.parse(getNativeApkVersion())
+
+        // If the native APK is equal or newer than the cached OTA version,
+        // purge old OTA cache so the fresh APK assets are always used!
+        if (apkVer >= otaVer) {
+            Log.i(TAG, "Native APK ($apkVer) is >= OTA ($otaVer). Purging OTA cache and loading APK bundled assets.")
+            rollbackToBundled()
+            return null
+        }
+
         return if (hasValidLocalUpdate()) updateDir.absolutePath else null
     }
 

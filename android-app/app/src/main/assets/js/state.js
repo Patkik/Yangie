@@ -58,7 +58,7 @@ class KiroStateManager extends StateEmitter {
         forest: 0,
         lofi: 0
       },
-      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.5',
+      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.6',
       isOtaActive: false,
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true'
     };
