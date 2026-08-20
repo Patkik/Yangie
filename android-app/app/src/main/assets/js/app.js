@@ -159,8 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Initialize Persona Selection Intro
+  let introManager = null;
   try {
-    new KiroIntroManager('intro-overlay', (persona) => {
+    introManager = new KiroIntroManager('intro-overlay', (persona) => {
       document.getElementById('app-ui').classList.add('visible');
     });
   } catch (e) {
@@ -205,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsCloseBtn = document.getElementById('settings-close-btn');
   const updateNowBtn = document.getElementById('settings-update-now-btn');
   const gyroToggleBtn = document.getElementById('settings-gyro-toggle');
+  const replayIntroBtn = document.getElementById('settings-replay-intro-btn');
   const soundOceanBtn = document.getElementById('btn-sound-ocean');
   const soundRainBtn = document.getElementById('btn-sound-rain');
   const soundLofiBtn = document.getElementById('btn-sound-lofi');
@@ -235,6 +237,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (updateNowBtn) {
     updateNowBtn.addEventListener('click', () => AppUpdater.performFullUpdate());
+  }
+
+  if (replayIntroBtn) {
+    replayIntroBtn.addEventListener('click', () => {
+      if (settingsModal) settingsModal.classList.remove('open');
+      document.getElementById('app-ui').classList.remove('visible');
+      if (introManager) {
+        introManager.replay();
+      } else {
+        introManager = new KiroIntroManager('intro-overlay', () => {
+          document.getElementById('app-ui').classList.add('visible');
+        });
+      }
+    });
   }
 
   if (gyroToggleBtn) {

@@ -358,6 +358,233 @@ export class CosmicSynthEngine {
     osc.stop(now + 0.15);
   }
 
+  // ============================================================================
+  // Cinematic Intro Sequence Procedural Audio Synthesizers
+  // ============================================================================
+
+  // Act I: Warm spaceship engine boot-up drone
+  playEngineDrone(duration = 2.5) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(42, now);
+    osc1.frequency.linearRampToValueAtTime(58, now + duration);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(84, now);
+    osc2.frequency.linearRampToValueAtTime(116, now + duration);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(90, now);
+    filter.frequency.exponentialRampToValueAtTime(240, now + duration);
+    filter.Q.value = 3.0;
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.35, now + 1.2);
+    gain.gain.linearRampToValueAtTime(0.15, now + duration);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + duration + 0.1);
+    osc2.stop(now + duration + 0.1);
+  }
+
+  // Act II: Lightspeed warp white-noise swoosh & sub rumble
+  playWarpSwoosh(duration = 3.0) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // 1. Resonant white noise swoosh
+    const noiseSource = this.ctx.createBufferSource();
+    noiseSource.buffer = this.createWhiteNoiseBuffer();
+    noiseSource.loop = true;
+
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(180, now);
+    noiseFilter.frequency.exponentialRampToValueAtTime(4200, now + duration * 0.85);
+    noiseFilter.frequency.exponentialRampToValueAtTime(600, now + duration);
+    noiseFilter.Q.value = 4.0;
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.01, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.45, now + duration * 0.7);
+    noiseGain.gain.linearRampToValueAtTime(0.001, now + duration);
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.masterGain);
+
+    noiseSource.start(now);
+    noiseSource.stop(now + duration + 0.1);
+
+    // 2. Sub-bass rumble
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(50, now);
+    subOsc.frequency.linearRampToValueAtTime(95, now + duration * 0.6);
+    subOsc.frequency.exponentialRampToValueAtTime(35, now + duration);
+
+    subGain.gain.setValueAtTime(0.01, now);
+    subGain.gain.linearRampToValueAtTime(0.3, now + 1.0);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    subOsc.connect(subGain);
+    subGain.connect(this.masterGain);
+
+    subOsc.start(now);
+    subOsc.stop(now + duration + 0.1);
+  }
+
+  // Act III: Cosmic orbit arrival chime chord
+  playArrivalChime() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const chimeFreqs = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+
+    chimeFreqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const delay = idx * 0.08;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + delay);
+
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.08, now + delay + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 2.2);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now + delay);
+      osc.stop(now + delay + 2.3);
+    });
+  }
+
+  // Act IV: Patrick's Portal Warm E Major Chord (329.63Hz)
+  playPatrickChord() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const freqs = [329.63, 415.30, 493.88, 659.25]; // E4, G#4, B4, E5
+
+    freqs.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.03);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, now);
+      filter.frequency.exponentialRampToValueAtTime(300, now + 1.2);
+
+      gain.gain.setValueAtTime(0, now + i * 0.03);
+      gain.gain.linearRampToValueAtTime(0.09, now + i * 0.03 + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.03 + 1.4);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now + i * 0.03);
+      osc.stop(now + i * 0.03 + 1.5);
+    });
+  }
+
+  // Act IV: Yangiee's Portal Sweet Airy A Major Chord (440Hz)
+  playYangieeChord() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const freqs = [440.00, 554.37, 659.25, 880.00]; // A4, C#5, E5, A5
+
+    freqs.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.03);
+
+      gain.gain.setValueAtTime(0, now + i * 0.03);
+      gain.gain.linearRampToValueAtTime(0.08, now + i * 0.03 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.03 + 1.6);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now + i * 0.03);
+      osc.stop(now + i * 0.03 + 1.7);
+    });
+  }
+
+  // Act IV: Mini-Supernova Burst on selection
+  playSupernovaSound() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // Burst sparkle
+    const burstFreqs = [587.33, 880.00, 1174.66, 1760.00];
+    burstFreqs.forEach((freq) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.2);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now);
+      osc.stop(now + 0.85);
+    });
+
+    // Dispersion noise whoosh
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.createPinkNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(300, now + 0.9);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    noise.start(now);
+    noise.stop(now + 0.95);
+  }
+
   setVolume(channel, volume) {
     if (!this.ctx) this.init();
     const vol = Math.max(0, Math.min(1, volume));
