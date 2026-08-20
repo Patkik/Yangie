@@ -3,7 +3,7 @@
  * Core Application Lifecycle, Native AndroidHost Bridge, and Advanced App Updater.
  *
  * Provides bidirectional communication with Kotlin native container,
- * live OTA/APK progress tracking, and standalone web fallbacks.
+ * live OTA/APK progress tracking, in-settings updater hooks, and standalone web fallbacks.
  */
 
 // ============================================================================
@@ -64,7 +64,7 @@ function checkKiroVitals(food, water) {
 }
 
 // ============================================================================
-// 2. Advanced App Updater Client (OTA & APK Integration)
+// 2. Advanced App Updater Client (Settings & In-App UI Integration)
 // ============================================================================
 
 window.AppUpdater = {
@@ -104,6 +104,19 @@ window.AppUpdater = {
 
     // Web-only fallback check via GitHub Releases API
     this.checkWebUpdates(force);
+  },
+
+  performFullOneClickUpdate: function () {
+    if (this.isNative() && typeof window.AndroidHost.performDirectUpdate === 'function') {
+      if (typeof showPopToast === 'function') {
+        showPopToast('Checking & downloading latest update… ⚡', 3000);
+      }
+      window.AndroidHost.performDirectUpdate();
+    } else if (this.isNative() && typeof window.AndroidHost.startOtaUpdate === 'function') {
+      window.AndroidHost.startOtaUpdate();
+    } else {
+      this.checkWebUpdates(true);
+    }
   },
 
   checkWebUpdates: async function (force = false) {
@@ -214,13 +227,18 @@ window.AppUpdater = {
     console.log('[AppUpdater Event]', event);
     this.currentState = event.type;
 
+    const sBanner = document.getElementById('settings-status-banner');
+    const sProgressBox = document.getElementById('settings-progress-box');
+
     switch (event.type) {
       case 'CHECKING':
         this.updateModalState('checking', 'Connecting to GitHub Releases…');
+        if (sBanner) sBanner.textContent = 'Connecting to GitHub Releases… 🔄';
         break;
 
       case 'AVAILABLE':
         this.latestRelease = event.release;
+        if (sBanner) sBanner.textContent = `New update ${event.release.tagName || ''} available! Tap Update Sanctuary Now to install.`;
         this.showUpdateModal(event.release);
         break;
 
@@ -228,6 +246,8 @@ window.AppUpdater = {
         if (typeof showPopToast === 'function') {
           showPopToast(`App is fully up-to-date (${event.currentVersion}) ✨`, 3000);
         }
+        if (sBanner) sBanner.textContent = `App is up-to-date (${event.currentVersion}) ✨`;
+        if (sProgressBox) sProgressBox.style.display = 'none';
         this.hideUpdateModal();
         break;
 
@@ -237,17 +257,22 @@ window.AppUpdater = {
 
       case 'EXTRACTING':
         this.updateModalState('extracting', 'Unpacking celestial assets & validating integrity…');
+        if (sBanner) sBanner.textContent = 'Extracting and verifying celestial assets… ✨';
         break;
 
       case 'OTA_READY':
+        if (sBanner) sBanner.textContent = `Update ${event.version} installed! Reloading sanctuary… ✨`;
         this.showReadyState(event.version, event.releaseNotes, 'ota');
         break;
 
       case 'APK_READY':
+        if (sBanner) sBanner.textContent = `APK ${event.version} downloaded! Launching installer…`;
         this.showReadyState(event.version, '', 'apk');
         break;
 
       case 'ERROR':
+        if (sBanner) sBanner.textContent = `Update check notice: ${event.message}`;
+        if (sProgressBox) sProgressBox.style.display = 'none';
         this.showErrorState(event.message || 'An error occurred during update.');
         break;
     }
@@ -368,12 +393,28 @@ window.AppUpdater = {
     if (statsEl) statsEl.textContent = `${percent}%`;
     if (fillEl) fillEl.style.width = `${percent}%`;
 
+    const kbps = (progress.speedBytesPerSec / 1024).toFixed(1);
+    const mbRead = (progress.bytesRead / (1024 * 1024)).toFixed(2);
+    const mbTotal = progress.totalBytes > 0 ? (progress.totalBytes / (1024 * 1024)).toFixed(2) : '?';
+
     if (speedEl) {
-      const kbps = (progress.speedBytesPerSec / 1024).toFixed(1);
-      const mbRead = (progress.bytesRead / (1024 * 1024)).toFixed(2);
-      const mbTotal = progress.totalBytes > 0 ? (progress.totalBytes / (1024 * 1024)).toFixed(2) : '?';
       speedEl.textContent = `${mbRead} MB / ${mbTotal} MB (${kbps} KB/s)`;
     }
+
+    // Update in Settings modal as well
+    const sProgressBox = document.getElementById('settings-progress-box');
+    const sTarget = document.getElementById('settings-progress-target');
+    const sPct = document.getElementById('settings-progress-pct');
+    const sBar = document.getElementById('settings-progress-bar');
+    const sSpeed = document.getElementById('settings-progress-speed');
+    const sBanner = document.getElementById('settings-status-banner');
+
+    if (sProgressBox) sProgressBox.style.display = 'flex';
+    if (sTarget) sTarget.textContent = target || 'Downloading update…';
+    if (sPct) sPct.textContent = `${percent}%`;
+    if (sBar) sBar.style.width = `${percent}%`;
+    if (sSpeed) sSpeed.textContent = `${mbRead} MB / ${mbTotal} MB (${kbps} KB/s)`;
+    if (sBanner) sBanner.textContent = `Downloading update: ${percent}% completed. Will reload automatically upon completion.`;
   },
 
   showReadyState: function (version, notes, type) {

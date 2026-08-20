@@ -2352,6 +2352,104 @@
     </div>
   </div>
 
+  <!-- Settings & In-App Software Updates Modal -->
+  <div class="settings-modal-overlay" id="settings-modal">
+    <div class="settings-modal-card">
+      <div class="settings-modal-header">
+        <div class="settings-header-icon">⚙️</div>
+        <div class="settings-title-col">
+          <div class="settings-subtitle">SANCTUARY PREFERENCES</div>
+          <div class="settings-title">Settings & Updates</div>
+        </div>
+        <button class="settings-close-btn" id="settings-close-btn" title="Close Settings">✕</button>
+      </div>
+
+      <!-- Settings Body -->
+      <div class="settings-modal-body">
+        <!-- Section: Software & Sanctuary Updates -->
+        <div class="settings-group highlight-group">
+          <div class="settings-group-header">
+            <span class="settings-group-title">🌌 Software & Celestial Updates</span>
+            <span class="settings-version-badge" id="settings-current-ver-badge">v1.0.5</span>
+          </div>
+
+          <div class="settings-update-box">
+            <div class="settings-update-meta">
+              <div class="settings-update-row">
+                <span class="meta-label">Installed Version</span>
+                <span class="meta-val" id="settings-val-version">v1.0.5</span>
+              </div>
+              <div class="settings-update-row">
+                <span class="meta-label">Update Channel</span>
+                <span class="meta-val">GitHub Releases • Patkik/Yangie</span>
+              </div>
+              <div class="settings-update-row">
+                <span class="meta-label">Storage Mode</span>
+                <span class="meta-val" id="settings-val-mode">Pre-bundled APK</span>
+              </div>
+            </div>
+
+            <!-- In-place progress display -->
+            <div class="settings-progress-box" id="settings-progress-box" style="display:none;">
+              <div class="settings-progress-labels">
+                <span id="settings-progress-target">Downloading celestial assets…</span>
+                <span id="settings-progress-pct">0%</span>
+              </div>
+              <div class="settings-progress-track">
+                <div class="settings-progress-bar" id="settings-progress-bar"></div>
+              </div>
+              <div class="settings-progress-speed" id="settings-progress-speed">0 KB/s</div>
+            </div>
+
+            <!-- Status message -->
+            <div class="settings-status-banner" id="settings-status-banner">
+              Tap "Update Sanctuary Now" to sync the newest features and assets from GitHub.
+            </div>
+
+            <!-- Primary 1-Click Update Action -->
+            <button class="settings-btn-primary" id="settings-update-now-btn">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">Update Sanctuary Now</span>
+            </button>
+
+            <!-- Secondary Actions -->
+            <div class="settings-sub-actions">
+              <button class="settings-btn-sub" id="settings-apk-download-btn">
+                📦 Download APK
+              </button>
+              <button class="settings-btn-sub" id="settings-rollback-btn">
+                ↺ Revert to Default
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Sensory & Interaction -->
+        <div class="settings-group">
+          <div class="settings-group-header">
+            <span class="settings-group-title">✨ Preferences</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <div class="settings-row-title">Gyroscope 3D Parallax</div>
+              <div class="settings-row-sub">Tilt device to adjust 3D celestial perspective</div>
+            </div>
+            <button class="settings-toggle-btn active" id="settings-gyro-toggle">ON</button>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <div class="settings-row-title">Persona Journey</div>
+              <div class="settings-row-sub">Replay cosmic onboarding & switch profile</div>
+            </div>
+            <button class="settings-btn-mini" id="settings-replay-intro-btn">Switch Persona</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Final Transmission Blackout Overlay -->
   <div id="blackout-screen">
     <div class="blackout-message-1" id="bo-msg1">Rest well, goodnight, Yangiee.</div>
@@ -4202,25 +4300,131 @@
     }
 
     function initGyroscope() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(state => {
+            if (state === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+              const txt = document.getElementById('gyro-text');
+              if (txt) txt.innerText = "GYRO ACTIVE";
+            }
+          })
+          .catch(console.error);
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+        const txt = document.getElementById('gyro-text');
+        if (txt) txt.innerText = "GYRO ACTIVE";
+      }
+    }
+
+    function initSettingsModal() {
+      const settingsModal = document.getElementById('settings-modal');
       const gyroBtn = document.getElementById('gyro-btn');
-      if (!gyroBtn) return;
-      gyroBtn.addEventListener('click', () => {
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-          DeviceOrientationEvent.requestPermission()
-            .then(state => {
-              if (state === 'granted') {
-                window.addEventListener('deviceorientation', handleOrientation);
-                const txt = document.getElementById('gyro-text');
-                if (txt) txt.innerText = "GYRO ACTIVE";
-              }
-            })
-            .catch(console.error);
-        } else {
-          window.addEventListener('deviceorientation', handleOrientation);
-          const txt = document.getElementById('gyro-text');
-          if (txt) txt.innerText = "GYRO ACTIVE";
-        }
-      });
+      const closeBtn = document.getElementById('settings-close-btn');
+      const updateNowBtn = document.getElementById('settings-update-now-btn');
+      const apkBtn = document.getElementById('settings-apk-download-btn');
+      const rollbackBtn = document.getElementById('settings-rollback-btn');
+      const gyroToggle = document.getElementById('settings-gyro-toggle');
+      const replayIntroBtn = document.getElementById('settings-replay-intro-btn');
+
+      function openSettings() {
+        updateSettingsDisplay();
+        if (settingsModal) settingsModal.classList.add('active');
+      }
+
+      function closeSettings() {
+        if (settingsModal) settingsModal.classList.remove('active');
+      }
+
+      function updateSettingsDisplay() {
+        const verInfo = window.AppUpdater ? window.AppUpdater.getVersionInfo() : null;
+        const currentVer = verInfo ? verInfo.currentVersion : (localStorage.getItem('gn_installed_version') || '1.0.5');
+        const isOta = verInfo ? verInfo.isUsingOta : false;
+
+        const badge = document.getElementById('settings-current-ver-badge');
+        const verVal = document.getElementById('settings-val-version');
+        const modeVal = document.getElementById('settings-val-mode');
+
+        const displayVer = currentVer.startsWith('v') ? currentVer : `v${currentVer}`;
+        if (badge) badge.textContent = displayVer;
+        if (verVal) verVal.textContent = displayVer;
+        if (modeVal) modeVal.textContent = isOta ? '⚡ Live OTA Updated' : '📦 Pre-bundled APK Assets';
+      }
+
+      if (gyroBtn) {
+        gyroBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openSettings();
+        });
+      }
+
+      if (closeBtn) closeBtn.addEventListener('click', closeSettings);
+      if (settingsModal) {
+        settingsModal.addEventListener('click', (e) => {
+          if (e.target === settingsModal) closeSettings();
+        });
+      }
+
+      if (updateNowBtn) {
+        updateNowBtn.addEventListener('click', () => {
+          const banner = document.getElementById('settings-status-banner');
+          const progressBox = document.getElementById('settings-progress-box');
+          if (banner) banner.textContent = 'Connecting to GitHub Releases… 🔄';
+          if (progressBox) progressBox.style.display = 'flex';
+
+          if (window.AppUpdater && typeof window.AppUpdater.performFullOneClickUpdate === 'function') {
+            window.AppUpdater.performFullOneClickUpdate();
+          } else if (window.AndroidHost && typeof window.AndroidHost.startOtaUpdate === 'function') {
+            window.AndroidHost.startOtaUpdate();
+          } else {
+            if (window.AppUpdater) window.AppUpdater.checkForUpdates(true);
+          }
+        });
+      }
+
+      if (apkBtn) {
+        apkBtn.addEventListener('click', () => {
+          if (window.AppUpdater && typeof window.AppUpdater.startApkUpdate === 'function') {
+            window.AppUpdater.startApkUpdate();
+          }
+        });
+      }
+
+      if (rollbackBtn) {
+        rollbackBtn.addEventListener('click', () => {
+          if (confirm('Revert sanctuary to original pre-bundled APK assets?')) {
+            if (window.AppUpdater && typeof window.AppUpdater.rollbackToBundled === 'function') {
+              window.AppUpdater.rollbackToBundled();
+            }
+          }
+        });
+      }
+
+      if (gyroToggle) {
+        let isGyroOn = true;
+        gyroToggle.addEventListener('click', () => {
+          isGyroOn = !isGyroOn;
+          gyroToggle.classList.toggle('active', isGyroOn);
+          gyroToggle.textContent = isGyroOn ? 'ON' : 'OFF';
+          if (isGyroOn) {
+            initGyroscope();
+          } else {
+            window.removeEventListener('deviceorientation', handleOrientation);
+          }
+        });
+      }
+
+      if (replayIntroBtn) {
+        replayIntroBtn.addEventListener('click', () => {
+          closeSettings();
+          if (typeof triggerIntroReplay === 'function') {
+            triggerIntroReplay();
+          } else {
+            localStorage.removeItem('starlight_persona');
+            window.location.reload();
+          }
+        });
+      }
     }
 
     function handleOrientation(event) {
@@ -5830,6 +6034,7 @@
       try { initInteractionEvents(); } catch (e) { console.error("initInteractionEvents", e); }
       try { initSleepSwitch(); } catch (e) { console.error("initSleepSwitch", e); }
       try { initGyroscope(); } catch (e) { console.error("initGyroscope", e); }
+      try { initSettingsModal(); } catch (e) { console.error("initSettingsModal", e); }
       try { masterLoop(); } catch (e) { console.error("masterLoop", e); }
 
       // Live clock — update immediately + every 10 seconds

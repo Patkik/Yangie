@@ -463,14 +463,37 @@ class MainActivity : AppCompatActivity() {
             if (release != null) {
                 updateManager.downloadAndApplyOta(release) { state ->
                     handleUpdateState(state, isStartup = false)
+                    if (state is KiroUpdateManager.UpdateState.OtaReady) {
+                        runOnUiThread {
+                            setupAssetLoader()
+                            loadSanctuaryUrl()
+                            Toast.makeText(context, "Updated to ${state.version}! ✨", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             } else {
-                updateManager.checkForUpdates(force = true) { state ->
-                    handleUpdateState(state, isStartup = false)
-                    if (state is KiroUpdateManager.UpdateState.Available) {
-                        updateManager.downloadAndApplyOta(state.release) { s ->
-                            handleUpdateState(s, isStartup = false)
+                performDirectUpdate()
+            }
+        }
+
+        @JavascriptInterface
+        fun performDirectUpdate() {
+            updateManager.checkForUpdates(force = true) { state ->
+                handleUpdateState(state, isStartup = false)
+                if (state is KiroUpdateManager.UpdateState.Available) {
+                    updateManager.downloadAndApplyOta(state.release) { s ->
+                        handleUpdateState(s, isStartup = false)
+                        if (s is KiroUpdateManager.UpdateState.OtaReady) {
+                            runOnUiThread {
+                                setupAssetLoader()
+                                loadSanctuaryUrl()
+                                Toast.makeText(context, "Updated to ${s.version}! ✨", Toast.LENGTH_SHORT).show()
+                            }
                         }
+                    }
+                } else if (state is KiroUpdateManager.UpdateState.UpToDate) {
+                    runOnUiThread {
+                        Toast.makeText(context, "You are on the latest version (${state.currentVersion}) ✨", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
