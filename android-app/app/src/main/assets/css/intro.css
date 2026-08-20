@@ -42,7 +42,8 @@
   right: 0;
   height: 11vh;
   background: #000;
-  z-index: 50;
+  z-index: 25;
+  pointer-events: none;
   transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -58,10 +59,12 @@
 
 .cinematic-letterbox-top.retracted {
   transform: translateY(-100%);
+  pointer-events: none !important;
 }
 
 .cinematic-letterbox-bottom.retracted {
   transform: translateY(100%);
+  pointer-events: none !important;
 }
 
 /* Act I: Minimalist Glowing HUD Boot Text */
@@ -111,7 +114,7 @@
 /* Act IV: Portals of Identity */
 .intro-portals-stage {
   position: relative;
-  z-index: 30;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -120,8 +123,8 @@
   width: 90%;
   opacity: 0;
   transform: translateY(24px) scale(0.95);
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
 }
 
 .intro-portals-stage.active {
@@ -136,6 +139,7 @@
   align-items: center;
   gap: 8px;
   text-align: center;
+  pointer-events: none;
 }
 
 .intro-stage-badge {
@@ -169,13 +173,15 @@
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   width: 100%;
+  pointer-events: auto;
 }
 
 /* Glassmorphic Portal Capsule Card */
 .portal-card {
   position: relative;
-  background: rgba(13, 22, 34, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 1001;
+  background: rgba(13, 22, 34, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 26px;
   padding: 22px 14px;
   display: flex;
@@ -185,11 +191,14 @@
   cursor: pointer;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   animation: portalFloat 4s ease-in-out infinite alternate;
   user-select: none;
+  -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto !important;
+  touch-action: manipulation;
 }
 
 .portal-card:nth-child(2) {

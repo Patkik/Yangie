@@ -160,12 +160,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Persona Selection Intro
   let introManager = null;
+  const revealDashboard = () => {
+    const appUi = document.getElementById('app-ui');
+    if (appUi) appUi.classList.add('visible');
+    const overlay = document.getElementById('intro-overlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
+      overlay.style.pointerEvents = 'none';
+    }
+  };
+
+  if (KiroState.get('hasCompletedIntro')) {
+    revealDashboard();
+  }
+
   try {
     introManager = new KiroIntroManager('intro-overlay', (persona) => {
-      document.getElementById('app-ui').classList.add('visible');
+      revealDashboard();
     });
   } catch (e) {
     console.error('Failed initializing KiroIntroManager:', e);
+    revealDashboard();
   }
 
   // Live Philippine Standard Time Clock

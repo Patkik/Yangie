@@ -58,8 +58,9 @@ class KiroStateManager extends StateEmitter {
         forest: 0,
         lofi: 0
       },
-      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.3',
-      isOtaActive: false
+      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.4',
+      isOtaActive: false,
+      hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true'
     };
 
     // Load persisted vitals if available
@@ -108,6 +109,10 @@ class KiroStateManager extends StateEmitter {
       return normalized;
     }
 
+    if (key === 'hasCompletedIntro') {
+      localStorage.setItem('kiro_intro_completed', String(value));
+    }
+
     this.state[key] = value;
     return value;
   }
@@ -123,7 +128,9 @@ class KiroStateManager extends StateEmitter {
   setPersona(persona) {
     const normalized = this.normalizePersona(persona);
     this.state.persona = normalized;
+    this.state.hasCompletedIntro = true;
     localStorage.setItem('starlight_persona', normalized);
+    localStorage.setItem('kiro_intro_completed', 'true');
     this.emit('persona:change', normalized);
   }
 

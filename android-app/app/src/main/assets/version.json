@@ -1,5 +1,5 @@
 {
-  "version": "1.2.3",
-  "updatedAt": "2026-08-21T01:29:00+08:00",
-  "releaseNotes": "State-Write Interceptor for Token Normalization & Espresso UI Integration Test Suite (KiroWebViewTest.kt)"
+  "version": "1.2.4",
+  "updatedAt": "2026-08-21T01:50:00+08:00",
+  "releaseNotes": "Touch-Action & Gesture Hardening: Guaranteed Multi-Touch Persona Selection & Fail-Safe Dashboard Transition"
 }

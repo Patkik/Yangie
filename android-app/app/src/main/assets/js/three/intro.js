@@ -533,35 +533,36 @@ export class KiroIntroManager {
     const patrickCard = document.getElementById('portal-patrick');
     const yangieeCard = document.getElementById('portal-yangiee');
 
-    if (patrickCard) {
-      patrickCard.addEventListener('mouseenter', () => synthEngine.playPatrickChord());
-      patrickCard.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.selectPersona('pat', e);
-      });
-      const patBtn = patrickCard.querySelector('.portal-choose-btn');
-      if (patBtn) {
-        patBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.selectPersona('pat', e);
-        });
-      }
-    }
+    const setupInteractivePortal = (card, btnSelector, persona, chordFn) => {
+      if (!card) return;
 
-    if (yangieeCard) {
-      yangieeCard.addEventListener('mouseenter', () => synthEngine.playYangieeChord());
-      yangieeCard.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.selectPersona('yang', e);
-      });
-      const yangBtn = yangieeCard.querySelector('.portal-choose-btn');
-      if (yangBtn) {
-        yangBtn.addEventListener('click', (e) => {
+      card.addEventListener('mouseenter', () => chordFn());
+
+      const handleTrigger = (e) => {
+        if (e && e.cancelable && e.type === 'touchend') {
+          e.preventDefault();
+        }
+        if (e && e.stopPropagation) {
           e.stopPropagation();
-          this.selectPersona('yang', e);
-        });
+        }
+        this.selectPersona(persona, e);
+      };
+
+      // Handle card clicks, touch releases, and pointer taps
+      card.addEventListener('click', handleTrigger);
+      card.addEventListener('touchend', handleTrigger);
+      card.addEventListener('pointerup', handleTrigger);
+
+      const btn = card.querySelector(btnSelector);
+      if (btn) {
+        btn.addEventListener('click', handleTrigger);
+        btn.addEventListener('touchend', handleTrigger);
+        btn.addEventListener('pointerup', handleTrigger);
       }
-    }
+    };
+
+    setupInteractivePortal(patrickCard, '.portal-choose-btn', 'pat', () => synthEngine.playPatrickChord());
+    setupInteractivePortal(yangieeCard, '.portal-choose-btn', 'yang', () => synthEngine.playYangieeChord());
   }
 
   /* Selection: Mini-Supernova & State Transition */
@@ -569,34 +570,71 @@ export class KiroIntroManager {
     if (this.isSelecting) return;
     this.isSelecting = true;
 
-    // Shield screen from clicks, dragging, or trail leaks during transition
-    document.body.style.pointerEvents = 'none';
-
     // Normalize persona token ('pat' or 'yang')
     const normalized = (persona === 'yang' || persona === 'yangiee') ? 'yang' : 'pat';
 
+    // 1. Instantly update core state
     KiroState.setPersona(normalized);
     KiroState.set('hasCompletedIntro', true);
 
-    // Audio Supernova Burst & Fade Background Hum
-    synthEngine.stopCosmicAtmosphere(1.0);
-    synthEngine.playSupernovaSound();
+    // 2. Play Audio FX
+    try {
+      synthEngine.stopCosmicAtmosphere(0.5);
+      synthEngine.playSupernovaSound();
+    } catch (e) {
+      console.warn('Audio play error on selection:', e);
+    }
 
-    // Trigger 2D/3D Radial Stardust Explosion
-    const target = event && event.currentTarget ? event.currentTarget : (document.getElementById(normalized === 'pat' ? 'portal-patrick' : 'portal-yangiee') || document.body);
-    const rect = target.getBoundingClientRect();
-    const originX = rect.left + rect.width / 2;
-    const originY = rect.top + rect.height / 2;
+    // 3. Immediately reveal main dashboard in background
+    const appUi = document.getElementById('app-ui');
+    if (appUi) {
+      appUi.classList.add('visible');
+    }
+
+    // 4. Visual Card Selection Pop & Highlight
+    const targetCard = document.getElementById(normalized === 'pat' ? 'portal-patrick' : 'portal-yangiee');
+    if (targetCard) {
+      targetCard.style.transform = 'scale(1.08)';
+      targetCard.style.borderColor = normalized === 'pat' ? '#4EC9B0' : '#FFB6C1';
+      targetCard.style.boxShadow = normalized === 'pat' 
+        ? '0 0 35px rgba(78, 201, 176, 0.8)' 
+        : '0 0 35px rgba(255, 182, 193, 0.8)';
+    }
+
+    // 5. Calculate particle origin coordinates
+    let originX = window.innerWidth / 2;
+    let originY = window.innerHeight / 2;
+    if (targetCard) {
+      const rect = targetCard.getBoundingClientRect();
+      originX = rect.left + rect.width / 2;
+      originY = rect.top + rect.height / 2;
+    }
     const particleColor = normalized === 'pat' ? '#4EC9B0' : '#FFB6C1';
 
-    this.triggerSupernovaBurst(originX, originY, particleColor, () => {
+    // 6. Fade out intro overlay smoothly
+    if (this.overlay) {
       this.overlay.classList.add('hidden');
-      setTimeout(() => {
-        this.dispose();
-        document.body.style.pointerEvents = 'auto';
-        if (this.onComplete) this.onComplete(normalized);
-      }, 700);
-    });
+      this.overlay.style.opacity = '0';
+      this.overlay.style.pointerEvents = 'none';
+    }
+
+    // 7. Transition with Guaranteed Safety Timer (Never freezes)
+    let hasFinalized = false;
+    const finalizeTransition = () => {
+      if (hasFinalized) return;
+      hasFinalized = true;
+
+      document.body.style.pointerEvents = 'auto';
+      this.dispose();
+
+      if (this.onComplete) {
+        this.onComplete(normalized);
+      }
+    };
+
+    // Trigger supernova particles and guarantee transition within 450ms
+    setTimeout(finalizeTransition, 450);
+    this.triggerSupernovaBurst(originX, originY, particleColor, finalizeTransition);
   }
 
   triggerSupernovaBurst(x, y, colorHex, doneCallback) {
@@ -605,15 +643,15 @@ export class KiroIntroManager {
       return;
     }
 
-    const count = 160;
+    const count = 120;
     this.supernovaParticles = [];
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 5 + Math.random() * 20;
-      const size = 2 + Math.random() * 6;
+      const speed = 6 + Math.random() * 18;
+      const size = 2.5 + Math.random() * 5.5;
       const life = 1.0;
-      const decay = 0.015 + Math.random() * 0.025;
+      const decay = 0.025 + Math.random() * 0.035;
 
       this.supernovaParticles.push({
         x,
@@ -628,7 +666,7 @@ export class KiroIntroManager {
     }
 
     const renderBurst = () => {
-      if (!this.supernovaCtx) return;
+      if (!this.supernovaCtx || this.isDisposed) return;
       this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
 
       let aliveCount = 0;
@@ -638,24 +676,26 @@ export class KiroIntroManager {
           aliveCount++;
           p.x += p.vx;
           p.y += p.vy;
-          p.vx *= 0.96;
-          p.vy *= 0.96;
+          p.vx *= 0.94;
+          p.vy *= 0.94;
           p.life -= p.decay;
 
           this.supernovaCtx.beginPath();
-          this.supernovaCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+          this.supernovaCtx.arc(p.x, p.y, Math.max(0.5, p.size * p.life), 0, Math.PI * 2);
           this.supernovaCtx.fillStyle = p.color;
           this.supernovaCtx.globalAlpha = Math.max(0, p.life);
-          this.supernovaCtx.shadowBlur = 12;
+          this.supernovaCtx.shadowBlur = 10;
           this.supernovaCtx.shadowColor = p.color;
           this.supernovaCtx.fill();
         }
       }
 
-      if (aliveCount > 0) {
+      if (aliveCount > 0 && !this.isDisposed) {
         requestAnimationFrame(renderBurst);
       } else {
-        this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
+        if (this.supernovaCtx) {
+          this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
+        }
         if (doneCallback) doneCallback();
       }
     };
