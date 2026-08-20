@@ -1,5 +1,5 @@
 {
-  "version": "1.2.1",
-  "updatedAt": "2026-08-21T00:55:00+08:00",
-  "releaseNotes": "Non-Blocking C++ Audio Swoosh, Standardized Identity Tokens (pat/yang), Glassmorphic Choose Buttons & Screen Shielding"
+  "version": "1.2.2",
+  "updatedAt": "2026-08-21T01:05:00+08:00",
+  "releaseNotes": "Incremental Build Optimization: OutputFile Marker Caching for 0ms verifyKiroAssets UP-TO-DATE Execution"
 }

@@ -10,8 +10,8 @@ android {
         applicationId = "com.starlight.sanctuary"
         minSdk = 24
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.2.1"
+        versionCode = 10
+        versionName = "1.2.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,6 +46,9 @@ abstract class VerifyKiroAssetsTask : DefaultTask() {
     @get:InputDirectory
     abstract val assetsDir: DirectoryProperty
 
+    @get:OutputFile
+    abstract val markerFile: RegularFileProperty
+
     @TaskAction
     fun verify() {
         val dir = assetsDir.get().asFile
@@ -62,6 +65,10 @@ abstract class VerifyKiroAssetsTask : DefaultTask() {
                 throw GradleException("❌ Critical Kiro module missing or empty: assets/$path")
             }
         }
+
+        val marker = markerFile.get().asFile
+        marker.parentFile.mkdirs()
+        marker.writeText("VERIFIED: ${System.currentTimeMillis()}")
         println("✨ All Kiro modules verified and healthy for build!")
     }
 }
@@ -70,6 +77,7 @@ tasks.register<VerifyKiroAssetsTask>("verifyKiroAssets") {
     group = "verification"
     description = "Verifies that all modular ES6 client assets are in place before building."
     assetsDir.set(layout.projectDirectory.dir("src/main/assets"))
+    markerFile.set(layout.buildDirectory.file("intermediates/kiro_assets/verified.txt"))
 }
 
 tasks.named("preBuild") {
