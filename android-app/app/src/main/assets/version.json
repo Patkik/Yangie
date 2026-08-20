@@ -1,5 +1,5 @@
 {
-  "version": "1.0.8",
-  "updatedAt": "2026-08-20T23:55:00+08:00",
-  "releaseNotes": "Fix CI cross-platform Java home configuration & automated release build"
+  "version": "1.0.9",
+  "updatedAt": "2026-08-20T23:59:00+08:00",
+  "releaseNotes": "Grant write permissions to GitHub Actions release workflow for automated APK releases"
 }
