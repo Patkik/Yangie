@@ -5860,9 +5860,14 @@
        GITHUB AUTOMATED SYNC & LIVE UPDATE ENGINE
        ====================================================================== */
     const GITHUB_REPO_OWNER = 'Patkik';
-    const GITHUB_REPO_NAME = 'GoodnightYangiee';
+    const GITHUB_REPO_NAME = 'Yangie';
 
     async function checkGitHubSyncUpdate() {
+      if (window.AppUpdater && typeof window.AppUpdater.checkForUpdates === 'function') {
+        window.AppUpdater.checkForUpdates(false);
+        return;
+      }
+
       try {
         const rawUrl = `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/version.json?t=${Date.now()}`;
         const res = await fetch(rawUrl, { cache: 'no-store' });
@@ -5881,21 +5886,6 @@
       } catch (e) {
         console.warn('GitHub version check warning:', e);
       }
-
-      try {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/commits/main`;
-        const res2 = await fetch(apiUrl, { cache: 'no-store' });
-        if (res2.ok) {
-          const commitData = await res2.json();
-          const latestSha = commitData.sha ? commitData.sha.substring(0, 7) : null;
-          const storedSha = localStorage.getItem('gn_sync_commit');
-          if (storedSha && latestSha && storedSha !== latestSha) {
-            showGitHubSyncBanner('New update pushed to GitHub!');
-          }
-        }
-      } catch(e2) {
-        console.warn('GitHub API commit check warning:', e2);
-      }
     }
 
     function showGitHubSyncBanner(notes) {
@@ -5912,9 +5902,14 @@
       const banner = document.getElementById('github-sync-banner');
       if (banner) banner.classList.remove('visible');
 
+      if (window.AppUpdater && typeof window.AppUpdater.checkForUpdates === 'function') {
+        window.AppUpdater.checkForUpdates(true);
+        return;
+      }
+
       if (window.AndroidHost && typeof window.AndroidHost.checkForUpdates === 'function') {
         if (isManualClick) showPopToast('Checking GitHub for OTA updates… 🔄', 3000);
-        window.AndroidHost.checkForUpdates();
+        window.AndroidHost.checkForUpdates(true);
         return;
       }
 

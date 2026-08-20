@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.webkit.*
 import android.widget.Toast
@@ -20,10 +21,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
+import org.json.JSONObject
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -31,11 +34,14 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private const val NOTIFICATION_CHANNEL_ID = "hakdog_notifications"
+        private const val REQUEST_CODE_INSTALL_PERMISSION = 102
     }
 
     private lateinit var webView: WebView
     private lateinit var assetLoader: WebViewAssetLoader
     private lateinit var updateManager: KiroUpdateManager
+
+    private var pendingApkToInstall: File? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,31 +124,149 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Checks for new OTA updates silently in the background on startup.
+     * Checks for new updates silently in the background on startup.
      */
     private fun performStartupUpdateCheck() {
-        updateManager.checkForUpdates(forceCheck = false) { result ->
-            when (result) {
-                is KiroUpdateManager.UpdateResult.Success -> {
-                    Log.i(TAG, "Startup check: New OTA update ${result.version} downloaded and extracted.")
-                    runOnUiThread {
-                        sendSystemNotification(
-                            "Celestial Update Ready! ✨",
-                            "Version ${result.version} is installed. Tap 'Sync' or reopen to apply."
-                        )
-                        // Trigger in-app banner if UI is active
-                        webView.evaluateJavascript(
-                            "javascript:if(typeof showGitHubSyncBanner === 'function') showGitHubSyncBanner('v${result.version} ready! Tap to reload.');",
-                            null
-                        )
+        updateManager.checkForUpdates(force = false) { state ->
+            handleUpdateState(state, isStartup = true)
+        }
+    }
+
+    private fun handleUpdateState(state: KiroUpdateManager.UpdateState, isStartup: Boolean = false) {
+        val eventJson = JSONObject()
+
+        when (state) {
+            is KiroUpdateManager.UpdateState.Idle -> {
+                eventJson.put("type", "IDLE")
+            }
+            is KiroUpdateManager.UpdateState.Checking -> {
+                eventJson.put("type", "CHECKING")
+            }
+            is KiroUpdateManager.UpdateState.Available -> {
+                eventJson.put("type", "AVAILABLE")
+                eventJson.put("release", state.release.toJson())
+                eventJson.put("isNewer", state.isNewer)
+
+                if (isStartup && state.isNewer) {
+                    sendSystemNotification(
+                        "Celestial Update Available! ✨",
+                        "Version ${state.release.tagName} is available. Tap to sync."
+                    )
+                }
+            }
+            is KiroUpdateManager.UpdateState.UpToDate -> {
+                eventJson.put("type", "UP_TO_DATE")
+                eventJson.put("currentVersion", state.currentVersion)
+            }
+            is KiroUpdateManager.UpdateState.Downloading -> {
+                eventJson.put("type", "DOWNLOADING")
+                eventJson.put("target", state.target)
+                eventJson.put("progress", JSONObject().apply {
+                    put("bytesRead", state.progress.bytesRead)
+                    put("totalBytes", state.progress.totalBytes)
+                    put("percent", state.progress.percent)
+                    put("speedBytesPerSec", state.progress.speedBytesPerSec)
+                })
+            }
+            is KiroUpdateManager.UpdateState.Extracting -> {
+                eventJson.put("type", "EXTRACTING")
+            }
+            is KiroUpdateManager.UpdateState.OtaReady -> {
+                eventJson.put("type", "OTA_READY")
+                eventJson.put("version", state.version)
+                eventJson.put("releaseNotes", state.releaseNotes)
+
+                sendSystemNotification(
+                    "Celestial Update Ready! ✨",
+                    "Version ${state.version} is extracted and ready to reload."
+                )
+            }
+            is KiroUpdateManager.UpdateState.ApkReady -> {
+                eventJson.put("type", "APK_READY")
+                eventJson.put("version", state.version)
+                eventJson.put("apkPath", state.apkFile.absolutePath)
+
+                promptInstallApk(state.apkFile)
+            }
+            is KiroUpdateManager.UpdateState.Error -> {
+                eventJson.put("type", "ERROR")
+                eventJson.put("code", state.code)
+                eventJson.put("message", state.message)
+            }
+        }
+
+        dispatchUpdateEventToWeb(eventJson.toString())
+    }
+
+    private fun dispatchUpdateEventToWeb(jsonString: String) {
+        runOnUiThread {
+            val escaped = jsonString.replace("\\", "\\\\").replace("'", "\\'")
+            val js = """
+                (function() {
+                    try {
+                        var data = JSON.parse('$escaped');
+                        if (window.AppUpdater && typeof window.AppUpdater.onNativeEvent === 'function') {
+                            window.AppUpdater.onNativeEvent(data);
+                        }
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new CustomEvent('app-update-event', { detail: data }));
+                        }
+                    } catch(e) {
+                        console.error('Error dispatching update event:', e);
+                    }
+                })();
+            """.trimIndent()
+            webView.evaluateJavascript(js, null)
+        }
+    }
+
+    /**
+     * Prompts the Android Package Installer for an APK binary via FileProvider.
+     */
+    fun promptInstallApk(apkFile: File) {
+        runOnUiThread {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (!packageManager.canRequestPackageInstalls()) {
+                        pendingApkToInstall = apkFile
+                        Toast.makeText(this, "Please allow permission to install updates", Toast.LENGTH_LONG).show()
+                        val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                            data = Uri.parse("package:$packageName")
+                        }
+                        startActivityForResult(intent, REQUEST_CODE_INSTALL_PERMISSION)
+                        return@runOnUiThread
                     }
                 }
-                is KiroUpdateManager.UpdateResult.UpToDate -> {
-                    Log.d(TAG, "Startup check: App is already up-to-date (${updateManager.getCurrentVersion()}).")
+
+                val apkUri = FileProvider.getUriForFile(
+                    this,
+                    "${applicationContext.packageName}.fileprovider",
+                    apkFile
+                )
+
+                val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(apkUri, "application/vnd.android.package-archive")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 }
-                is KiroUpdateManager.UpdateResult.Error -> {
-                    Log.w(TAG, "Startup OTA update check warning: ${result.message}")
+                startActivity(installIntent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to launch APK installer", e)
+                Toast.makeText(this, "Install failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_INSTALL_PERMISSION) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.canRequestPackageInstalls()) {
+                pendingApkToInstall?.let {
+                    promptInstallApk(it)
+                    pendingApkToInstall = null
                 }
+            } else {
+                Toast.makeText(this, "Permission to install packages was denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -306,35 +430,65 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun isUsingOtaUpdate(): Boolean {
-            return updateManager.hasValidLocalUpdate()
+            return updateManager.isUsingOta()
         }
 
-        /**
-         * Triggered manually from the web UI (e.g. Sync button).
-         */
         @JavascriptInterface
-        fun checkForUpdates() {
-            updateManager.checkForUpdates(forceCheck = true) { result ->
-                runOnUiThread {
-                    when (result) {
-                        is KiroUpdateManager.UpdateResult.Success -> {
-                            Toast.makeText(context, "Update ${result.version} downloaded! Applying...", Toast.LENGTH_SHORT).show()
-                            setupAssetLoader()
-                            loadSanctuaryUrl()
+        fun getAppVersionInfo(): String {
+            val obj = JSONObject().apply {
+                put("currentVersion", updateManager.getCurrentVersion())
+                put("nativeVersion", updateManager.getNativeApkVersion())
+                put("isUsingOta", updateManager.isUsingOta())
+                put("lastCheckTimestamp", updateManager.getLastCheckTime())
+                put("defaultRepo", KiroUpdateManager.DEFAULT_REPO)
+            }
+            return obj.toString()
+        }
+
+        @JavascriptInterface
+        fun getLatestReleaseInfo(): String {
+            return updateManager.cachedRelease?.toJson()?.toString() ?: "{}"
+        }
+
+        @JavascriptInterface
+        fun checkForUpdates(force: Boolean) {
+            updateManager.checkForUpdates(force = force) { state ->
+                handleUpdateState(state, isStartup = false)
+            }
+        }
+
+        @JavascriptInterface
+        fun startOtaUpdate() {
+            val release = updateManager.cachedRelease
+            if (release != null) {
+                updateManager.downloadAndApplyOta(release) { state ->
+                    handleUpdateState(state, isStartup = false)
+                }
+            } else {
+                updateManager.checkForUpdates(force = true) { state ->
+                    handleUpdateState(state, isStartup = false)
+                    if (state is KiroUpdateManager.UpdateState.Available) {
+                        updateManager.downloadAndApplyOta(state.release) { s ->
+                            handleUpdateState(s, isStartup = false)
                         }
-                        is KiroUpdateManager.UpdateResult.UpToDate -> {
-                            Toast.makeText(context, "You are on the latest version (${updateManager.getCurrentVersion()}) ✨", Toast.LENGTH_SHORT).show()
-                            webView.evaluateJavascript(
-                                "javascript:if(typeof showPopToast === 'function') showPopToast('App is fully up-to-date! ✨', 3000);",
-                                null
-                            )
-                        }
-                        is KiroUpdateManager.UpdateResult.Error -> {
-                            Toast.makeText(context, "Update check failed: ${result.message}", Toast.LENGTH_SHORT).show()
-                            webView.evaluateJavascript(
-                                "javascript:if(typeof showPopToast === 'function') showPopToast('Offline / could not check update', 3000);",
-                                null
-                            )
+                    }
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun startApkUpdate() {
+            val release = updateManager.cachedRelease
+            if (release != null && release.hasApk) {
+                updateManager.downloadApk(release) { state ->
+                    handleUpdateState(state, isStartup = false)
+                }
+            } else {
+                updateManager.checkForUpdates(force = true) { state ->
+                    handleUpdateState(state, isStartup = false)
+                    if (state is KiroUpdateManager.UpdateState.Available && state.release.hasApk) {
+                        updateManager.downloadApk(state.release) { s ->
+                            handleUpdateState(s, isStartup = false)
                         }
                     }
                 }
@@ -346,12 +500,13 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 setupAssetLoader()
                 loadSanctuaryUrl()
+                Toast.makeText(context, "Sanctuary refreshed ✨", Toast.LENGTH_SHORT).show()
             }
         }
 
         @JavascriptInterface
         fun clearOtaUpdates() {
-            updateManager.clearUpdates()
+            updateManager.rollbackToBundled()
             runOnUiThread {
                 setupAssetLoader()
                 loadSanctuaryUrl()
@@ -360,4 +515,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
