@@ -48,7 +48,7 @@ export const AppUpdater = {
   performFullUpdate: function() {
     const banner = document.getElementById('settings-status-banner');
     const pBox = document.getElementById('settings-progress-box');
-    if (banner) banner.textContent = 'Connecting to GitHub Releases… 🔄';
+    if (banner) banner.textContent = 'Connecting to GitHub Releases…';
     if (pBox) pBox.style.display = 'flex';
 
     if (this.isNative() && typeof window.AndroidHost.performDirectUpdate === 'function') {
@@ -70,11 +70,11 @@ export const AppUpdater = {
 
       const banner = document.getElementById('settings-status-banner');
       if (remote !== current) {
-        if (banner) banner.textContent = `New update ${rel.tag_name} found! Refreshing… ✨`;
+        if (banner) banner.textContent = `New update ${rel.tag_name} found! Refreshing…`;
         localStorage.setItem('gn_installed_version', rel.tag_name);
         setTimeout(() => window.location.reload(true), 1200);
       } else {
-        if (banner) banner.textContent = `Sanctuary is on the latest version (v${current}) ✨`;
+        if (banner) banner.textContent = `Sanctuary is on the latest version (v${current})`;
         const pBox = document.getElementById('settings-progress-box');
         if (pBox) pBox.style.display = 'none';
       }
@@ -94,15 +94,15 @@ export const AppUpdater = {
 
     switch (event.type) {
       case 'CHECKING':
-        if (banner) banner.textContent = 'Checking for updates on GitHub… 🔄';
+        if (banner) banner.textContent = 'Checking for updates on GitHub…';
         break;
 
       case 'AVAILABLE':
-        if (banner) banner.textContent = `Update ${event.release.tagName} available! Downloading… ⚡`;
+        if (banner) banner.textContent = `Update ${event.release.tagName} available! Downloading…`;
         break;
 
       case 'UP_TO_DATE':
-        if (banner) banner.textContent = `You are on the latest version (${event.currentVersion}) ✨`;
+        if (banner) banner.textContent = `You are on the latest version (${event.currentVersion})`;
         if (pBox) pBox.style.display = 'none';
         break;
 
@@ -117,7 +117,7 @@ export const AppUpdater = {
         break;
 
       case 'OTA_READY':
-        if (banner) banner.textContent = `Update ${event.version} installed! Reloading sanctuary… ✨`;
+        if (banner) banner.textContent = `Update ${event.version} installed! Reloading sanctuary…`;
         break;
 
       case 'ERROR':
@@ -288,7 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
           clearInterval(sleepTimer);
           const isSleeping = !KiroState.get('isSleeping');
           KiroState.setSleep(isSleeping);
-          sleepBtn.querySelector('.btn-text').textContent = isSleeping ? 'Wake Kiro ✨' : 'Hold to Sleep 🌙';
+          sleepBtn.querySelector('.btn-text').innerHTML = isSleeping 
+            ? '<svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg> Wake Kiro' 
+            : '<svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg> Hold to Sleep';
           document.getElementById('app-ui').classList.toggle('dissipated', isSleeping);
         }
       }, 50);

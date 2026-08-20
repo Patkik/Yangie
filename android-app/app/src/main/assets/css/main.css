@@ -380,8 +380,24 @@ body {
   background: transparent;
   border: none;
   color: #A6ADC8;
-  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.settings-close-btn:hover {
+  color: #FFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-close-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .settings-group {
@@ -416,6 +432,56 @@ body {
   transform: scale(0.97);
 }
 
+/* Inline Vector SVGs & Icons */
+.inline-svg-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  flex-shrink: 0;
+}
+
+.inline-svg-icon.spark-icon {
+  width: 11px;
+  height: 11px;
+  color: var(--color-mint);
+  margin: 0 2px;
+}
+
+.inline-svg-icon.heart-icon {
+  color: var(--color-pink-blush);
+}
+
+.inline-svg-icon.moon-icon {
+  color: var(--color-lavender);
+}
+
+.inline-svg-icon.galaxy-icon {
+  color: var(--color-mint);
+}
+
+.btn-svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  margin: 0 auto 3px auto;
+  color: var(--color-cream);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+}
+
+.action-pill-btn:hover .btn-svg,
+.action-pill-btn.active .btn-svg {
+  color: var(--color-mint);
+  transform: scale(1.18);
+}
+
+.btn-svg-inline {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -424,3 +490,4 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+

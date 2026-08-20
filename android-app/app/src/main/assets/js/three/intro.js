@@ -30,7 +30,10 @@ export class KiroIntroManager {
   render() {
     this.overlay.innerHTML = `
       <div class="intro-content">
-        <div class="intro-badge">✨ Starlight Haven v2.0</div>
+        <div class="intro-badge">
+          <svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
+          Starlight Haven v2.0
+        </div>
         <h1 class="intro-title">Welcome to Kiro's Sanctuary</h1>
         <p class="intro-subtitle">Select your celestial persona to calibrate the cockpit dashboard and begin your cosmic journey.</p>
         
@@ -66,7 +69,8 @@ export class KiroIntroManager {
         </div>
 
         <button class="intro-start-btn" id="intro-enter-btn">
-          Enter Space Capsule 🚀
+          <svg class="btn-svg-inline" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5s-5 3.5-5 10c0 2 1 4 1.5 5h7c.5-1 1.5-3 1.5-5 0-6.5-5-10-5-10zm-1.5 16h3L12 21.5l-1.5-3zM5 16.5s-.5 2 1 4 4-1 4-1-1.5-2.5-2-3-3 0-3 0zm14 0s.5 2-1 4-4-1-4-1 1.5-2.5 2-3 3 0 3 0z"/></svg>
+          <span>Enter Space Capsule</span>
         </button>
       </div>
     `;

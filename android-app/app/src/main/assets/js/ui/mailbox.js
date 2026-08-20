@@ -65,9 +65,14 @@ export class StarlightMessenger {
               Starlight Mailbox
               <div class="connection-dot"></div>
             </div>
-            <div class="mailbox-sub">🛰️ Under the same sky • 938 km apart</div>
+            <div class="mailbox-sub">
+              <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7l5 5m-2-7l4 4-1.5 1.5L14.5 6 16 4.5zM2 22l6-6m2-2l4-4-5-5-4 4 5 5z"/></svg>
+              Under the same sky • 938 km apart
+            </div>
           </div>
-          <button class="settings-close-btn" id="mailbox-close-btn">✕</button>
+          <button class="settings-close-btn" id="mailbox-close-btn" aria-label="Close Mailbox">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
         <div class="mailbox-feed" id="mailbox-feed"></div>
@@ -149,7 +154,7 @@ export class StarlightMessenger {
 
     if (window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
       const sender = this.currentSender === 'patrick' ? 'Patrick' : 'Yangiee';
-      window.AndroidHost.sendNotification(`💌 Note from ${sender}`, text);
+      window.AndroidHost.sendNotification(`Note from ${sender}`, text);
     }
   }
 
@@ -253,7 +258,7 @@ export class StarlightMessenger {
   loadMockFeed() {
     const welcomes = [
       { id: 'm1', sender: 'patrick', content: "Hey! Did you see Kiro floating? He looks so happy today.", timestamp: "10:14 AM", reactions: ['star'] },
-      { id: 'm2', sender: 'yangiee', content: "I know! I fed him a strawberry donut earlier and his sparkles went crazy 💖", timestamp: "10:15 AM", reactions: ['heart'] },
+      { id: 'm2', sender: 'yangiee', content: "I know! I fed him a strawberry donut earlier and his sparkles went crazy!", timestamp: "10:15 AM", reactions: ['heart'] },
       { id: 'm3', sender: 'patrick', content: "Let's put on the Lo-Fi synth, I think it's storming over here.", timestamp: "10:16 AM", reactions: ['moon'] }
     ];
 

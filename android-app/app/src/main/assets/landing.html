@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hakdog — Celestial Sanctuary ✦ Installation & Digital Gateway</title>
+  <title>Hakdog — Celestial Sanctuary • Installation & Digital Gateway</title>
   <meta name="theme-color" content="#1E1E2E">
   <link rel="icon" type="image/png" href="logo.png">
 
@@ -105,6 +105,17 @@
       color: var(--aurora-emerald);
       text-transform: uppercase;
       margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .inline-svg {
+      width: 14px;
+      height: 14px;
+      vertical-align: middle;
+      display: inline-block;
     }
 
     /* Live Release Badge */
@@ -249,12 +260,15 @@
       margin-top: 24px;
       padding: 14px 18px;
       background: rgba(148, 226, 213, 0.1);
-      border: 1px stroke var(--aurora-emerald);
+      border: 1px solid var(--aurora-emerald);
       border-radius: 16px;
       font-size: 11px;
       line-height: 1.5;
       color: var(--aurora-emerald);
       display: none;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
     }
   </style>
 </head>
@@ -266,7 +280,11 @@
     <img src="icon-192.png" class="brand-logo-glow" alt="Hakdog Sanctuary Logo" onerror="this.onerror=null; this.src='logo.png';" />
     
     <h1 class="gateway-title">HAKDOG SANCTUARY</h1>
-    <div class="gateway-sub">Celestial Gateway for Yangiee ✦ Always Up-To-Date</div>
+    <div class="gateway-sub">
+      Celestial Gateway for Yangiee 
+      <svg class="inline-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
+      Always Up-To-Date
+    </div>
 
     <!-- Live Version Badge from GitHub Releases API -->
     <div class="release-badge" id="release-badge">
@@ -292,7 +310,7 @@
           <circle cx="12" cy="12" r="10"/>
           <polygon points="10 8 16 12 10 16 10 8"/>
         </svg>
-        <span>Launch Instant Web Sanctuary 🌌</span>
+        <span>Launch Instant Web Sanctuary</span>
       </a>
     </div>
 
@@ -309,7 +327,10 @@
 
     <!-- PWA Install Hint -->
     <div id="pwa-banner" class="pwa-banner">
-      💡 <strong>Instant Home Screen App:</strong> Tap your browser menu & select <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong> for an offline native app experience!
+      <svg class="inline-svg" style="flex-shrink: 0; width: 18px; height: 18px;" viewBox="0 0 24 24" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
+      <div>
+        <strong>Instant Home Screen App:</strong> Tap your browser menu & select <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong> for an offline native app experience!
+      </div>
     </div>
   </div>
 
@@ -344,7 +365,7 @@
         console.warn('GitHub API offline or rate-limited, using fallback release URL:', err);
         versionText.innerText = 'LATEST RELEASE: LIVE ON GITHUB';
         apkBtn.href = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
-        apkBtnText.innerText = 'Download Latest APK from GitHub 🚀';
+        apkBtnText.innerText = 'Download Latest APK from GitHub';
       }
     }
 
