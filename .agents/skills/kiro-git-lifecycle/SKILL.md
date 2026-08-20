@@ -17,15 +17,19 @@ description: Automated Git Lifecycle Integration, two-stage staging and push ver
 2. **Verification Phase (Dry Run & Self-Healing)**:
    - Execute programmatic validations (e.g. `./gradlew assembleDebug` for Android/Kotlin or JS/CSS syntax checks).
    - If the compiler fails, read the stack trace, fix the bug automatically, and retry until exit code is 0.
-3. **Push Phase (Git Sync)**:
-   - Immediately stage, commit, and push to GitHub:
+3. **Push Phase & Automated Tag Iteration (Git Sync)**:
+   - Automatically determine the next SemVer patch tag (`v1.0.X`).
+   - Sync the version number in `version.json`, `index.html` badge, `KiroState` default, and `build.gradle.kts`.
+   - Stage, commit, tag, and push to GitHub:
      ```bash
      git add .
-     git commit -m "feat(scope): concise description"
-     git push origin main
+     git commit -m "feat/fix(scope): concise description"
+     git tag -a v1.0.X -m "Release v1.0.X: concise description"
+     git push origin main && git push origin v1.0.X
      ```
 4. **Confirmation Phase**:
-   - Provide a 2-sentence visual overview of the integrated features and print the short Git commit hash.
+   - Provide a 2-sentence visual overview of the integrated features.
+   - Print the newly tagged release version (e.g. `v1.0.6`) and short Git commit hash (`git rev-parse --short HEAD`).
 
 ---
 

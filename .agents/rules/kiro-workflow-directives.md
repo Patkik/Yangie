@@ -13,19 +13,24 @@ You must follow this lifecycle loop for every file modification, bugfix, or feat
 - For any native Android (`.kt`, `.xml`, `build.gradle.kts`) modifications, run `./gradlew assembleDebug` to test compilation.
 - **Self-Healing Loop**: If the compiler returns an error, immediately inspect the stack trace, fix the root cause, and re-compile until the build passes with exit code 0.
 
-### C. Push Phase (Git Sync)
-- Once verified, stage the modified files: `git add <files>`.
-- Commit with conventional commit scopes:
-  - `feat(ui): ...`
-  - `feat(audio): ...`
-  - `feat(three): ...`
-  - `fix(updater): ...`
-  - `chore(security): ...`
-- Push immediately to remote: `git push origin main`.
+### C. Push Phase & Automated Tag Iteration (Mandatory)
+Whenever any update, bugfix, or feature is pushed, the agent MUST automatically iterate the SemVer release tag:
+1. **Version Calculation**: Retrieve the current tag (`git tag -l "v*" --sort=-v:refname` or `version.json`) and increment the patch version (e.g. `v1.0.5` ➔ `v1.0.6`).
+2. **Version Synchronization**: Update the version number across:
+   - `android-app/app/src/main/assets/version.json`
+   - `android-app/app/src/main/assets/index.html` (Badge `settings-current-ver-badge` & `settings-val-version`)
+   - `android-app/app/src/main/assets/js/state.js` (`installedVersion` default)
+   - `android-app/app/build.gradle.kts` (`versionName`)
+3. **Commit & Tag**:
+   - `git add .`
+   - `git commit -m "feat/fix(scope): description"`
+   - `git tag -a v1.0.X -m "Release v1.0.X: <summary>"`
+4. **Push**:
+   - `git push origin main && git push origin v1.0.X`
 
 ### D. Confirmation Phase
 - Provide a concise 2-sentence visual overview of the integrated features.
-- Print the latest Git commit hash (`git rev-parse --short HEAD`) to confirm remote synchronization.
+- Output the newly iterated tag version (e.g. `v1.0.6`) and short Git commit hash (`git rev-parse --short HEAD`) to confirm remote synchronization and GitHub Release dispatch.
 
 ---
 
