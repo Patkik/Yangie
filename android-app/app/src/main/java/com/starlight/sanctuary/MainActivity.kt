@@ -17,6 +17,7 @@ import android.util.Log
 import android.webkit.*
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -35,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private const val NOTIFICATION_CHANNEL_ID = "hakdog_notifications"
-        private const val REQUEST_CODE_INSTALL_PERMISSION = 102
     }
 
     private lateinit var webView: WebView
@@ -221,6 +221,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val installPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.canRequestPackageInstalls()) {
+            pendingApkToInstall?.let {
+                promptInstallApk(it)
+                pendingApkToInstall = null
+            }
+        } else {
+            Toast.makeText(this, "Permission to install packages was denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     /**
      * Prompts the Android Package Installer for an APK binary via FileProvider.
      */
@@ -234,7 +247,7 @@ class MainActivity : AppCompatActivity() {
                         val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                             data = Uri.parse("package:$packageName")
                         }
-                        startActivityForResult(intent, REQUEST_CODE_INSTALL_PERMISSION)
+                        installPermissionLauncher.launch(intent)
                         return@runOnUiThread
                     }
                 }
@@ -253,21 +266,6 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to launch APK installer", e)
                 Toast.makeText(this, "Install failed: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_INSTALL_PERMISSION) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.canRequestPackageInstalls()) {
-                pendingApkToInstall?.let {
-                    promptInstallApk(it)
-                    pendingApkToInstall = null
-                }
-            } else {
-                Toast.makeText(this, "Permission to install packages was denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
