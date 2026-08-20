@@ -1,27 +1,29 @@
 ---
 name: kiro-android-webview-hardening
-description: Android WebView sandbox security hardening, WebViewAssetLoader virtual HTTPS serving, dual OTA/APK update pipelines, and system notifications with PendingIntent.
+description: Android WebView sandbox security hardening, WebViewAssetLoader virtual HTTPS serving, ComponentCallbacks2 memory trimming, dual OTA/APK update pipelines, and system notifications with PendingIntent.
 ---
 
-# Android WebView Security & Native Architecture
+# Skill 4: Android WebView & Memory Management
 
-Use this skill when maintaining or extending `MainActivity.kt`, `KiroUpdateManager.kt`, AndroidManifest, or native bridges.
+**Target Tech Stack**: Kotlin (Android 14 to 17), AndroidX WebView, Firebase Firestore  
+**Scope**: Managing the app lifecycle shell, securing the WebView container, voluntary cache trimming, and preventing process death.
 
-## 1. WebView Security Hardening
-- **Sandbox Isolation**:
-  - `allowFileAccess = false`
-  - `allowContentAccess = false`
-  - `mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW`
-- **Debug Inspection Control**:
-  - Only enable debugging in debug builds: `if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)`.
+## 1. Engineering Directives
 
-## 2. Asset Serving Strategy
-- Serve web assets via `WebViewAssetLoader` over `https://appassets.androidplatform.net/assets/`.
-- If an OTA update exists in `context.filesDir/kiro_ota_updates/`, route requests through `InternalStoragePathHandler`; otherwise fall back to pre-bundled APK `AssetsPathHandler`.
+### A. CORS & Virtual HTTPS Asset Mapping
+- **Banish raw `file:///` URLs**: Serve local files through `WebViewAssetLoader` mapped to a virtual, secure HTTPS address (`https://appassets.androidplatform.net/assets/`).
+- If an extracted OTA update exists in `context.filesDir/kiro_ota_updates/`, mount it via `InternalStoragePathHandler`; otherwise serve pre-bundled APK assets via `AssetsPathHandler`.
 
-## 3. Dual Update Pipelines
-- **OTA Updates**: Download release zip (`dist.zip` / archive), extract to staging with Zip-Slip path sanitization, verify entry `index.html`, and atomically swap. Reconfigure AssetLoader and reload without app restart.
-- **Native APKs**: Download `.apk` to cache, invoke `FileProvider` (`com.starlight.sanctuary.fileprovider`), and launch `ACTION_VIEW` intent with `FLAG_GRANT_READ_URI_PERMISSION`.
+### B. WebView Security Remediation
+- Explicitly disable `allowFileAccess = false` and `allowContentAccess = false` to keep the local filesystem sandbox secure.
+- Set `mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW` to prevent unencrypted HTTP traffic from bypassing sandbox boundaries.
+- Ensure USB inspection is disabled in release builds by wrapping `if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)`.
 
-## 4. Notifications with Intent Re-engagement
-- Always attach a `PendingIntent` with `FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE` targeting `MainActivity::class.java` to bring the user directly back into the Space Capsule dashboard.
+### C. Voluntary Cache Trimming (`ComponentCallbacks2`)
+To prevent the Android Low Memory Killer (LMK) from terminating the app process in background or low-RAM scenarios, implement `ComponentCallbacks2` in the Activity / Application layer:
+- **`TRIM_MEMORY_UI_HIDDEN`**: Free heavy graphical resources, trigger `appLifecycle.pauseGame()` to suspend WebGL render loops and pause the Web Audio context when the app is minimized.
+- **`TRIM_MEMORY_BACKGROUND` / `TRIM_MEMORY_RUNNING_CRITICAL`**: Flush disk/memory caches (`webView.clearCache(false)`), clear temporary download staging buffers, and disconnect non-essential background listeners.
+
+### D. System Notification Re-engagement
+- All system notifications pushed from background tasks must contain a valid `PendingIntent` utilizing the `FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE` flags.
+- Clicking a notification must reopen and refocus Kiro's active workspace (`MainActivity`) rather than launching a redundant duplicate activity instance.

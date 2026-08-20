@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -379,6 +380,22 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         webView.onPause()
         webView.evaluateJavascript("javascript:if(window.appLifecycle && typeof window.appLifecycle.pauseGame === 'function') window.appLifecycle.pauseGame();", null)
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        when (level) {
+            ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN -> {
+                Log.d(TAG, "Memory Trim: UI Hidden. Suspending WebGL and audio rendering.")
+                webView.evaluateJavascript("javascript:if(window.appLifecycle && typeof window.appLifecycle.pauseGame === 'function') window.appLifecycle.pauseGame();", null)
+            }
+            ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL,
+            ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
+                Log.d(TAG, "Memory Trim: Critical level $level. Flushing WebView caches.")
+                webView.clearCache(false)
+            }
+        }
     }
 
     /**
