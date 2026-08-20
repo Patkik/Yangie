@@ -1,353 +1,442 @@
 /**
- * kiro-feeding.js
- * Interactive 3D Feeding System for Kiro
- * Procedural treats, gravity physics, snout collision detection, chewing squash & stretch,
- * crumb bursts, floating "Yum!" bubbles, and Web Audio crunch/gulp synthesizer integration.
+ * Kiro Feeding Module (kiro-feeding.js)
+ * Extends the KiroScene to add interactive 3D feeding mechanics, candy physics,
+ * chewing animations, sweet particles, and procedural sound effects.
  */
 
-class KiroFeeding {
-  constructor(kiroScene, synthEngine) {
-    this.kiroScene = kiroScene;
-    this.synth = synthEngine || window.synthEngine;
-    this.activeCandies = [];
-    this.activeParticles = [];
-    this.yumPhrases = [
-      "Yum! ♥",
-      "Oishi! ✨",
-      "Nom Nom! 💕",
-      "Sarap! 🍓",
-      "Delicious! 🌟",
-      "Sweet! 🍬"
-    ];
-
-    this.initLoop();
-  }
-
-  initLoop() {
-    this.update = this.update.bind(this);
-    requestAnimationFrame(this.update);
-  }
-
-  // ==========================================
-  // PROCEDURAL 3D CANDY FACTORY
-  // ==========================================
-
-  createCandyMesh(type) {
-    const group = new THREE.Group();
-    let candyColor = 0xF9E2AF;
-
-    if (type === 'star') {
-      // Golden Star Candy: Sharp 5-pointed extruded star
-      candyColor = 0xF9E2AF;
-      const starShape = new THREE.Shape();
-      const points = 5;
-      const outerR = 0.22;
-      const innerR = 0.10;
-
-      for (let i = 0; i < points * 2; i++) {
-        const r = i % 2 === 0 ? outerR : innerR;
-        const a = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
-        const x = Math.cos(a) * r;
-        const y = Math.sin(a) * r;
-        if (i === 0) starShape.moveTo(x, y);
-        else starShape.lineTo(x, y);
-      }
-      starShape.closePath();
-
-      const extrudeSettings = {
-        depth: 0.08,
-        bevelEnabled: true,
-        bevelSegments: 3,
-        steps: 1,
-        bevelSize: 0.02,
-        bevelThickness: 0.02
-      };
-
-      const starGeo = new THREE.ExtrudeGeometry(starShape, extrudeSettings);
-      starGeo.center();
-      const starMat = new THREE.MeshStandardMaterial({
-        color: candyColor,
-        roughness: 0.25,
-        metalness: 0.8,
-        emissive: 0x554400,
-        emissiveIntensity: 0.25
-      });
-      const starMesh = new THREE.Mesh(starGeo, starMat);
-      group.add(starMesh);
-
-    } else if (type === 'donut') {
-      // Pastel Strawberry Donut: Ring torus with 6 procedural white sprinkles
-      candyColor = 0xFFB6C1;
-      const torusGeo = new THREE.TorusGeometry(0.18, 0.09, 16, 28);
-      const torusMat = new THREE.MeshStandardMaterial({
-        color: candyColor,
-        roughness: 0.45,
-        metalness: 0.1
-      });
-      const donutMesh = new THREE.Mesh(torusGeo, torusMat);
-      group.add(donutMesh);
-
-      // Sprinkles
-      for (let s = 0; s < 6; s++) {
-        const sprGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.05, 6);
-        const sprMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-        const spr = new THREE.Mesh(sprGeo, sprMat);
-        const angle = (s / 6) * Math.PI * 2;
-        spr.position.set(Math.cos(angle) * 0.18, Math.sin(angle) * 0.18, 0.09);
-        spr.rotation.z = Math.random() * Math.PI;
-        group.add(spr);
-      }
-
-    } else {
-      // Glowing Mint Gummy: Glossy translucent capsule
-      candyColor = 0x94E2D5;
-      const capGeo = new THREE.SphereGeometry(0.16, 16, 16);
-      const capMat = new THREE.MeshPhysicalMaterial({
-        color: candyColor,
-        roughness: 0.1,
-        transmission: 0.75,
-        thickness: 0.5,
-        transparent: true,
-        opacity: 0.88,
-        ior: 1.4
-      });
-      const gummyMesh = new THREE.Mesh(capGeo, capMat);
-      gummyMesh.scale.set(0.9, 1.2, 0.9);
-      group.add(gummyMesh);
+class KiroFeedingManager {
+    constructor(kiroScene, synthEngine = null) {
+        if (!kiroScene) {
+            console.error("KiroFeedingManager requires an active KiroScene instance.");
+            return;
+        }
+        this.kiroScene = kiroScene;
+        this.synthEngine = synthEngine || window.synthEngine;
+        this.activeCandies = [];
+        
+        // Setup internal update loop integration
+        this.patchSceneLoop();
     }
 
-    group.userData = {
-      type: type,
-      color: candyColor,
-      vy: -0.015,
-      vx: (Math.random() - 0.5) * 0.01,
-      vz: (Math.random() - 0.5) * 0.01,
-      rotX: (Math.random() - 0.5) * 0.08,
-      rotY: (Math.random() - 0.5) * 0.08,
-      rotZ: (Math.random() - 0.5) * 0.08,
-      state: 'falling' // 'falling', 'eaten', 'splattered'
-    };
+    /**
+     * Intercepts and extends KiroScene's animation loop to update falling candies.
+     */
+    patchSceneLoop() {
+        const originalAnimate = this.kiroScene.animate;
+        const self = this;
 
-    return group;
-  }
+        this.kiroScene.animate = function() {
+            self.updateCandies();
+            originalAnimate.call(this);
+        };
+    }
 
-  // ==========================================
-  // CANDY SPAWN & PHYSICS
-  // ==========================================
-
-  dropCandy(type = 'star') {
-    if (!this.kiroScene || !this.kiroScene.scene) return;
-
-    const candy = this.createCandyMesh(type);
-    // Spawn high above Kiro with organic offset
-    const spawnX = (Math.random() - 0.5) * 0.4;
-    const spawnY = 4.2;
-    const spawnZ = 0.85 + (Math.random() - 0.5) * 0.2;
-
-    candy.position.set(spawnX, spawnY, spawnZ);
-    this.kiroScene.scene.add(candy);
-    this.activeCandies.push(candy);
-  }
-
-  update() {
-    requestAnimationFrame(this.update);
-
-    if (!this.kiroScene || !this.kiroScene.scene) return;
-
-    const snoutPos = this.kiroScene.getSnoutPosition();
-    const pedestalY = this.kiroScene.getPedestalY();
-
-    // 1. Update Falling Candies
-    for (let i = this.activeCandies.length - 1; i >= 0; i--) {
-      const candy = this.activeCandies[i];
-
-      if (candy.userData.state === 'falling') {
-        // Gravity acceleration
-        candy.userData.vy -= 0.0055;
-        candy.position.y += candy.userData.vy;
-        candy.position.x += candy.userData.vx;
-        candy.position.z += candy.userData.vz;
-
-        // Rotational momentum
-        candy.rotation.x += candy.userData.rotX;
-        candy.rotation.y += candy.userData.rotY;
-        candy.rotation.z += candy.userData.rotZ;
-
-        // Snout Bounding Collision Check
-        const distToSnout = candy.position.distanceTo(snoutPos);
-        const canEat = !this.kiroScene.isSleeping;
-
-        if (canEat && distToSnout < 0.42 && candy.position.y <= snoutPos.y + 0.35) {
-          candy.userData.state = 'eaten';
-          this.triggerEatingReaction(candy);
-          this.kiroScene.scene.remove(candy);
-          this.activeCandies.splice(i, 1);
-          continue;
+    /**
+     * Spawns a 3D candy at the top of the viewport and lets it fall towards Kiro.
+     * @param {string} candyType - 'star' (golden star), 'donut' (strawberry donut), or 'gummy' (translucent jelly bean)
+     */
+    dropCandy(candyType = 'star') {
+        if (this.kiroScene.isSleeping) {
+            this.showFloatingText("Zzz...", 0x89DCEB);
+            return;
         }
 
-        // Pedestal Splatter Check
-        if (candy.position.y <= pedestalY + 0.05) {
-          candy.userData.state = 'splattered';
-          this.triggerSplatter(candy);
-          this.activeCandies.splice(i, 1);
-          continue;
+        // 1. Create Candy Mesh based on type
+        let candyMesh;
+        const candyGroup = new THREE.Group();
+
+        switch (candyType) {
+            case 'donut':
+                const donutGeo = new THREE.TorusGeometry(0.12, 0.05, 8, 24);
+                const donutMat = new THREE.MeshStandardMaterial({
+                    color: 0xFFB6C1,
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
+                const donut = new THREE.Mesh(donutGeo, donutMat);
+                donut.rotation.x = Math.PI / 2;
+                candyGroup.add(donut);
+
+                const sprinkleMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+                const sprinkleGeo = new THREE.BoxGeometry(0.02, 0.01, 0.05);
+                for (let i = 0; i < 6; i++) {
+                    const sprinkle = new THREE.Mesh(sprinkleGeo, sprinkleMat);
+                    const angle = (i / 6) * Math.PI * 2;
+                    sprinkle.position.set(Math.cos(angle) * 0.12, 0.02, Math.sin(angle) * 0.12);
+                    sprinkle.rotation.y = -angle + (Math.random() * 0.5 - 0.25);
+                    candyGroup.add(sprinkle);
+                }
+                candyMesh = candyGroup;
+                break;
+
+            case 'gummy':
+                const gummyGeo = new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.08, 0.14, 8, 16) : new THREE.CylinderGeometry(0.08, 0.08, 0.14, 16);
+                const gummyMat = new THREE.MeshStandardMaterial({
+                    color: 0x94E2D5,
+                    roughness: 0.1,
+                    metalness: 0.1,
+                    transparent: true,
+                    opacity: 0.85
+                });
+                candyMesh = new THREE.Mesh(gummyGeo, gummyMat);
+                break;
+
+            case 'star':
+            default:
+                const starShape = new THREE.Shape();
+                const spikes = 5;
+                const outerRadius = 0.16;
+                const innerRadius = 0.07;
+                let rot = Math.PI / 2 * 3;
+                let cx = 0, cy = 0;
+                const step = Math.PI / spikes;
+
+                starShape.moveTo(cx, cy - outerRadius);
+                for (let i = 0; i < spikes; i++) {
+                    cx = Math.cos(rot) * outerRadius;
+                    cy = Math.sin(rot) * outerRadius;
+                    starShape.lineTo(cx, cy);
+                    rot += step;
+
+                    cx = Math.cos(rot) * innerRadius;
+                    cy = Math.sin(rot) * innerRadius;
+                    starShape.lineTo(cx, cy);
+                    rot += step;
+                }
+                starShape.lineTo(0, -outerRadius);
+
+                const extrudeSettings = {
+                    depth: 0.05,
+                    bevelEnabled: true,
+                    bevelSegments: 2,
+                    steps: 1,
+                    bevelSize: 0.01,
+                    bevelThickness: 0.01
+                };
+
+                const starGeo = new THREE.ExtrudeGeometry(starShape, extrudeSettings);
+                const starMat = new THREE.MeshStandardMaterial({
+                    color: 0xF9E2AF,
+                    roughness: 0.2,
+                    metalness: 0.4
+                });
+                candyMesh = new THREE.Mesh(starGeo, starMat);
+                candyMesh.geometry.center();
+                break;
         }
-      }
+
+        candyMesh.position.set(
+            (Math.random() * 0.4 - 0.2),
+            4.0,
+            0.85
+        );
+        candyMesh.castShadow = true;
+        
+        candyMesh.userData = {
+            vy: -0.06,
+            ay: -0.004,
+            rotSpeedX: Math.random() * 0.04 - 0.02,
+            rotSpeedY: Math.random() * 0.04 - 0.02,
+            rotSpeedZ: Math.random() * 0.04 - 0.02,
+            type: candyType
+        };
+
+        this.kiroScene.scene.add(candyMesh);
+        this.activeCandies.push(candyMesh);
     }
 
-    // 2. Update Crumb Particles
-    for (let j = this.activeParticles.length - 1; j >= 0; j--) {
-      const p = this.activeParticles[j];
-      p.position.x += p.userData.vx;
-      p.position.y += p.userData.vy;
-      p.position.z += p.userData.vz;
-      p.userData.vy -= 0.004; // gravity
-      p.userData.life -= 0.03;
-      p.scale.multiplyScalar(0.95);
+    /**
+     * Updates physics, collision boundaries, and animation updates for falling candies.
+     */
+    updateCandies() {
+        const collisionRadius = 0.65;
 
-      if (p.material) {
-        p.material.opacity = Math.max(0, p.userData.life);
-      }
+        for (let i = this.activeCandies.length - 1; i >= 0; i--) {
+            const candy = this.activeCandies[i];
+            
+            // 1. Apply Gravitational Physics
+            candy.userData.vy += candy.userData.ay;
+            candy.position.y += candy.userData.vy;
 
-      if (p.userData.life <= 0) {
-        this.kiroScene.scene.remove(p);
-        this.activeParticles.splice(j, 1);
-      }
-    }
-  }
+            // Apply spin
+            candy.rotation.x += candy.userData.rotSpeedX;
+            candy.rotation.y += candy.userData.rotSpeedY;
+            candy.rotation.z += candy.userData.rotSpeedZ;
 
-  // ==========================================
-  // EATING REACTION: CHEWING, CRUMBS & SFX
-  // ==========================================
+            // 2. Collision Detection
+            if (this.kiroScene.kiroGroup) {
+                const dx = candy.position.x - this.kiroScene.kiroGroup.position.x;
+                const dy = candy.position.y - (this.kiroScene.kiroGroup.position.y + 0.15);
+                const dz = candy.position.z - (this.kiroScene.kiroGroup.position.z + 0.8);
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-  triggerEatingReaction(candy) {
-    const candyColor = candy.userData.color || 0xF9E2AF;
-    const snoutPos = this.kiroScene.getSnoutPosition();
+                if (distance < collisionRadius && candy.position.y > -0.2) {
+                    this.kiroEatsCandy(candy);
+                    this.activeCandies.splice(i, 1);
+                    continue;
+                }
+            }
 
-    // 1. Synthesize Procedural Audio SFX
-    if (this.synth) {
-      this.synth.playCrunch();
-      setTimeout(() => {
-        if (this.synth) this.synth.playGulp();
-      }, 140);
-    }
-
-    // 2. GSAP Chewing Squash & Stretch Cycle
-    if (typeof gsap !== 'undefined' && this.kiroScene.kiroGroup) {
-      this.kiroScene.isChewing = true;
-      const grp = this.kiroScene.kiroGroup;
-      const baseScale = grp.scale.x;
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          this.kiroScene.isChewing = false;
+            // 3. Pedestal/Floor collision fallback
+            if (candy.position.y < -1.4) {
+                this.candySplashesOnPedestal(candy);
+                this.activeCandies.splice(i, 1);
+            }
         }
-      });
-
-      tl.to(grp.scale, { x: baseScale * 1.18, y: baseScale * 0.82, z: baseScale * 1.15, duration: 0.12, ease: 'power2.out' })
-        .to(grp.scale, { x: baseScale * 0.88, y: baseScale * 1.18, z: baseScale * 0.9, duration: 0.14, ease: 'power2.inOut' })
-        .to(grp.scale, { x: baseScale * 1.1, y: baseScale * 0.92, z: baseScale * 1.08, duration: 0.1, ease: 'power2.inOut' })
-        .to(grp.scale, { x: baseScale, y: baseScale, z: baseScale, duration: 0.18, ease: 'elastic.out(1, 0.4)' });
-
-      if (this.kiroScene.leftFlipper && this.kiroScene.rightFlipper) {
-        gsap.to(this.kiroScene.leftFlipper.rotation, { z: 0.8, duration: 0.12, yoyo: true, repeat: 3 });
-        gsap.to(this.kiroScene.rightFlipper.rotation, { z: -0.8, duration: 0.12, yoyo: true, repeat: 3 });
-      }
     }
 
-    // 3. Crumb Burst Particles
-    this.spawnCrumbBurst(snoutPos, candyColor);
+    /**
+     * Triggered when a candy successfully reaches Kiro's mouth.
+     */
+    kiroEatsCandy(candy) {
+        this.kiroScene.scene.remove(candy);
+        
+        // 1. Play Procedural Chewing Sound FX
+        this.playChewingSound();
 
-    // 4. Floating "Yum!" Screen Sprites
-    this.spawnFloatingYum(snoutPos);
-  }
+        // 2. Trigger Cute Chewing Squash-and-Stretch Animation using GSAP
+        this.triggerChewingAnimation();
 
-  spawnCrumbBurst(origin, color) {
-    const count = 12;
-    for (let i = 0; i < count; i++) {
-      const geo = new THREE.SphereGeometry(0.035, 6, 6);
-      const mat = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.95
-      });
-      const crumb = new THREE.Mesh(geo, mat);
-      crumb.position.copy(origin);
+        // 3. Emit delicious candy crumb particles
+        this.emitCandyCrumbs(candy.position, candy.userData.type);
 
-      const angle = (i / count) * Math.PI * 2;
-      const speed = 0.035 + Math.random() * 0.035;
+        // 4. Update state values & boost happiness
+        const happinessBoost = candy.userData.type === 'star' ? 12 : 8;
+        const newWellbeing = Math.min(100, (this.kiroScene.wellbeing || 80) + happinessBoost);
+        
+        this.kiroScene.updateState({
+            wellbeing: newWellbeing,
+            mood: newWellbeing > 80 ? 'thriving' : 'happy'
+        });
 
-      crumb.userData = {
-        vx: Math.cos(angle) * speed,
-        vy: 0.04 + Math.random() * 0.05,
-        vz: Math.sin(angle) * speed + 0.02,
-        life: 1.0
-      };
-
-      this.kiroScene.scene.add(crumb);
-      this.activeParticles.push(crumb);
+        // 5. Spawn "Yum!" sweet text popup
+        const expressions = ["Yum! ♥", "Oishi!", "Sweet! ✨", "Nom Nom!"];
+        const phrase = expressions[Math.floor(Math.random() * expressions.length)];
+        const textColor = candy.userData.type === 'donut' ? 0xFFB6C1 : (candy.userData.type === 'gummy' ? 0x94E2D5 : 0xF9E2AF);
+        this.showFloatingText(phrase, textColor);
     }
-  }
 
-  spawnFloatingYum(pos3D) {
-    if (!this.kiroScene.camera || !this.kiroScene.canvas) return;
-
-    // Project 3D coordinate to 2D screen coordinate
-    const vector = pos3D.clone();
-    vector.y += 0.4;
-    vector.project(this.kiroScene.camera);
-
-    const rect = this.kiroScene.canvas.getBoundingClientRect();
-    const screenX = ((vector.x + 1) / 2) * rect.width + rect.left;
-    const screenY = (-(vector.y - 1) / 2) * rect.height + rect.top;
-
-    const yumEl = document.createElement('div');
-    yumEl.className = 'floating-yum-bubble';
-    const text = this.yumPhrases[Math.floor(Math.random() * this.yumPhrases.length)];
-    yumEl.textContent = text;
-    yumEl.style.left = `${screenX}px`;
-    yumEl.style.top = `${screenY}px`;
-
-    document.body.appendChild(yumEl);
-
-    setTimeout(() => {
-      yumEl.classList.add('fade-up');
-    }, 20);
-
-    setTimeout(() => {
-      if (yumEl.parentNode) yumEl.parentNode.removeChild(yumEl);
-    }, 1100);
-  }
-
-  // ==========================================
-  // MISSED / SPLATTER COLLISION
-  // ==========================================
-
-  triggerSplatter(candy) {
-    if (typeof gsap !== 'undefined') {
-      gsap.to(candy.scale, {
-        x: 1.9,
-        y: 0.03,
-        z: 1.9,
-        duration: 0.25,
-        ease: 'power2.out'
-      });
-      gsap.to(candy.position, {
-        y: this.kiroScene.getPedestalY() + 0.02,
-        duration: 0.25
-      });
-      gsap.to(candy.rotation, {
-        x: 0,
-        z: 0,
-        duration: 0.25
-      });
-      setTimeout(() => {
-        if (candy.parent) candy.parent.remove(candy);
-      }, 700);
-    } else {
-      if (candy.parent) candy.parent.remove(candy);
+    /**
+     * Fallback for missed candies landing on the pedestal cylinder.
+     */
+    candySplashesOnPedestal(candy) {
+        if (!window.gsap) {
+            this.kiroScene.scene.remove(candy);
+            return;
+        }
+        gsap.to(candy.scale, {
+            x: 0.1,
+            y: 0.01,
+            z: 0.1,
+            duration: 0.3,
+            ease: "power2.out",
+            onComplete: () => {
+                this.kiroScene.scene.remove(candy);
+                if (candy.geometry) candy.geometry.dispose();
+                if (candy.material) {
+                    if (Array.isArray(candy.material)) {
+                        candy.material.forEach(m => m.dispose());
+                    } else {
+                        candy.material.dispose();
+                    }
+                }
+            }
+        });
     }
-  }
+
+    /**
+     * Generates physical candy crumb particles bursting from Kiro's mouth.
+     */
+    emitCandyCrumbs(position, candyType) {
+        if (!window.gsap) return;
+        const crumbCount = 10;
+        let color = 0xF9E2AF;
+        if (candyType === 'donut') color = 0xFFB6C1;
+        if (candyType === 'gummy') color = 0x94E2D5;
+
+        for (let i = 0; i < crumbCount; i++) {
+            const crumbGeo = new THREE.DodecahedronGeometry(0.04);
+            const crumbMat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.95
+            });
+            const crumb = new THREE.Mesh(crumbGeo, crumbMat);
+            crumb.position.copy(position);
+            this.kiroScene.scene.add(crumb);
+
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            const force = 0.5 + Math.random() * 0.7;
+
+            gsap.to(crumb.position, {
+                x: crumb.position.x + Math.sin(phi) * Math.cos(theta) * force,
+                y: crumb.position.y + Math.sin(phi) * Math.sin(theta) * force - 0.2,
+                z: crumb.position.z + Math.cos(phi) * force,
+                duration: 0.6,
+                ease: "power2.out"
+            });
+
+            gsap.to(crumb.scale, {
+                x: 0,
+                y: 0,
+                z: 0,
+                duration: 0.6,
+                ease: "power2.in",
+                onComplete: () => {
+                    this.kiroScene.scene.remove(crumb);
+                    crumbGeo.dispose();
+                    crumbMat.dispose();
+                }
+            });
+        }
+    }
+
+    /**
+     * Smooth squash/stretch chewy loop on Kiro using GSAP.
+     */
+    triggerChewingAnimation() {
+        if (!window.gsap || !this.kiroScene.kiroGroup) return;
+
+        const chewTimeline = gsap.timeline();
+        const baseScale = 0.4 + 0.7 * Math.pow((this.kiroScene.wellbeing || 80) / 100, 2);
+
+        chewTimeline.to(this.kiroScene.kiroGroup.scale, {
+            y: baseScale * 0.78,
+            x: baseScale * 1.15,
+            duration: 0.12,
+            ease: "power1.out"
+        })
+        .to(this.kiroScene.kiroGroup.scale, {
+            y: baseScale * 1.12,
+            x: baseScale * 0.9,
+            duration: 0.12,
+            ease: "power1.inOut"
+        })
+        .to(this.kiroScene.kiroGroup.scale, {
+            y: baseScale * 0.82,
+            x: baseScale * 1.1,
+            duration: 0.1,
+            ease: "power1.inOut"
+        })
+        .to(this.kiroScene.kiroGroup.scale, {
+            x: baseScale,
+            y: baseScale,
+            z: baseScale,
+            duration: 0.2,
+            ease: "elastic.out(1, 0.3)"
+        });
+    }
+
+    /**
+     * Synthesizes a sweet, arcade-like chew and gulp sound procedurally using Web Audio API.
+     */
+    playChewingSound() {
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+
+            const ctx = (this.synthEngine && this.synthEngine.ctx) ? this.synthEngine.ctx : new AudioContextClass();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            const bufferSize = ctx.sampleRate * 0.08;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noiseNode = ctx.createBufferSource();
+            noiseNode.buffer = buffer;
+
+            const noiseFilter = ctx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.setValueAtTime(1200, ctx.currentTime);
+            noiseFilter.Q.setValueAtTime(3.0, ctx.currentTime);
+
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+
+            noiseNode.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(220, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.12);
+
+            gainNode.gain.setValueAtTime(0.12, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            noiseNode.start();
+            osc.start();
+            osc.stop(ctx.currentTime + 0.15);
+
+        } catch (e) {
+            console.warn("Procedural sound synthesis failed:", e);
+        }
+    }
+
+    /**
+     * Floating text popup rendering in 3D space above Kiro's head.
+     */
+    showFloatingText(text, hexColor = 0xFFFFFF) {
+        const div = document.createElement('div');
+        div.className = 'kiro-floating-yum';
+        div.innerText = text;
+        div.style.position = 'absolute';
+        div.style.color = `#${hexColor.toString(16).padStart(6, '0')}`;
+        div.style.fontFamily = '"Space Grotesk", "Quicksand", system-ui, sans-serif';
+        div.style.fontWeight = 'bold';
+        div.style.fontSize = '1.2rem';
+        div.style.textShadow = '0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(255,255,255,0.2)';
+        div.style.pointerEvents = 'none';
+        div.style.transform = 'translate(-50%, -50%)';
+        div.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+        div.style.opacity = '1';
+        div.style.zIndex = '1000';
+        
+        if (this.kiroScene.container) {
+            this.kiroScene.container.appendChild(div);
+
+            const tempV = new THREE.Vector3(0, 1.2, 0);
+            
+            const updatePosition = () => {
+                if (!this.kiroScene.camera || !this.kiroScene.renderer) return;
+                const vector = tempV.clone().project(this.kiroScene.camera);
+                const x = (vector.x *  .5 + .5) * this.kiroScene.container.clientWidth;
+                const y = (vector.y * -.5 + .5) * this.kiroScene.container.clientHeight;
+                div.style.left = `${x}px`;
+                div.style.top = `${y}px`;
+            };
+
+            updatePosition();
+
+            requestAnimationFrame(() => {
+                tempV.y += 0.8;
+                div.style.opacity = '0';
+                div.style.transform = 'translate(-50%, -120%) scale(1.3)';
+            });
+
+            const alignInterval = setInterval(updatePosition, 16);
+
+            setTimeout(() => {
+                clearInterval(alignInterval);
+                if (div.parentNode) {
+                    div.parentNode.removeChild(div);
+                }
+            }, 800);
+        }
+    }
 }
 
-window.KiroFeeding = KiroFeeding;
+window.KiroFeedingManager = KiroFeedingManager;

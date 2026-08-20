@@ -1,457 +1,511 @@
 /**
- * kiro-scene.js
- * The Immersive 3D Pet Scene (Procedural Three.js Meshes & Animations)
- * Object-oriented KiroScene controller handling 3D modeling, lighting, idle bobbing,
- * interactive petting animations, mood-based dynamics, and particle star systems.
+ * Kiro Scene Module (kiro-scene.js)
+ * Implements the 3D procedural pet model of Kiro, accessories, animations, and scene environment.
  */
 
 class KiroScene {
-  constructor(canvasElement, options = {}) {
-    this.canvas = canvasElement || document.getElementById('kiro-canvas');
-    this.options = Object.assign({
-      onPet: null,
-      initialWellbeing: 75,
-      isSleeping: false,
-      wellRested: false
-    }, options);
-
-    this.scene = null;
-    this.camera = null;
-    this.renderer = null;
-
-    // Groups & Meshes
-    this.kiroGroup = null;
-    this.bodyMesh = null;
-    this.bellyMesh = null;
-    this.snoutMesh = null;
-    this.leftFlipper = null;
-    this.rightFlipper = null;
-    this.capGroup = null;
-    this.auraMesh = null;
-    this.sparkles = null;
-    this.pedestal = null;
-    this.heartParticles = [];
-
-    // State & Dynamics
-    this.animTime = 0;
-    this.wellbeing = this.options.initialWellbeing;
-    this.isSleeping = this.options.isSleeping;
-    this.isWellRested = this.options.wellRested;
-    this.isPetting = false;
-    this.isChewing = false;
-    this.moodTier = 'happy';
-
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
-
-    this.init();
-  }
-
-  init() {
-    if (!this.canvas || typeof THREE === 'undefined') {
-      console.warn('KiroScene: Canvas or THREE.js not found');
-      return;
-    }
-
-    const rect = this.canvas.getBoundingClientRect();
-    const width = rect.width || window.innerWidth;
-    const height = rect.height || window.innerHeight;
-
-    // 1. Scene & Camera
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
-    this.camera.position.set(0, 1.2, 6.0);
-
-    // 2. WebGL Renderer
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      antialias: true,
-      alpha: true
-    });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    this.renderer.setSize(width, height);
-
-    // 3. Lighting (Soft Twilight & Starlight Palette)
-    const ambLight = new THREE.AmbientLight(0x94E2D5, 0.9);
-    this.scene.add(ambLight);
-
-    const dirLight = new THREE.DirectionalLight(0xFFF5D0, 1.8);
-    dirLight.position.set(4, 8, 4);
-    this.scene.add(dirLight);
-
-    const ptLight = new THREE.PointLight(0xF5C2E7, 1.3, 12);
-    ptLight.position.set(-2, 3, 2);
-    this.scene.add(ptLight);
-
-    // 4. Build Procedural Kiro & Environment
-    this.buildKiroModel();
-    this.buildPedestal();
-    this.buildSparkles();
-
-    // 5. Event Listeners
-    this.setupInteractions();
-
-    // 6. Start Render Loop
-    this.animate = this.animate.bind(this);
-    requestAnimationFrame(this.animate);
-  }
-
-  buildKiroModel() {
-    this.kiroGroup = new THREE.Group();
-    this.kiroGroup.position.set(0, 0.1, 0);
-
-    // Body: Soft Mint-Teal Sphere
-    const bodyGeo = new THREE.SphereGeometry(1.0, 32, 32);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x4EC9B0,
-      roughness: 0.85,
-      metalness: 0.05
-    });
-    this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-    this.bodyMesh.scale.set(1, 0.92, 1);
-    this.kiroGroup.add(this.bodyMesh);
-
-    // Belly: Creamy Off-White Front Patch
-    const bellyGeo = new THREE.SphereGeometry(0.55, 24, 24);
-    const bellyMat = new THREE.MeshStandardMaterial({
-      color: 0xF0EDE8,
-      roughness: 0.9
-    });
-    this.bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
-    this.bellyMesh.position.set(0, -0.15, 0.72);
-    this.bellyMesh.scale.set(1, 1, 0.35);
-    this.kiroGroup.add(this.bellyMesh);
-
-    // Eyes: Glossy Obsidian Spheres with Starlight Highlights
-    const eyeGeo = new THREE.SphereGeometry(0.1, 16, 16);
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1A3A3A, roughness: 0.2 });
-    const hlGeo = new THREE.SphereGeometry(0.035, 8, 8);
-    const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-
-    [-0.28, 0.28].forEach(x => {
-      const eyeGroup = new THREE.Group();
-      eyeGroup.position.set(x, 0.22, 0.92);
-      const eye = new THREE.Mesh(eyeGeo, eyeMat);
-      const hl = new THREE.Mesh(hlGeo, hlMat);
-      hl.position.set(0.03, 0.04, 0.07);
-      eyeGroup.add(eye);
-      eyeGroup.add(hl);
-      this.kiroGroup.add(eyeGroup);
-    });
-
-    // Snout / Nose: Pastel Pink Button
-    const snoutGeo = new THREE.SphereGeometry(0.055, 12, 12);
-    const snoutMat = new THREE.MeshStandardMaterial({ color: 0xF5B7C0, roughness: 0.9 });
-    this.snoutMesh = new THREE.Mesh(snoutGeo, snoutMat);
-    this.snoutMesh.position.set(0, 0.04, 0.99);
-    this.kiroGroup.add(this.snoutMesh);
-
-    // Cheeks: Translucent Blush Discs
-    const cheekGeo = new THREE.CircleGeometry(0.18, 16);
-    const cheekMat = new THREE.MeshBasicMaterial({
-      color: 0xFFB6C1,
-      transparent: true,
-      opacity: 0.55,
-      side: THREE.DoubleSide
-    });
-    [-0.55, 0.55].forEach((x, i) => {
-      const cheek = new THREE.Mesh(cheekGeo, cheekMat);
-      cheek.position.set(x, -0.02, 0.86);
-      cheek.rotation.y = i === 0 ? -0.4 : 0.4;
-      this.kiroGroup.add(cheek);
-    });
-
-    // Flippers / Paws
-    const flipperGeo = new THREE.SphereGeometry(0.24, 12, 12);
-    const flipperMat = new THREE.MeshStandardMaterial({ color: 0x4EC9B0, roughness: 0.85 });
-
-    this.leftFlipper = new THREE.Mesh(flipperGeo, flipperMat);
-    this.leftFlipper.position.set(-1.0, -0.24, 0.28);
-    this.leftFlipper.scale.set(0.55, 0.45, 0.45);
-    this.leftFlipper.rotation.set(0.1, 0, 0.45);
-    this.kiroGroup.add(this.leftFlipper);
-
-    this.rightFlipper = new THREE.Mesh(flipperGeo, flipperMat);
-    this.rightFlipper.position.set(1.0, -0.24, 0.28);
-    this.rightFlipper.scale.set(0.55, 0.45, 0.45);
-    this.rightFlipper.rotation.set(0.1, 0, -0.45);
-    this.kiroGroup.add(this.rightFlipper);
-
-    // Sleeping Nightcap (Lavender cone with golden pompom)
-    this.capGroup = new THREE.Group();
-    this.capGroup.position.set(0, 0.85, 0);
-    this.capGroup.rotation.z = 0.3;
-
-    const coneGeo = new THREE.ConeGeometry(0.3, 0.65, 16);
-    const coneMat = new THREE.MeshStandardMaterial({ color: 0xCBA6F7, roughness: 0.9 });
-    const cone = new THREE.Mesh(coneGeo, coneMat);
-    this.capGroup.add(cone);
-
-    const pomGeo = new THREE.SphereGeometry(0.07, 10, 10);
-    const pomMat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
-    const pom = new THREE.Mesh(pomGeo, pomMat);
-    pom.position.set(0, 0.35, 0);
-    this.capGroup.add(pom);
-
-    this.capGroup.visible = this.isSleeping;
-    this.kiroGroup.add(this.capGroup);
-
-    // Well-Rested Golden Aura
-    const auraGeo = new THREE.SphereGeometry(1.4, 20, 20);
-    const auraMat = new THREE.MeshBasicMaterial({
-      color: 0xF9E2AF,
-      transparent: true,
-      opacity: 0.14,
-      side: THREE.BackSide
-    });
-    this.auraMesh = new THREE.Mesh(auraGeo, auraMat);
-    this.auraMesh.visible = this.isWellRested;
-    this.kiroGroup.add(this.auraMesh);
-
-    this.scene.add(this.kiroGroup);
-  }
-
-  buildPedestal() {
-    const islandGeo = new THREE.CylinderGeometry(1.8, 1.2, 0.4, 28);
-    const islandMat = new THREE.MeshStandardMaterial({ color: 0x1B2A38, roughness: 0.8 });
-    this.pedestal = new THREE.Mesh(islandGeo, islandMat);
-    this.pedestal.position.set(0, -1.2, 0);
-    this.scene.add(this.pedestal);
-
-    // Emerald Glowing Ring
-    const ringGeo = new THREE.RingGeometry(0, 1.8, 28);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0x94E2D5,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.35
-    });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.rotation.x = Math.PI / 2;
-    ring.position.set(0, -1.0, 0);
-    this.scene.add(ring);
-  }
-
-  buildSparkles() {
-    const sparkCount = 35;
-    const sparkGeo = new THREE.BufferGeometry();
-    const sparkPos = new Float32Array(sparkCount * 3);
-
-    for (let i = 0; i < sparkCount; i++) {
-      sparkPos[i * 3] = (Math.random() - 0.5) * 6;
-      sparkPos[i * 3 + 1] = Math.random() * 4 - 1;
-      sparkPos[i * 3 + 2] = (Math.random() - 0.5) * 6;
-    }
-
-    sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
-    const sparkMat = new THREE.PointsMaterial({
-      size: 0.085,
-      color: 0xF9E2AF,
-      transparent: true,
-      opacity: 0.75
-    });
-    this.sparkles = new THREE.Points(sparkGeo, sparkMat);
-    this.scene.add(this.sparkles);
-  }
-
-  // ==========================================
-  // INTERACTIVITY & PETTING ANIMATIONS
-  // ==========================================
-
-  setupInteractions() {
-    const onPointerDown = (e) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      if (clientX === undefined || clientY === undefined) return;
-
-      this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-      this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      const intersects = this.raycaster.intersectObject(this.kiroGroup, true);
-
-      if (intersects.length > 0) {
-        this.triggerPettingReaction();
-      }
-    };
-
-    this.canvas.addEventListener('pointerdown', onPointerDown);
-  }
-
-  /**
-   * Springy Petting Animation Chain:
-   * Leaps into the air, does a cheerful 360° spin, squishes softly upon landing,
-   * and bursts glowing pink heart stardust particles.
-   */
-  triggerPettingReaction() {
-    if (this.isPetting || this.isSleeping) return;
-    this.isPetting = true;
-
-    // Sound effect
-    if (window.synthEngine) {
-      window.synthEngine.playStarlightChime();
-    }
-
-    // GSAP animation or procedural fallback
-    if (typeof gsap !== 'undefined') {
-      const startScale = this.kiroGroup.scale.x;
-      const tl = gsap.timeline({
-        onComplete: () => {
-          this.isPetting = false;
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        if (!this.container) {
+            console.error(`Container #${containerId} not found.`);
+            return;
         }
-      });
 
-      // Leap & Spin
-      tl.to(this.kiroGroup.position, { y: 0.65, duration: 0.28, ease: 'power2.out' })
-        .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.45, ease: 'power1.inOut' }, 0)
-        .to(this.leftFlipper.rotation, { z: 0.9, duration: 0.2, yoyo: true, repeat: 2 }, 0)
-        .to(this.rightFlipper.rotation, { z: -0.9, duration: 0.2, yoyo: true, repeat: 2 }, 0)
-        .to(this.kiroGroup.position, { y: 0.1, duration: 0.25, ease: 'bounce.out' })
-        // Landing squish
-        .to(this.kiroGroup.scale, { x: startScale * 1.15, y: startScale * 0.85, duration: 0.1 }, '-=0.15')
-        .to(this.kiroGroup.scale, { x: startScale, y: startScale, duration: 0.2, ease: 'elastic.out(1, 0.4)' });
-    } else {
-      this.isPetting = false;
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.kiroGroup = null; // Group holding all Kiro meshes
+        this.orbitingStars = null; // Star system
+        this.pedestal = null; // Cylinder base
+        this.neonRing = null; // Emerald ring
+
+        // Raycasting for direct petting interaction
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+
+        // Accessories and States
+        this.nightcap = null;
+        this.goldenAura = null;
+        
+        // Pet State variables
+        this.isSleeping = false;
+        this.hasWellRestedBuff = false;
+        this.wellbeing = 100; // 0 to 100
+        this.mood = "thriving"; // thriving, happy, okay, sleeping
+
+        // Animation timing
+        this.clock = new THREE.Clock();
+
+        this.init();
     }
 
-    this.spawnHeartBurst();
-    if (typeof this.options.onPet === 'function') {
-      this.options.onPet();
-    }
-  }
+    init() {
+        // 1. Scene setup
+        this.scene = new THREE.Scene();
 
-  spawnHeartBurst() {
-    const count = 10;
-    for (let i = 0; i < count; i++) {
-      const heartGeo = new THREE.SphereGeometry(0.045, 8, 8);
-      const heartMat = new THREE.MeshBasicMaterial({
-        color: Math.random() > 0.4 ? 0xF5C2E7 : 0xF9E2AF,
-        transparent: true,
-        opacity: 0.9
-      });
-      const p = new THREE.Mesh(heartGeo, heartMat);
-      p.position.set(
-        (Math.random() - 0.5) * 0.6,
-        0.3 + Math.random() * 0.4,
-        0.8 + Math.random() * 0.4
-      );
-      p.userData = {
-        vx: (Math.random() - 0.5) * 0.04,
-        vy: 0.03 + Math.random() * 0.04,
-        vz: (Math.random() - 0.5) * 0.04,
-        life: 1.0
-      };
-      this.scene.add(p);
-      this.heartParticles.push(p);
-    }
-  }
+        // 2. Camera setup
+        const aspect = this.container.clientWidth / this.container.clientHeight || 1;
+        this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 100);
+        this.camera.position.set(0, 2, 7);
 
-  // ==========================================
-  // STATE SETTERS & MOOD DYNAMICS
-  // ==========================================
+        // 3. Renderer setup
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.container.appendChild(this.renderer.domElement);
 
-  setWellbeing(score) {
-    this.wellbeing = Math.max(0, Math.min(100, score));
-    if (this.wellbeing >= 85) this.moodTier = 'thriving';
-    else if (this.wellbeing >= 65) this.moodTier = 'happy';
-    else if (this.wellbeing >= 40) this.moodTier = 'okay';
-    else if (this.wellbeing >= 15) this.moodTier = 'low';
-    else this.moodTier = 'critical';
-  }
+        // 4. Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
 
-  setSleeping(sleeping) {
-    this.isSleeping = !!sleeping;
-    if (this.capGroup) this.capGroup.visible = this.isSleeping;
-  }
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        this.scene.add(dirLight);
 
-  setWellRested(wellRested) {
-    this.isWellRested = !!wellRested;
-    if (this.auraMesh) this.auraMesh.visible = this.isWellRested;
-  }
+        const pointLight = new THREE.PointLight(0x94E2D5, 1.2, 10);
+        pointLight.position.set(0, -1, 0); // Under-lighting from emerald ring
+        this.scene.add(pointLight);
 
-  getSnoutPosition() {
-    const v = new THREE.Vector3();
-    if (this.snoutMesh) {
-      this.snoutMesh.getWorldPosition(v);
-    } else {
-      v.set(0, 0.15, 0.85);
-    }
-    return v;
-  }
+        // 5. Build Environment
+        this.buildEnvironment();
 
-  getPedestalY() {
-    return -1.0;
-  }
+        // 6. Build Kiro
+        this.buildKiro();
 
-  // ==========================================
-  // RENDER LOOP
-  // ==========================================
+        // 7. Event Listeners
+        window.addEventListener('resize', () => this.onWindowResize());
+        this.setupPettingRaycaster();
 
-  animate() {
-    if (!this.renderer || !this.scene) return;
-    requestAnimationFrame(this.animate);
-
-    this.animTime += 0.02;
-    const t = this.animTime;
-
-    // Mood-Reactive Idle Bobbing
-    if (this.kiroGroup && !this.isPetting && !this.isChewing) {
-      const targetScale = 0.4 + 0.7 * Math.pow(this.wellbeing / 100, 2);
-      this.kiroGroup.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.05);
-
-      if (this.isSleeping) {
-        // Deep, calm sleep breathing
-        this.kiroGroup.position.y = 0.08 + Math.sin(t * 1.0) * 0.02;
-        this.kiroGroup.rotation.z = Math.sin(t * 0.5) * 0.025;
-      } else if (this.moodTier === 'thriving') {
-        // High-energy bounce and wiggle
-        this.kiroGroup.position.y = 0.15 + Math.sin(t * 3.2) * 0.12;
-        this.kiroGroup.rotation.z = Math.sin(t * 2.2) * 0.045;
-        this.kiroGroup.rotation.y = Math.sin(t * 1.2) * 0.15;
-      } else if (this.moodTier === 'happy') {
-        // Content rhythmic floating
-        this.kiroGroup.position.y = 0.1 + Math.sin(t * 1.6) * 0.06;
-        this.kiroGroup.rotation.y = Math.sin(t * 0.8) * 0.08;
-      } else {
-        // Sluggish low-energy breathing
-        this.kiroGroup.position.y = 0.05 + Math.sin(t * 0.8) * 0.02;
-      }
+        // 8. Start loop
+        this.animate();
     }
 
-    // Sparkles Rotation
-    if (this.sparkles) {
-      this.sparkles.rotation.y += 0.002;
-      this.sparkles.rotation.x += 0.0005;
+    setupPettingRaycaster() {
+        const handlePet = (clientX, clientY) => {
+            if (!this.container || !this.camera || !this.kiroGroup) return;
+            const rect = this.container.getBoundingClientRect();
+            this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            const intersects = this.raycaster.intersectObjects(this.kiroGroup.children, true);
+            if (intersects.length > 0) {
+                this.triggerPetReaction();
+            }
+        };
+
+        this.container.addEventListener('click', (e) => handlePet(e.clientX, e.clientY));
+        this.container.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length > 0) {
+                handlePet(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
     }
 
-    // Heart particles animation
-    for (let i = this.heartParticles.length - 1; i >= 0; i--) {
-      const p = this.heartParticles[i];
-      p.position.x += p.userData.vx;
-      p.position.y += p.userData.vy;
-      p.position.z += p.userData.vz;
-      p.userData.life -= 0.025;
-      p.material.opacity = Math.max(0, p.userData.life);
+    buildEnvironment() {
+        // Pedestal: Floating Dark Cylinder Island (#1B2A38)
+        const pedestalGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.4, 32);
+        const pedestalMat = new THREE.MeshStandardMaterial({
+            color: 0x1B2A38,
+            roughness: 0.6,
+            metalness: 0.2
+        });
+        this.pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+        this.pedestal.position.y = -1.6;
+        this.pedestal.receiveShadow = true;
+        this.scene.add(this.pedestal);
 
-      if (p.userData.life <= 0) {
-        this.scene.remove(p);
-        this.heartParticles.splice(i, 1);
-      }
+        // Emerald Neon Ring (#94E2D5) around the top of the pedestal
+        const ringGeo = new THREE.TorusGeometry(1.85, 0.05, 8, 48);
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: 0x94E2D5,
+            transparent: true,
+            opacity: 0.9
+        });
+        this.neonRing = new THREE.Mesh(ringGeo, ringMat);
+        this.neonRing.rotation.x = Math.PI / 2;
+        this.neonRing.position.y = -1.4;
+        this.scene.add(this.neonRing);
+
+        // 35 Orbiting Golden Star Sparkles (THREE.Points)
+        const starCount = 35;
+        const starGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(starCount * 3);
+        const phases = [];
+
+        for (let i = 0; i < starCount; i++) {
+            const r = 2.0 + Math.random() * 1.5;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+
+            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) + 0.2;
+            positions[i * 3 + 2] = r * Math.cos(phi);
+
+            phases.push(Math.random() * Math.PI * 2);
+        }
+
+        starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        
+        const starMat = new THREE.PointsMaterial({
+            color: 0xF9E2AF,
+            size: 0.08,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        this.orbitingStars = new THREE.Points(starGeo, starMat);
+        this.orbitingStars.userData = { phases: phases };
+        this.scene.add(this.orbitingStars);
     }
 
-    this.renderer.render(this.scene, this.camera);
-  }
+    buildKiro() {
+        this.kiroGroup = new THREE.Group();
+        this.kiroGroup.position.set(0, 0, 0);
+        this.scene.add(this.kiroGroup);
 
-  resize() {
-    if (!this.canvas || !this.renderer || !this.camera) return;
-    const rect = this.canvas.getBoundingClientRect();
-    const width = rect.width || window.innerWidth;
-    const height = rect.height || window.innerHeight;
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
-  }
+        // Common Materials
+        const mintMaterial = new THREE.MeshStandardMaterial({
+            color: 0x4EC9B0, // Mint/teal (#4EC9B0)
+            roughness: 0.85,
+            metalness: 0.05
+        });
+
+        // A. Body Shape: Cute, round, slightly squashed mint/teal sphere
+        const bodyGeo = new THREE.SphereGeometry(1, 32, 32);
+        const bodyMesh = new THREE.Mesh(bodyGeo, mintMaterial);
+        bodyMesh.scale.set(1.1, 0.95, 1.1);
+        bodyMesh.castShadow = true;
+        bodyMesh.receiveShadow = true;
+        this.kiroGroup.add(bodyMesh);
+
+        // B. Belly: Creamy off-white front patch (#F0EDE8)
+        const bellyGeo = new THREE.SphereGeometry(0.72, 32, 32);
+        const bellyMat = new THREE.MeshStandardMaterial({
+            color: 0xF0EDE8,
+            roughness: 0.9,
+            metalness: 0.0
+        });
+        const bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
+        bellyMesh.scale.set(1.0, 0.85, 0.5);
+        bellyMesh.position.set(0, -0.15, 0.72);
+        this.kiroGroup.add(bellyMesh);
+
+        // C. Eyes & Highlights: Dark obsidian spherical eyes (#1A3A3A) with bright starlight dots (#FFFFFF)
+        const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const eyeMat = new THREE.MeshStandardMaterial({
+            color: 0x1A3A3A,
+            roughness: 0.1,
+            metalness: 0.9
+        });
+        const highlightGeo = new THREE.SphereGeometry(0.04, 8, 8);
+        const highlightMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+
+        // Left Eye
+        const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+        leftEye.position.set(-0.35, 0.18, 0.85);
+        const leftHighlight = new THREE.Mesh(highlightGeo, highlightMat);
+        leftHighlight.position.set(-0.31, 0.22, 0.95);
+        this.kiroGroup.add(leftEye);
+        this.kiroGroup.add(leftHighlight);
+
+        // Right Eye
+        const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+        rightEye.position.set(0.35, 0.18, 0.85);
+        const rightHighlight = new THREE.Mesh(highlightGeo, highlightMat);
+        rightHighlight.position.set(0.39, 0.22, 0.95);
+        this.kiroGroup.add(rightEye);
+        this.kiroGroup.add(rightHighlight);
+
+        // D. Snout / Nose: Tiny soft pastel pink button nose (#F5B7C0)
+        const noseGeo = new THREE.SphereGeometry(0.06, 16, 16);
+        const noseMat = new THREE.MeshStandardMaterial({
+            color: 0xF5B7C0,
+            roughness: 0.8
+        });
+        const noseMesh = new THREE.Mesh(noseGeo, noseMat);
+        noseMesh.scale.set(1.2, 1.0, 0.8);
+        noseMesh.position.set(0, 0.06, 0.95);
+        this.kiroGroup.add(noseMesh);
+
+        // E. Cheeks: Two translucent pastel pink blush discs (#FFB6C1, 55% opacity)
+        const cheekGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.02, 16);
+        const cheekMat = new THREE.MeshBasicMaterial({
+            color: 0xFFB6C1,
+            transparent: true,
+            opacity: 0.55
+        });
+
+        // Left Cheek
+        const leftCheek = new THREE.Mesh(cheekGeo, cheekMat);
+        leftCheek.rotation.x = Math.PI / 2.3;
+        leftCheek.rotation.y = -Math.PI / 6;
+        leftCheek.position.set(-0.55, 0.02, 0.82);
+        this.kiroGroup.add(leftCheek);
+
+        // Right Cheek
+        const rightCheek = new THREE.Mesh(cheekGeo, cheekMat);
+        rightCheek.rotation.x = Math.PI / 2.3;
+        rightCheek.rotation.y = Math.PI / 6;
+        rightCheek.position.set(0.55, 0.02, 0.82);
+        this.kiroGroup.add(rightCheek);
+
+        // F. Arms / Flippers: Two mint side paws/flippers angled outward
+        const armGeo = new THREE.SphereGeometry(0.24, 16, 16);
+        const leftArm = new THREE.Mesh(armGeo, mintMaterial);
+        leftArm.scale.set(1.5, 0.8, 0.8);
+        leftArm.position.set(-0.9, -0.3, 0.2);
+        leftArm.rotation.set(0, -Math.PI / 4, -Math.PI / 6);
+        this.kiroGroup.add(leftArm);
+
+        const rightArm = new THREE.Mesh(armGeo, mintMaterial);
+        rightArm.scale.set(1.5, 0.8, 0.8);
+        rightArm.position.set(0.9, -0.3, 0.2);
+        rightArm.rotation.set(0, Math.PI / 4, Math.PI / 6);
+        this.kiroGroup.add(rightArm);
+
+        // G. Sleeping Nightcap Accessories
+        this.buildNightcap();
+
+        // H. Golden Aura
+        this.buildGoldenAura();
+    }
+
+    buildNightcap() {
+        this.nightcap = new THREE.Group();
+        this.nightcap.position.set(0, 0.9, 0);
+
+        const capGeo = new THREE.ConeGeometry(0.45, 1.0, 16);
+        const capMat = new THREE.MeshStandardMaterial({
+            color: 0xCBA6F7,
+            roughness: 0.7,
+            metalness: 0.1
+        });
+        const capMesh = new THREE.Mesh(capGeo, capMat);
+        capMesh.rotation.z = -0.25;
+        capMesh.rotation.x = -0.15;
+        this.nightcap.add(capMesh);
+
+        const starGeo = new THREE.DodecahedronGeometry(0.12);
+        const starMat = new THREE.MeshStandardMaterial({
+            color: 0xF9E2AF,
+            metalness: 0.5,
+            roughness: 0.2
+        });
+        const starMesh = new THREE.Mesh(starGeo, starMat);
+        starMesh.position.set(0.18, 0.55, 0.1);
+        this.nightcap.add(starMesh);
+
+        this.kiroGroup.add(this.nightcap);
+        this.nightcap.visible = this.isSleeping;
+    }
+
+    buildGoldenAura() {
+        const auraGeo = new THREE.SphereGeometry(1.4, 32, 32);
+        const auraMat = new THREE.MeshBasicMaterial({
+            color: 0xF9E2AF,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide
+        });
+        this.goldenAura = new THREE.Mesh(auraGeo, auraMat);
+        this.kiroGroup.add(this.goldenAura);
+        this.goldenAura.visible = this.hasWellRestedBuff;
+    }
+
+    updateState(states) {
+        if (!states) return;
+        if (states.isSleeping !== undefined) {
+            this.isSleeping = states.isSleeping;
+            if (this.nightcap) this.nightcap.visible = this.isSleeping;
+        }
+        if (states.hasWellRestedBuff !== undefined) {
+            this.hasWellRestedBuff = states.hasWellRestedBuff;
+            if (this.goldenAura) this.goldenAura.visible = this.hasWellRestedBuff;
+        }
+        if (states.wellbeing !== undefined) {
+            this.wellbeing = states.wellbeing;
+            const scaleFactor = 0.4 + 0.7 * Math.pow(this.wellbeing / 100, 2);
+            
+            if (window.gsap && this.kiroGroup) {
+                gsap.to(this.kiroGroup.scale, {
+                    x: scaleFactor,
+                    y: scaleFactor,
+                    z: scaleFactor,
+                    duration: 1.2,
+                    ease: "power2.out"
+                });
+            } else if (this.kiroGroup) {
+                this.kiroGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            }
+        }
+        if (states.mood !== undefined) {
+            this.mood = states.mood;
+        }
+    }
+
+    onWindowResize() {
+        if (!this.container || !this.camera || !this.renderer) return;
+        const width = this.container.clientWidth || window.innerWidth;
+        const height = this.container.clientHeight || window.innerHeight;
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+    }
+
+    resize() {
+        this.onWindowResize();
+    }
+
+    // Direct Petting interaction using GSAP triggers
+    triggerPetReaction() {
+        if (!window.gsap || !this.kiroGroup) return;
+
+        const jumpTimeline = gsap.timeline();
+        
+        jumpTimeline.to(this.kiroGroup.position, {
+            y: 0.8,
+            duration: 0.35,
+            ease: "power1.out"
+        })
+        .to(this.kiroGroup.rotation, {
+            y: this.kiroGroup.rotation.y + Math.PI * 2,
+            duration: 0.6,
+            ease: "sine.inOut"
+        }, 0)
+        .to(this.kiroGroup.position, {
+            y: 0,
+            duration: 0.35,
+            ease: "power1.in"
+        })
+        .to(this.kiroGroup.scale, {
+            y: 0.85,
+            x: 1.15,
+            duration: 0.1,
+            ease: "power2.out"
+        })
+        .to(this.kiroGroup.scale, {
+            y: 1,
+            x: 1,
+            duration: 0.2,
+            ease: "elastic.out(1, 0.3)"
+        });
+
+        this.createHeartsEffect();
+
+        if (typeof onKiroWellRested === 'function' && this.wellbeing >= 90) {
+            onKiroWellRested();
+        }
+    }
+
+    createHeartsEffect() {
+        if (!window.gsap) return;
+        const sparkleCount = 8;
+        for (let i = 0; i < sparkleCount; i++) {
+            const sparkleGeo = new THREE.DodecahedronGeometry(0.06);
+            const sparkleMat = new THREE.MeshBasicMaterial({
+                color: 0xFFB6C1,
+                transparent: true,
+                opacity: 0.9
+            });
+            const sparkle = new THREE.Mesh(sparkleGeo, sparkleMat);
+            
+            const theta = Math.random() * Math.PI * 2;
+            const targetDist = 1.2 + Math.random() * 0.8;
+            
+            sparkle.position.set(0, 0.2, 0.1);
+            this.scene.add(sparkle);
+
+            gsap.to(sparkle.position, {
+                x: Math.cos(theta) * targetDist,
+                y: 0.5 + Math.random() * 0.8,
+                z: Math.sin(theta) * targetDist,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+
+            gsap.to(sparkle.scale, {
+                x: 0,
+                y: 0,
+                z: 0,
+                duration: 0.8,
+                ease: "power2.in",
+                onComplete: () => {
+                    this.scene.remove(sparkle);
+                    sparkleGeo.dispose();
+                    sparkleMat.dispose();
+                }
+            });
+        }
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+
+        const t = this.clock.getElapsedTime();
+
+        // 1. Idle Bobbing
+        let freq = 1.5;
+        let amp = 0.08;
+
+        if (this.isSleeping || this.mood === "sleeping") {
+            freq = 0.6;
+            amp = 0.02;
+            this.kiroGroup.rotation.z = Math.sin(t * 0.5) * 0.04;
+        } else if (this.mood === "thriving") {
+            freq = 2.4;
+            amp = 0.12;
+            this.kiroGroup.rotation.y = Math.sin(t * 1.2) * 0.15;
+        } else if (this.mood === "happy") {
+            freq = 1.8;
+            amp = 0.08;
+            this.kiroGroup.rotation.y = Math.sin(t * 0.8) * 0.08;
+        } else if (this.mood === "okay") {
+            freq = 1.2;
+            amp = 0.05;
+        }
+
+        if (window.gsap && !gsap.isAnimating(this.kiroGroup.position)) {
+            this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+        } else if (!window.gsap) {
+            this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+        }
+
+        // 2. Orbiting stars animation
+        if (this.orbitingStars) {
+            const positions = this.orbitingStars.geometry.attributes.position.array;
+            const phases = this.orbitingStars.userData.phases;
+            const count = positions.length / 3;
+
+            for (let i = 0; i < count; i++) {
+                phases[i] += 0.01;
+                positions[i * 3 + 1] += Math.sin(phases[i]) * 0.002;
+                
+                const x = positions[i * 3];
+                const z = positions[i * 3 + 2];
+                const angle = 0.005;
+                positions[i * 3] = x * Math.cos(angle) - z * Math.sin(angle);
+                positions[i * 3 + 2] = x * Math.sin(angle) + z * Math.cos(angle);
+            }
+            this.orbitingStars.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // 3. Rotate neon pedestal ring
+        if (this.neonRing) {
+            this.neonRing.rotation.z += 0.008;
+        }
+
+        // 4. Glow aura breathing
+        if (this.goldenAura && this.hasWellRestedBuff) {
+            this.goldenAura.material.opacity = 0.10 + Math.sin(t * 2) * 0.04;
+        }
+
+        this.renderer.render(this.scene, this.camera);
+    }
 }
 
 window.KiroScene = KiroScene;
