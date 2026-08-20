@@ -1,5 +1,5 @@
 {
-  "version": "1.2.2",
-  "updatedAt": "2026-08-21T01:05:00+08:00",
-  "releaseNotes": "Incremental Build Optimization: OutputFile Marker Caching for 0ms verifyKiroAssets UP-TO-DATE Execution"
+  "version": "1.2.3",
+  "updatedAt": "2026-08-21T01:29:00+08:00",
+  "releaseNotes": "State-Write Interceptor for Token Normalization & Espresso UI Integration Test Suite (KiroWebViewTest.kt)"
 }

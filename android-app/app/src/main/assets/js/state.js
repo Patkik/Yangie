@@ -58,7 +58,7 @@ class KiroStateManager extends StateEmitter {
         forest: 0,
         lofi: 0
       },
-      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.2',
+      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.3',
       isOtaActive: false
     };
 
@@ -95,6 +95,21 @@ class KiroStateManager extends StateEmitter {
 
   get(key) {
     return this.state[key];
+  }
+
+  set(key, value) {
+    // State-write interceptor for persona / user tokens
+    if (key === 'persona' || key === 'currentUser' || key === 'user') {
+      const normalized = this.normalizePersona(value);
+      this.state.persona = normalized;
+      this.state[key] = normalized;
+      localStorage.setItem('starlight_persona', normalized);
+      this.emit('persona:change', normalized);
+      return normalized;
+    }
+
+    this.state[key] = value;
+    return value;
   }
 
   normalizePersona(persona) {
