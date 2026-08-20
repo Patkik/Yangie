@@ -358,6 +358,52 @@ export class CosmicSynthEngine {
     osc.stop(now + 0.15);
   }
 
+  // Crisp Glass-like Water Splash & Chime Sound FX
+  playWaterSound() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // Glass Water Chimes (E6, G#6, B6)
+    const freqs = [1318.51, 1661.22, 1975.53];
+    freqs.forEach((f, idx) => {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now + idx * 0.04);
+
+      g.gain.setValueAtTime(0.08, now + idx * 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.04 + 0.6);
+
+      osc.connect(g);
+      g.connect(this.masterGain);
+
+      osc.start(now + idx * 0.04);
+      osc.stop(now + idx * 0.04 + 0.65);
+    });
+
+    // Soft Water Droplet Plop
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.createPinkNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2200, now);
+    filter.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+    filter.Q.value = 5.0;
+
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.18, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+    noise.connect(filter);
+    filter.connect(g);
+    g.connect(this.masterGain);
+
+    noise.start(now);
+    noise.stop(now + 0.22);
+  }
+
   // ============================================================================
   // Cinematic Intro Sequence Procedural Audio Synthesizers
   // ============================================================================

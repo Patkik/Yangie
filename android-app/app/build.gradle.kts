@@ -10,8 +10,8 @@ android {
         applicationId = "com.starlight.sanctuary"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.1.1"
+        versionCode = 8
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -39,4 +39,31 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.webkit:webkit:1.10.0")
+    testImplementation("junit:junit:4.13.2")
+}
+
+tasks.register("verifyKiroAssets") {
+    group = "verification"
+    description = "Verifies that all modular ES6 client assets are in place before building."
+    doLast {
+        val assetsDir = file("src/main/assets")
+        val required = listOf(
+            "index.html",
+            "css/main.css", "css/intro.css", "css/messenger.css",
+            "js/app.js", "js/state.js", "js/audio/synth.js",
+            "js/three/intro.js", "js/three/scene.js", "js/ui/mailbox.js"
+        )
+        
+        required.forEach { path ->
+            val file = File(assetsDir, path)
+            if (!file.exists() || file.length() == 0L) {
+                throw GradleException("❌ Critical Kiro module missing or empty: assets/$path")
+            }
+        }
+        println("✨ All Kiro modules verified and healthy for build!")
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("verifyKiroAssets")
 }
