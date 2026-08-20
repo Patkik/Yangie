@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
-  "updatedAt": "2026-08-21T02:43:00+08:00",
-  "releaseNotes": "Space Capsule V3 Master Upgrade: Shared Vitals, Pilot POV Telescope Cockpit, Dynamic PST Greetings, & Discord Messenger"
+  "version": "1.4.0",
+  "updatedAt": "2026-08-21T03:10:00+08:00",
+  "releaseNotes": "Starlight Video Call System v1.4.0: Discord-grade WebRTC P2P calls, DAVE-equivalent ECDH P-256 + AES-GCM-128 E2EE, simulcast 720p/360p/180p, native Android AudioPlaybackCapture + mic mixer Opus encoder, and full call chrome UI with AWAITING ENDPOINT pulse, self-view PiP, and E2EE lock badge."
 }

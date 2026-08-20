@@ -1,11 +1,16 @@
 /**
- * mailbox.js (StarlightMessenger V3)
- * Full-featured Starlight Messenger and WebRTC interface for Patrick & Yangiee.
- * Supports Discord-style emojis, inline base64 image sending, voice notes, and screen sharing preview.
+ * mailbox.js (StarlightMessenger V3 + Starlight Call Engine v1.4.0)
+ * Full-featured Starlight Messenger and Discord-grade Video Call interface for Patrick & Yangiee.
+ * Supports: Discord-style emojis, inline base64 images, voice notes, WebRTC video calling,
+ * screen sharing, DAVE-equivalent E2EE (ECDH P-256 + AES-GCM-128), and native Android audio bridge.
+ *
+ * Complies with Master Walkthrough Audit v1.2.1 (token normalization via KiroState).
  */
 
 import { KiroState } from '../state.js';
 import { synthEngine } from '../audio/synth.js';
+import { kiroCallEngine, CallState } from '../rtc/call-engine.js';
+import { kiroCryptoEngine } from '../rtc/crypto-engine.js';
 
 const DISCORD_EMOJIS = ["✨", "💖", "🌙", "🛸", "🍬", "🐱", "👨‍🚀", "🍩", "🔋", "🪐"];
 
@@ -45,12 +50,18 @@ export class StarlightMessenger {
     this.recordStartTime = 0;
     this.localScreenStream = null;
 
+    /** @type {boolean} Call UI state trackers */
+    this._isMuted     = false;
+    this._isCamOff    = false;
+    this._isSharing   = false;
+
     this.init();
   }
 
   init() {
     this.render();
     this.bindEvents();
+    this._initCallEngine();
     this.loadMockFeed();
   }
 
@@ -73,11 +84,55 @@ export class StarlightMessenger {
           </button>
         </div>
 
-        <!-- WebRTC Screen Share Picture-In-Picture Overlay Panel -->
-        <div id="webrtc-pip-panel" style="display:none; position:relative; background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(148,226,213,0.2); width:100%; height:130px; overflow:hidden; border-radius: 8px; margin: 4px 0;">
-          <video id="pip-video-preview" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
-          <div style="position:absolute; top:8px; right:8px; display:flex; gap:0.4rem;">
-            <button id="webrtc-close-share" style="padding:4px 8px; border-radius:6px; border:none; background:rgba(235,77,75,0.85); color:#FFF; font-size:11px; font-weight:700; cursor:pointer;" title="Stop Broadcast">❌ Stop</button>
+        <!-- Call Session Panel (full-chrome video call UI, hidden when no call) -->
+        <div id="call-session-panel" style="display:none; position:relative; background:rgba(3,7,18,0.88); border-bottom:1px solid rgba(148,226,213,0.2); width:100%; border-radius:12px; margin:4px 0; overflow:hidden;">
+
+          <!-- Remote Video Full-Bleed -->
+          <div style="position:relative; width:100%; height:200px; background:#060d18;">
+            <video id="call-remote-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+
+            <!-- Remote Placeholder (shown when no remote stream) -->
+            <div id="call-remote-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+              <div class="call-awaiting-ring">
+                <div class="call-awaiting-ring-inner">📡</div>
+              </div>
+              <span id="call-status-badge" class="call-status-badge idle">IDLE</span>
+            </div>
+
+            <!-- Self-View PiP Bubble -->
+            <div class="call-self-pip">
+              <video id="call-self-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);"></video>
+              <div class="call-self-label">YOU</div>
+            </div>
+
+            <!-- E2EE Lock Badge -->
+            <div id="call-e2ee-badge" class="e2ee-badge" style="position:absolute;top:10px;left:10px;">
+              <span class="lock-icon">🔒</span> E2EE
+            </div>
+          </div>
+
+          <!-- Call HUD Controls -->
+          <div class="call-hud" style="padding:10px 16px 12px;background:rgba(6,13,24,0.92);display:flex;align-items:center;justify-content:center;gap:12px;">
+            <div class="call-hud-label-group">
+              <button id="call-btn-mute" class="call-hud-btn" title="Mute">🎤</button>
+              <span class="call-hud-label">Mute</span>
+            </div>
+            <div class="call-hud-label-group">
+              <button id="call-btn-camera" class="call-hud-btn" title="Camera Off">📷</button>
+              <span class="call-hud-label">Camera</span>
+            </div>
+            <div class="call-hud-label-group">
+              <button id="call-btn-end" class="call-hud-btn end-call-btn" title="End Call">📵</button>
+              <span class="call-hud-label">End</span>
+            </div>
+            <div class="call-hud-label-group">
+              <button id="call-btn-screen" class="call-hud-btn" title="Share Screen">🖥️</button>
+              <span class="call-hud-label">Screen</span>
+            </div>
+            <div class="call-hud-label-group">
+              <button id="call-btn-answer" class="call-hud-btn" title="Answer (Receiver mode)" style="background:rgba(78,201,176,0.22);border-color:rgba(78,201,176,0.5);">📞</button>
+              <span class="call-hud-label">Answer</span>
+            </div>
           </div>
         </div>
 
@@ -110,9 +165,9 @@ export class StarlightMessenger {
               🎤
             </button>
 
-            <!-- WebRTC Screen Share Button -->
-            <button id="webrtc-share-btn" class="chat-action-btn" title="Share Screen" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              🖥️
+            <!-- Start Call Button -->
+            <button id="mailbox-call-btn" class="chat-action-btn" title="Start Video Call" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(148,226,213,0.4); background:rgba(148,226,213,0.1); color:#4EC9B0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px;">
+              📞
             </button>
 
             <input type="text" id="mailbox-input" class="chat-input" placeholder="Whisper something sweet to Yangiee..." autocomplete="off" style="flex:1;">
@@ -127,18 +182,17 @@ export class StarlightMessenger {
   }
 
   bindEvents() {
-    const input = this.overlay.querySelector('#mailbox-input');
-    const sendBtn = this.overlay.querySelector('#mailbox-send-btn');
-    const closeBtn = this.overlay.querySelector('#mailbox-close-btn');
-    const pills = this.overlay.querySelectorAll('.sender-pill');
-    const imgBtn = this.overlay.querySelector('#attach-img-btn');
-    const imgInput = this.overlay.querySelector('#attach-img-file');
-    const voiceBtn = this.overlay.querySelector('#attach-voice-btn');
-    const screenBtn = this.overlay.querySelector('#webrtc-share-btn');
-    const closeShareBtn = this.overlay.querySelector('#webrtc-close-share');
+    const input      = this.overlay.querySelector('#mailbox-input');
+    const sendBtn    = this.overlay.querySelector('#mailbox-send-btn');
+    const closeBtn   = this.overlay.querySelector('#mailbox-close-btn');
+    const pills      = this.overlay.querySelectorAll('.sender-pill');
+    const imgBtn     = this.overlay.querySelector('#attach-img-btn');
+    const imgInput   = this.overlay.querySelector('#attach-img-file');
+    const voiceBtn   = this.overlay.querySelector('#attach-voice-btn');
+    const callBtn    = this.overlay.querySelector('#mailbox-call-btn');
 
     if (closeBtn) closeBtn.addEventListener('click', () => this.close());
-    if (sendBtn) sendBtn.addEventListener('click', () => this.send());
+    if (sendBtn)  sendBtn.addEventListener('click',  () => this.send());
     if (input) {
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') this.send();
@@ -160,8 +214,8 @@ export class StarlightMessenger {
         pill.classList.add('active');
         this.currentSender = pill.getAttribute('data-sender');
         if (input) {
-          input.placeholder = this.currentSender === 'patrick' 
-            ? 'Whisper something sweet to Yangiee...' 
+          input.placeholder = this.currentSender === 'patrick'
+            ? 'Whisper something sweet to Yangiee...'
             : 'Send an adorable note to Patrick...';
         }
       });
@@ -174,14 +228,12 @@ export class StarlightMessenger {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (event) => {
-          this.addMessageNode(this.currentSender, event.target.result, 'image');
-        };
+        reader.onload = (ev) => this.addMessageNode(this.currentSender, ev.target.result, 'image');
         reader.readAsDataURL(file);
       });
     }
 
-    // Voice Note Recorder
+    // Voice Note Recorder (press-and-hold)
     if (voiceBtn) {
       const startVoice = async (e) => {
         e.preventDefault();
@@ -190,74 +242,185 @@ export class StarlightMessenger {
         this.recordStartTime = Date.now();
         voiceBtn.style.background = 'rgba(235, 77, 75, 0.4)';
         const success = await synthEngine.startRecordingVoice();
-        if (!success) {
-          this.isRecording = false;
-          voiceBtn.style.background = 'rgba(255,255,255,0.06)';
-        }
+        if (!success) { this.isRecording = false; voiceBtn.style.background = 'rgba(255,255,255,0.06)'; }
       };
-
       const stopVoice = async () => {
         if (!this.isRecording) return;
         this.isRecording = false;
         voiceBtn.style.background = 'rgba(255,255,255,0.06)';
         const audioUrl = await synthEngine.stopRecordingVoice();
         const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
-        if (audioUrl && duration >= 1) {
-          this.addMessageNode(this.currentSender, audioUrl, 'audio');
-        }
+        if (audioUrl && duration >= 1) this.addMessageNode(this.currentSender, audioUrl, 'audio');
       };
-
-      voiceBtn.addEventListener('mousedown', startVoice);
-      voiceBtn.addEventListener('mouseup', stopVoice);
+      voiceBtn.addEventListener('mousedown',  startVoice);
+      voiceBtn.addEventListener('mouseup',    stopVoice);
       voiceBtn.addEventListener('mouseleave', stopVoice);
       voiceBtn.addEventListener('touchstart', startVoice, { passive: false });
-      voiceBtn.addEventListener('touchend', stopVoice, { passive: true });
+      voiceBtn.addEventListener('touchend',   stopVoice,  { passive: true  });
     }
 
-    // WebRTC Screen Share
-    if (screenBtn) {
-      screenBtn.addEventListener('click', () => this.toggleWebRTCScreenShare());
-    }
-    if (closeShareBtn) {
-      closeShareBtn.addEventListener('click', () => this.stopScreenShareStream());
-    }
+    // Call Panel HUD buttons
+    const bindHud = (id, fn) => {
+      const el = this.overlay.querySelector(id);
+      if (el) el.addEventListener('click', fn);
+    };
+    bindHud('#call-btn-mute',   () => this._onMuteToggle());
+    bindHud('#call-btn-camera', () => this._onCameraToggle());
+    bindHud('#call-btn-end',    () => this._onEndCall());
+    bindHud('#call-btn-screen', () => this._onScreenShare());
+    bindHud('#call-btn-answer', () => this._onAnswerCall());
+
+    // Start call button (📞) in messenger footer
+    if (callBtn) callBtn.addEventListener('click', () => this._onStartCall());
 
     this.overlay.addEventListener('click', (e) => {
       if (e.target === this.overlay) this.close();
     });
   }
 
-  async toggleWebRTCScreenShare() {
-    const pipPanel = this.overlay.querySelector('#webrtc-pip-panel');
-    const video = this.overlay.querySelector('#pip-video-preview');
+  // ──────────────────────────────────────────────────────────────────────────
+  // Call Engine Initialization
+  // ──────────────────────────────────────────────────────────────────────────
 
-    if (this.localScreenStream) {
-      this.stopScreenShareStream();
-      return;
-    }
+  _initCallEngine() {
+    kiroCallEngine.setCallbacks({
+      onStateChange: (state) => this._onCallStateChange(state),
+      onLocalStream:  (stream) => this._onLocalStream(stream),
+      onRemoteStream: (stream) => this._onRemoteStream(stream),
+      onError: (msg, err) => {
+        console.error('[Messenger] Call error:', msg, err);
+        this.addMessageNode(this.currentSender, `📡 Call error: ${msg}`, 'text');
+      },
+    });
+  }
 
-    try {
-      this.localScreenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true
-      });
+  // ──────────────────────────────────────────────────────────────────────────
+  // Call HUD Button Handlers
+  // ──────────────────────────────────────────────────────────────────────────
 
-      video.srcObject = this.localScreenStream;
-      pipPanel.style.display = 'block';
-      this.addMessageNode(this.currentSender, "Started live screen broadcast! 🖥️", 'text');
-      this.localScreenStream.getVideoTracks()[0].onended = () => this.stopScreenShareStream();
-    } catch (err) {
-      console.warn("[WebRTC] Screen capture unavailable on device:", err);
+  async _onStartCall() {
+    const panel = this.overlay.querySelector('#call-session-panel');
+    if (panel) panel.style.display = 'block';
+
+    // Generate ECDH epoch keypair for this call
+    await kiroCryptoEngine.generateEpochKeyPair();
+    // Wire crypto engine to call engine
+    kiroCallEngine.cryptoEngine = kiroCryptoEngine;
+
+    await kiroCallEngine.startCall({ video: true, audio: true });
+    this.addMessageNode(this.currentSender, '📞 Initiating Starlight Video Call…', 'text');
+    synthEngine.playChimeSound(660);
+  }
+
+  async _onAnswerCall() {
+    const panel = this.overlay.querySelector('#call-session-panel');
+    if (panel) panel.style.display = 'block';
+
+    await kiroCryptoEngine.generateEpochKeyPair();
+    kiroCallEngine.cryptoEngine = kiroCryptoEngine;
+
+    await kiroCallEngine.answerCall({ video: true, audio: true });
+    this.addMessageNode(this.currentSender, '📞 Answering incoming call…', 'text');
+    synthEngine.playChimeSound(770);
+  }
+
+  _onEndCall() {
+    kiroCallEngine.endCall();
+    kiroCryptoEngine.reset();
+    this._isMuted  = false;
+    this._isCamOff = false;
+    this._isSharing = false;
+
+    const panel = this.overlay.querySelector('#call-session-panel');
+    if (panel) setTimeout(() => { panel.style.display = 'none'; }, 1200);
+
+    this.addMessageNode(this.currentSender, '📵 Call ended.', 'text');
+    synthEngine.playChimeSound(330);
+  }
+
+  _onMuteToggle() {
+    this._isMuted = kiroCallEngine.toggleMute();
+    const btn = this.overlay.querySelector('#call-btn-mute');
+    if (btn) {
+      btn.textContent = this._isMuted ? '🔇' : '🎤';
+      btn.classList.toggle('active-red', this._isMuted);
     }
   }
 
-  stopScreenShareStream() {
-    const pipPanel = this.overlay.querySelector('#webrtc-pip-panel');
-    if (this.localScreenStream) {
-      this.localScreenStream.getTracks().forEach(track => track.stop());
-      this.localScreenStream = null;
+  _onCameraToggle() {
+    this._isCamOff = kiroCallEngine.toggleCamera();
+    const btn = this.overlay.querySelector('#call-btn-camera');
+    if (btn) {
+      btn.textContent = this._isCamOff ? '📵' : '📷';
+      btn.classList.toggle('active-red', this._isCamOff);
     }
-    if (pipPanel) pipPanel.style.display = 'none';
+  }
+
+  async _onScreenShare() {
+    if (this._isSharing) {
+      await kiroCallEngine.stopScreenShare();
+      this._isSharing = false;
+      const btn = this.overlay.querySelector('#call-btn-screen');
+      if (btn) { btn.textContent = '🖥️'; btn.classList.remove('active-red'); }
+      this.addMessageNode(this.currentSender, '🖥️ Screen sharing stopped.', 'text');
+    } else {
+      const stream = await kiroCallEngine.startScreenShare();
+      if (stream) {
+        this._isSharing = true;
+        const btn = this.overlay.querySelector('#call-btn-screen');
+        if (btn) { btn.textContent = '🟢'; btn.classList.add('active-red'); }
+        this.addMessageNode(this.currentSender, '🖥️ Started screen broadcast!', 'text');
+      }
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Call Engine Callbacks
+  // ──────────────────────────────────────────────────────────────────────────
+
+  _onCallStateChange(state) {
+    const badge      = this.overlay.querySelector('#call-status-badge');
+    const placeholder = this.overlay.querySelector('#call-remote-placeholder');
+
+    if (!badge) return;
+
+    const labels = {
+      [CallState.IDLE]:              'IDLE',
+      [CallState.AWAITING_ENDPOINT]: 'AWAITING ENDPOINT',
+      [CallState.NEGOTIATING]:       'NEGOTIATING',
+      [CallState.CONNECTED]:         'VOICE CONNECTED',
+      [CallState.ENDED]:             'CALL ENDED',
+    };
+    const cssClass = state.toLowerCase().replace('_', '-');
+
+    badge.textContent = labels[state] || state;
+    badge.className = `call-status-badge ${cssClass}`;
+
+    if (placeholder) {
+      placeholder.style.display = (state === CallState.CONNECTED) ? 'none' : 'flex';
+    }
+
+    // Show E2EE badge on connection if crypto is active
+    if (state === CallState.CONNECTED && kiroCryptoEngine.isEncrypted) {
+      const e2eeBadge = this.overlay.querySelector('#call-e2ee-badge');
+      if (e2eeBadge) e2eeBadge.classList.add('visible');
+    }
+  }
+
+  _onLocalStream(stream) {
+    const selfVideo = this.overlay.querySelector('#call-self-video');
+    if (selfVideo) {
+      selfVideo.srcObject = stream;
+      selfVideo.play().catch(() => {});
+    }
+  }
+
+  _onRemoteStream(stream) {
+    const remoteVideo = this.overlay.querySelector('#call-remote-video');
+    if (remoteVideo) {
+      remoteVideo.srcObject = stream;
+      remoteVideo.play().catch(() => {});
+    }
   }
 
   open() {

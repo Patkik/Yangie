@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -43,6 +44,32 @@ class MainActivity : AppCompatActivity() {
     private lateinit var updateManager: KiroUpdateManager
 
     private var pendingApkToInstall: File? = null
+
+    // ── v1.4.0: MediaProjection launcher for native system audio capture ────
+    private val mediaProjectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            val projection = projectionManager.getMediaProjection(result.resultCode, result.data!!)
+            // Wire projection into the capture service
+            val serviceIntent = Intent(this, KiroAudioCaptureService::class.java).apply {
+                action = KiroAudioCaptureService.ACTION_START_CAPTURE
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
+            // TODO: Bind service and call attachMediaProjection(projection) after service starts
+            Log.i(TAG, "MediaProjection granted — native audio capture service starting.")
+            runOnUiThread {
+                webView.evaluateJavascript("window.KiroRTC && window.KiroRTC.onNativeCaptureStarted && window.KiroRTC.onNativeCaptureStarted();", null)
+            }
+        } else {
+            Log.w(TAG, "MediaProjection permission denied.")
+        }
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -549,6 +576,66 @@ class MainActivity : AppCompatActivity() {
                 setupAssetLoader()
                 loadSanctuaryUrl()
                 Toast.makeText(context, "Reverted to default APK assets", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // ── v1.4.0: Native Audio Capture Bridge methods ──────────────────────
+
+        /**
+         * Called by JS (kiroCallEngine.startScreenShare) to start the native audio capture
+         * foreground service + request MediaProjection permission.
+         */
+        @JavascriptInterface
+        fun startNativeCapture() {
+            runOnUiThread {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                        mediaProjectionLauncher.launch(projectionManager.createScreenCaptureIntent())
+                    } else {
+                        // API < 29: start mic-only capture directly
+                        val serviceIntent = Intent(context, KiroAudioCaptureService::class.java).apply {
+                            action = KiroAudioCaptureService.ACTION_START_CAPTURE
+                        }
+                        startService(serviceIntent)
+                        Log.i(TAG, "Mic-only capture started (API < 29).")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to start native capture: ${e.message}")
+                }
+            }
+        }
+
+        /**
+         * Called by JS when screen share ends to stop the foreground capture service.
+         */
+        @JavascriptInterface
+        fun stopNativeCapture() {
+            runOnUiThread {
+                try {
+                    val serviceIntent = Intent(context, KiroAudioCaptureService::class.java).apply {
+                        action = KiroAudioCaptureService.ACTION_STOP_CAPTURE
+                    }
+                    startService(serviceIntent)
+                    Log.i(TAG, "Native audio capture service stopped.")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to stop native capture: ${e.message}")
+                }
+            }
+        }
+
+        /**
+         * Called by JS to explicitly request MediaProjection permission.
+         */
+        @JavascriptInterface
+        fun requestMediaProjectionPermission() {
+            runOnUiThread {
+                try {
+                    val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                    mediaProjectionLauncher.launch(projectionManager.createScreenCaptureIntent())
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to launch MediaProjection request: ${e.message}")
+                }
             }
         }
     }

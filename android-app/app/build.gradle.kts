@@ -10,8 +10,8 @@ android {
         applicationId = "com.starlight.sanctuary"
         minSdk = 24
         targetSdk = 34
-        versionCode = 16
-        versionName = "1.3.0"
+        versionCode = 17
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -58,9 +58,10 @@ abstract class VerifyKiroAssetsTask : DefaultTask() {
         val dir = assetsDir.get().asFile
         val required = listOf(
             "index.html",
-            "css/main.css", "css/intro.css", "css/messenger.css",
+            "css/main.css", "css/intro.css", "css/messenger.css", "css/call.css",
             "js/app.js", "js/state.js", "js/audio/synth.js",
-            "js/three/intro.js", "js/three/scene.js", "js/ui/mailbox.js"
+            "js/three/intro.js", "js/three/scene.js", "js/ui/mailbox.js",
+            "js/rtc/call-engine.js", "js/rtc/crypto-engine.js"
         )
 
         required.forEach { path ->
