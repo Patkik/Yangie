@@ -585,6 +585,98 @@ export class CosmicSynthEngine {
     noise.stop(now + 0.95);
   }
 
+  // ============================================================================
+  // Deep-Space Hum & Solar Wind Atmosphere Generator
+  // ============================================================================
+
+  startCosmicAtmosphere() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.atmosphereActive) return;
+
+    this.atmosphereActive = true;
+    const now = this.ctx.currentTime;
+
+    // 1. Deep-Space Orbital Hum (55Hz Sub-bass carrier + 0.05Hz LFO)
+    this.humOsc = this.ctx.createOscillator();
+    this.humGain = this.ctx.createGain();
+    this.humLfo = this.ctx.createOscillator();
+    this.humLfoGain = this.ctx.createGain();
+
+    this.humOsc.type = 'sine';
+    this.humOsc.frequency.setValueAtTime(55, now); // A1 note
+
+    this.humLfo.type = 'sine';
+    this.humLfo.frequency.setValueAtTime(0.05, now); // 20-second gentle breathing cycle
+    this.humLfoGain.gain.setValueAtTime(0.04, now);
+
+    this.humGain.gain.setValueAtTime(0.001, now);
+    this.humGain.gain.linearRampToValueAtTime(0.09, now + 3.0);
+
+    this.humLfo.connect(this.humLfoGain);
+    this.humLfoGain.connect(this.humGain.gain);
+    this.humOsc.connect(this.humGain);
+    this.humGain.connect(this.masterGain);
+
+    this.humOsc.start(now);
+    this.humLfo.start(now);
+
+    // 2. Solar Wind Sweep (Resonant Pink Noise + 0.03Hz Filter Sweeper)
+    this.windSource = this.ctx.createBufferSource();
+    this.windSource.buffer = this.createPinkNoiseBuffer();
+    this.windSource.loop = true;
+
+    this.windFilter = this.ctx.createBiquadFilter();
+    this.windFilter.type = 'bandpass';
+    this.windFilter.frequency.setValueAtTime(650, now);
+    this.windFilter.Q.setValueAtTime(3.8, now);
+
+    this.windLfo = this.ctx.createOscillator();
+    this.windLfo.type = 'sine';
+    this.windLfo.frequency.setValueAtTime(0.03, now); // ~33 second undulating breeze
+
+    this.windLfoGain = this.ctx.createGain();
+    this.windLfoGain.gain.setValueAtTime(450, now);
+
+    this.windGain = this.ctx.createGain();
+    this.windGain.gain.setValueAtTime(0.001, now);
+    this.windGain.gain.linearRampToValueAtTime(0.08, now + 4.0);
+
+    this.windLfo.connect(this.windLfoGain);
+    this.windLfoGain.connect(this.windFilter.frequency);
+
+    this.windSource.connect(this.windFilter);
+    this.windFilter.connect(this.windGain);
+    this.windGain.connect(this.masterGain);
+
+    this.windSource.start(now);
+    this.windLfo.start(now);
+  }
+
+  stopCosmicAtmosphere(fadeDuration = 2.0) {
+    if (!this.atmosphereActive || !this.ctx) return;
+    this.atmosphereActive = false;
+
+    const now = this.ctx.currentTime;
+    if (this.humGain) {
+      this.humGain.gain.linearRampToValueAtTime(0.0001, now + fadeDuration);
+    }
+    if (this.windGain) {
+      this.windGain.gain.linearRampToValueAtTime(0.0001, now + fadeDuration);
+    }
+
+    setTimeout(() => {
+      try {
+        if (this.humOsc) { this.humOsc.stop(); this.humOsc.disconnect(); }
+        if (this.humLfo) { this.humLfo.stop(); this.humLfo.disconnect(); }
+        if (this.windSource) { this.windSource.stop(); this.windSource.disconnect(); }
+        if (this.windLfo) { this.windLfo.stop(); this.windLfo.disconnect(); }
+      } catch (e) {
+        // Node already stopped
+      }
+    }, fadeDuration * 1000 + 100);
+  }
+
   setVolume(channel, volume) {
     if (!this.ctx) this.init();
     const vol = Math.max(0, Math.min(1, volume));
@@ -597,6 +689,7 @@ export class CosmicSynthEngine {
   }
 
   dispose() {
+    this.stopCosmicAtmosphere(0.1);
     if (this.thunderTimer) clearTimeout(this.thunderTimer);
     if (this.birdTimer) clearTimeout(this.birdTimer);
     if (this.lofiInterval) clearInterval(this.lofiInterval);
