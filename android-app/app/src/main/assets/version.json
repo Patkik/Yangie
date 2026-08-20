@@ -1,5 +1,5 @@
 {
-  "version": "1.2.6",
-  "updatedAt": "2026-08-21T02:01:00+08:00",
-  "releaseNotes": "Auto-Purge Stale OTA Cache on APK Version Upgrade & Direct APK Bundled Asset Serving"
+  "version": "1.2.7",
+  "updatedAt": "2026-08-21T02:27:00+08:00",
+  "releaseNotes": "Fix Espresso UI Test compilation with DriverAtoms and element text verification"
 }

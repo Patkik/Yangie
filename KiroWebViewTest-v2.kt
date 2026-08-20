@@ -6,7 +6,9 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.espresso.web.assertion.WebViewAssertions.webMatches
 import androidx.test.espresso.web.sugar.Web.onWebView
+import androidx.test.espresso.web.webdriver.DriverAtoms
 import androidx.test.espresso.web.webdriver.DriverAtoms.findElement
+import androidx.test.espresso.web.webdriver.DriverAtoms.getText
 import androidx.test.espresso.web.webdriver.DriverAtoms.webClick
 import androidx.test.espresso.web.webdriver.Locator
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -35,11 +37,12 @@ class KiroWebViewTest {
         onView(withId(R.id.webview))
             .check(matches(isDisplayed()))
 
-        // 2. Assert that the secure virtual URL is successfully loaded by WebViewAssetLoader
+        // 2. Assert that the secure virtual URL assets are successfully mounted and displayed
         onWebView()
+            .withElement(findElement(Locator.CLASS_NAME, "intro-stage-title"))
             .check(webMatches(
-                androidx.test.espresso.web.webdriver.DriverAtoms.getCurrentUrl(),
-                containsString("https://appassets.androidplatform.net/assets/index.html")
+                androidx.test.espresso.web.webdriver.DriverAtoms.getText(),
+                containsString("Sanctuary Portal")
             ))
     }
 
