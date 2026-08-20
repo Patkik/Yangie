@@ -250,6 +250,19 @@ class KiroUpdateManager(private val context: Context) {
                 }
 
                 val responseCode = conn.responseCode
+                if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+                    // GitHub returns 404 when no releases have been published yet in the repository
+                    val currentVer = getCurrentVersion()
+                    Log.i(TAG, "No releases published yet on GitHub for $repo. Sanctuary is on bundled version: $currentVer")
+                    postState(UpdateState.UpToDate(currentVer), onStateChange)
+                    return@execute
+                }
+                if (responseCode == 403) {
+                    val errMsg = "GitHub API rate limit reached. Please try again later."
+                    Log.w(TAG, errMsg)
+                    postState(UpdateState.Error("RATE_LIMIT", errMsg), onStateChange)
+                    return@execute
+                }
                 if (responseCode != HttpURLConnection.HTTP_OK) {
                     val errMsg = "GitHub Releases endpoint error (HTTP $responseCode)"
                     Log.w(TAG, errMsg)

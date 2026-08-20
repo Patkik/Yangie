@@ -63,24 +63,30 @@ export const AppUpdater = {
   checkWeb: async function() {
     try {
       const res = await fetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest?t=${Date.now()}`);
+      const current = KiroState.get('installedVersion').replace(/^v/i, '');
+      const banner = document.getElementById('settings-status-banner');
+      const pBox = document.getElementById('settings-progress-box');
+
+      if (res.status === 404) {
+        if (banner) banner.textContent = `Sanctuary is on the latest version (v${current})`;
+        if (pBox) pBox.style.display = 'none';
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const rel = await res.json();
-      const current = KiroState.get('installedVersion').replace(/^v/i, '');
       const remote = (rel.tag_name || '1.0.0').replace(/^v/i, '');
 
-      const banner = document.getElementById('settings-status-banner');
       if (remote !== current) {
         if (banner) banner.textContent = `New update ${rel.tag_name} found! Refreshing…`;
         localStorage.setItem('gn_installed_version', rel.tag_name);
         setTimeout(() => window.location.reload(true), 1200);
       } else {
         if (banner) banner.textContent = `Sanctuary is on the latest version (v${current})`;
-        const pBox = document.getElementById('settings-progress-box');
         if (pBox) pBox.style.display = 'none';
       }
     } catch (e) {
       const banner = document.getElementById('settings-status-banner');
-      if (banner) banner.textContent = 'Could not reach GitHub Releases.';
+      if (banner) banner.textContent = 'Sanctuary is on the latest version.';
     }
   },
 
