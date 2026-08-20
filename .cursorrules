@@ -30,6 +30,9 @@ To ensure safe, non-breaking developer iterations, you must strictly follow this
      git tag -a v1.0.X -m "Release v1.0.X: concise description"
      git push origin main && git push origin v1.0.X
      ```
+4. Mandatory Walkthrough Audit Phase (Never Skip):
+   - At the conclusion of every session, bugfix, or feature integration, the AI agent MUST ALWAYS output a comprehensive Walkthrough Audit and update `walkthrough.md`.
+   - Summarize the architectural modifications, visual/audio behaviors, build test validation output, and release sync confirmation.
 
 # ==========================================
 # 3. ENFORCED TECHNICAL SKILLS & DIRECTIVES

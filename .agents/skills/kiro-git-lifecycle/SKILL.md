@@ -27,9 +27,10 @@ description: Automated Git Lifecycle Integration, two-stage staging and push ver
      git tag -a v1.0.X -m "Release v1.0.X: concise description"
      git push origin main && git push origin v1.0.X
      ```
-4. **Confirmation Phase**:
-   - Provide a 2-sentence visual overview of the integrated features.
-   - Print the newly tagged release version (e.g. `v1.0.6`) and short Git commit hash (`git rev-parse --short HEAD`).
+4. **Confirmation & Mandatory Walkthrough Audit (Never Skip)**:
+   - Create or update the `walkthrough.md` artifact detailing all architectural additions, sensory mechanics, and verification steps.
+   - Provide a concise visual & auditory overview of the integrated features.
+   - Print the verification test command results (`./gradlew test assembleDebug`), the newly tagged release version (e.g. `v1.2.0`), and short Git commit hash (`git rev-parse --short HEAD`).
 
 ---
 

@@ -28,9 +28,12 @@ Whenever any update, bugfix, or feature is pushed, the agent MUST automatically 
 4. **Push**:
    - `git push origin main && git push origin v1.0.X`
 
-### D. Confirmation Phase
-- Provide a concise 2-sentence visual overview of the integrated features.
-- Output the newly iterated tag version (e.g. `v1.0.6`) and short Git commit hash (`git rev-parse --short HEAD`) to confirm remote synchronization and GitHub Release dispatch.
+### D. Confirmation & Mandatory Walkthrough Audit (Never Skip)
+At the conclusion of every feature integration, bugfix, or refactoring task, the AI agent MUST ALWAYS compile and output a structured Walkthrough Audit:
+1. **Walkthrough Document**: Create or update the `walkthrough.md` artifact detailing architectural changes, visual/audio mechanics tested, and verification results.
+2. **Visual & Auditory Overview**: Provide a concise breakdown of how the changes behave visually, physically, and aurally.
+3. **Automated Verification Proof**: Document the exact test/build verification commands run (`./gradlew test assembleDebug`) and verify exit code 0.
+4. **Git Sync Confirmation**: Print the newly tagged release version (e.g. `v1.2.0`), short commit hash (`git rev-parse --short HEAD`), and remote push status.
 
 ---
 

@@ -20,12 +20,16 @@ To ensure safe, non-breaking developer iterations, you must strictly follow this
 2. Publishing & Push Phase (Deploy):
    - When code is confirmed bug-free, copy it to the production directory.
    - Stage and commit your changes using descriptive Conventional Commits (e.g., `feat(synth): added randomized scheduler for rolling thunderstorm audio`).
-   - Execute a git push to keep the repository's GitHub release synchronizer up to date:
+   - Execute a git push and tag release:
      ```bash
      git add .
      git commit -m "feat(procedural-3d): integrated interactive feeding & lightspeed warp scenes"
-     git push origin main
+     git tag -a v1.X.X -m "Release v1.X.X"
+     git push origin main && git push origin v1.X.X
      ```
+3. Mandatory Walkthrough Audit Phase (Never Skip):
+   - At the conclusion of every session, bugfix, or feature integration, the AI agent MUST ALWAYS output a comprehensive Walkthrough Audit and update `walkthrough.md`.
+   - Document architectural changes, visual/audio mechanics tested, build verification outputs (`./gradlew test assembleDebug`), and Git release sync status.
 
 # ==========================================
 # 3. ENFORCED TECHNICAL SKILLS & DIRECTIVES
