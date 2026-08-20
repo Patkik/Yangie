@@ -428,11 +428,12 @@ export class KiroIntroManager {
 
   renderStardustTrails() {
     if (!this.supernovaCtx || !this.supernovaCanvas) return;
-    if (this.stardustTrailParticles.length === 0 && this.supernovaParticles.length === 0) return;
-
-    if (!this.isSelecting) {
+    if (this.stardustTrailParticles.length === 0) {
       this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
+      return;
     }
+
+    this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
 
     for (let i = this.stardustTrailParticles.length - 1; i >= 0; i--) {
       const p = this.stardustTrailParticles[i];
@@ -447,7 +448,7 @@ export class KiroIntroManager {
 
       this.supernovaCtx.save();
       this.supernovaCtx.beginPath();
-      this.supernovaCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      this.supernovaCtx.arc(p.x, p.y, Math.max(0.5, p.size * p.life), 0, Math.PI * 2);
       this.supernovaCtx.fillStyle = p.color;
       this.supernovaCtx.globalAlpha = Math.max(0, p.life * 0.9);
       this.supernovaCtx.shadowBlur = 8;
@@ -565,148 +566,67 @@ export class KiroIntroManager {
     setupInteractivePortal(yangieeCard, '.portal-choose-btn', 'yang', () => synthEngine.playYangieeChord());
   }
 
-  /* Selection: Mini-Supernova & State Transition */
+  /* Selection: State Transition & Dashboard Reveal */
   selectPersona(persona, event) {
     if (this.isSelecting) return;
     this.isSelecting = true;
 
+    // Clear and flush any 2D canvas stardust trails immediately
+    this.stardustTrailParticles = [];
+    if (this.supernovaCtx && this.supernovaCanvas) {
+      this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
+    }
+
     // Normalize persona token ('pat' or 'yang')
     const normalized = (persona === 'yang' || persona === 'yangiee') ? 'yang' : 'pat';
 
-    // 1. Instantly update core state
+    // 1. Instantly update core state and persistence
     KiroState.setPersona(normalized);
     KiroState.set('hasCompletedIntro', true);
 
-    // 2. Play Audio FX
+    // 2. Play Audio Chord FX
     try {
-      synthEngine.stopCosmicAtmosphere(0.5);
+      synthEngine.stopCosmicAtmosphere(0.3);
       synthEngine.playSupernovaSound();
     } catch (e) {
       console.warn('Audio play error on selection:', e);
     }
 
-    // 3. Immediately reveal main dashboard in background
+    // 3. Immediately reveal main Space Capsule HUD
     const appUi = document.getElementById('app-ui');
     if (appUi) {
       appUi.classList.add('visible');
+      appUi.style.opacity = '1';
+      appUi.style.pointerEvents = 'auto';
     }
 
-    // 4. Visual Card Selection Pop & Highlight
-    const targetCard = document.getElementById(normalized === 'pat' ? 'portal-patrick' : 'portal-yangiee');
-    if (targetCard) {
-      targetCard.style.transform = 'scale(1.08)';
-      targetCard.style.borderColor = normalized === 'pat' ? '#4EC9B0' : '#FFB6C1';
-      targetCard.style.boxShadow = normalized === 'pat' 
-        ? '0 0 35px rgba(78, 201, 176, 0.8)' 
-        : '0 0 35px rgba(255, 182, 193, 0.8)';
-    }
-
-    // 5. Calculate particle origin coordinates
-    let originX = window.innerWidth / 2;
-    let originY = window.innerHeight / 2;
-    if (targetCard) {
-      const rect = targetCard.getBoundingClientRect();
-      originX = rect.left + rect.width / 2;
-      originY = rect.top + rect.height / 2;
-    }
-    const particleColor = normalized === 'pat' ? '#4EC9B0' : '#FFB6C1';
-
-    // 6. Fade out intro overlay smoothly
+    // 4. Hide intro overlay immediately with display none
     if (this.overlay) {
       this.overlay.classList.add('hidden');
       this.overlay.style.opacity = '0';
       this.overlay.style.pointerEvents = 'none';
+      this.overlay.style.display = 'none';
     }
 
-    // 7. Transition with Guaranteed Safety Timer (Never freezes)
-    let hasFinalized = false;
-    const finalizeTransition = () => {
-      if (hasFinalized) return;
-      hasFinalized = true;
+    // 5. Dispose intro scene cleanly without breaking main WebGL scene
+    this.dispose();
+    document.body.style.pointerEvents = 'auto';
 
-      document.body.style.pointerEvents = 'auto';
-      this.dispose();
-
-      if (this.onComplete) {
-        this.onComplete(normalized);
-      }
-    };
-
-    // Trigger supernova particles and guarantee transition within 450ms
-    setTimeout(finalizeTransition, 450);
-    this.triggerSupernovaBurst(originX, originY, particleColor, finalizeTransition);
-  }
-
-  triggerSupernovaBurst(x, y, colorHex, doneCallback) {
-    if (!this.supernovaCanvas || !this.supernovaCtx) {
-      if (doneCallback) doneCallback();
-      return;
+    // 6. Invoke onComplete callback to proceed to main scenario
+    if (this.onComplete) {
+      this.onComplete(normalized);
     }
-
-    const count = 120;
-    this.supernovaParticles = [];
-
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 6 + Math.random() * 18;
-      const size = 2.5 + Math.random() * 5.5;
-      const life = 1.0;
-      const decay = 0.025 + Math.random() * 0.035;
-
-      this.supernovaParticles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size,
-        life,
-        decay,
-        color: colorHex
-      });
-    }
-
-    const renderBurst = () => {
-      if (!this.supernovaCtx || this.isDisposed) return;
-      this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
-
-      let aliveCount = 0;
-      for (let i = 0; i < this.supernovaParticles.length; i++) {
-        const p = this.supernovaParticles[i];
-        if (p.life > 0) {
-          aliveCount++;
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vx *= 0.94;
-          p.vy *= 0.94;
-          p.life -= p.decay;
-
-          this.supernovaCtx.beginPath();
-          this.supernovaCtx.arc(p.x, p.y, Math.max(0.5, p.size * p.life), 0, Math.PI * 2);
-          this.supernovaCtx.fillStyle = p.color;
-          this.supernovaCtx.globalAlpha = Math.max(0, p.life);
-          this.supernovaCtx.shadowBlur = 10;
-          this.supernovaCtx.shadowColor = p.color;
-          this.supernovaCtx.fill();
-        }
-      }
-
-      if (aliveCount > 0 && !this.isDisposed) {
-        requestAnimationFrame(renderBurst);
-      } else {
-        if (this.supernovaCtx) {
-          this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
-        }
-        if (doneCallback) doneCallback();
-      }
-    };
-
-    renderBurst();
   }
 
   replay() {
     this.isDisposed = false;
     this.isSelecting = false;
-    this.overlay.classList.remove('hidden');
+    if (this.overlay) {
+      this.overlay.style.display = 'flex';
+      this.overlay.style.opacity = '1';
+      this.overlay.style.pointerEvents = 'auto';
+      this.overlay.classList.remove('hidden');
+    }
     this.init();
   }
 
@@ -714,6 +634,10 @@ export class KiroIntroManager {
     this.isDisposed = true;
     if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
     synthEngine.stopCosmicAtmosphere(0.1);
+
+    if (this.supernovaCtx && this.supernovaCanvas) {
+      this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
+    }
 
     if (this.starLines) {
       if (this.starLines.geometry) this.starLines.geometry.dispose();
@@ -726,8 +650,10 @@ export class KiroIntroManager {
     }
 
     if (this.renderer) {
+      if (this.renderer.domElement && this.renderer.domElement.parentNode) {
+        this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+      }
       this.renderer.dispose();
-      this.renderer.forceContextLoss();
     }
 
     this.scene = null;
@@ -736,5 +662,12 @@ export class KiroIntroManager {
     this.starData = [];
     this.stardustTrailParticles = [];
     this.supernovaParticles = [];
+
+    if (this.overlay) {
+      this.overlay.innerHTML = '';
+      this.overlay.classList.add('hidden');
+      this.overlay.style.display = 'none';
+      this.overlay.style.pointerEvents = 'none';
+    }
   }
 }

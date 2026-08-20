@@ -20,8 +20,10 @@
 }
 
 .intro-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: none !important;
+  visibility: hidden !important;
 }
 
 /* Layer 0: Three.js Intro Warp Canvas */
