@@ -89,7 +89,7 @@ export class KiroIntroManager {
 
         <div class="persona-portals-grid">
           <!-- Patrick's Portal -->
-          <div class="portal-card patrick" id="portal-patrick" data-persona="patrick">
+          <div class="portal-card patrick portal-pat" id="portal-patrick" data-persona="pat">
             <div class="portal-avatar-wrapper">
               <svg class="portal-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="26" stroke="#4EC9B0" stroke-width="2.5" fill="rgba(78, 201, 176, 0.12)"/>
@@ -104,12 +104,12 @@ export class KiroIntroManager {
             <div class="portal-meta">
               <div class="portal-name">Patrick</div>
               <div class="portal-role">The Anchor • Malaybalay</div>
-              <div class="portal-tap-hint">Tap to Enter</div>
+              <button type="button" class="portal-choose-btn btn-pat" data-persona="pat">Choose Patrick</button>
             </div>
           </div>
 
           <!-- Yangiee's Portal -->
-          <div class="portal-card yangiee" id="portal-yangiee" data-persona="yangiee">
+          <div class="portal-card yangiee portal-yang" id="portal-yangiee" data-persona="yang">
             <div class="portal-avatar-wrapper">
               <svg class="portal-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="32" cy="32" r="26" stroke="#FFB6C1" stroke-width="2.5" fill="rgba(255, 182, 193, 0.12)"/>
@@ -128,7 +128,7 @@ export class KiroIntroManager {
             <div class="portal-meta">
               <div class="portal-name">Yangiee</div>
               <div class="portal-role">The Catalyst • Capas</div>
-              <div class="portal-tap-hint">Tap to Enter</div>
+              <button type="button" class="portal-choose-btn btn-yang" data-persona="yang">Choose Yangiee</button>
             </div>
           </div>
         </div>
@@ -535,12 +535,32 @@ export class KiroIntroManager {
 
     if (patrickCard) {
       patrickCard.addEventListener('mouseenter', () => synthEngine.playPatrickChord());
-      patrickCard.addEventListener('click', (e) => this.selectPersona('patrick', e));
+      patrickCard.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.selectPersona('pat', e);
+      });
+      const patBtn = patrickCard.querySelector('.portal-choose-btn');
+      if (patBtn) {
+        patBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectPersona('pat', e);
+        });
+      }
     }
 
     if (yangieeCard) {
       yangieeCard.addEventListener('mouseenter', () => synthEngine.playYangieeChord());
-      yangieeCard.addEventListener('click', (e) => this.selectPersona('yangiee', e));
+      yangieeCard.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.selectPersona('yang', e);
+      });
+      const yangBtn = yangieeCard.querySelector('.portal-choose-btn');
+      if (yangBtn) {
+        yangBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectPersona('yang', e);
+        });
+      }
     }
   }
 
@@ -549,7 +569,13 @@ export class KiroIntroManager {
     if (this.isSelecting) return;
     this.isSelecting = true;
 
-    KiroState.setPersona(persona);
+    // Shield screen from clicks, dragging, or trail leaks during transition
+    document.body.style.pointerEvents = 'none';
+
+    // Normalize persona token ('pat' or 'yang')
+    const normalized = (persona === 'yang' || persona === 'yangiee') ? 'yang' : 'pat';
+
+    KiroState.setPersona(normalized);
     KiroState.set('hasCompletedIntro', true);
 
     // Audio Supernova Burst & Fade Background Hum
@@ -557,16 +583,18 @@ export class KiroIntroManager {
     synthEngine.playSupernovaSound();
 
     // Trigger 2D/3D Radial Stardust Explosion
-    const rect = event.currentTarget.getBoundingClientRect();
+    const target = event && event.currentTarget ? event.currentTarget : (document.getElementById(normalized === 'pat' ? 'portal-patrick' : 'portal-yangiee') || document.body);
+    const rect = target.getBoundingClientRect();
     const originX = rect.left + rect.width / 2;
     const originY = rect.top + rect.height / 2;
-    const particleColor = persona === 'patrick' ? '#4EC9B0' : '#FFB6C1';
+    const particleColor = normalized === 'pat' ? '#4EC9B0' : '#FFB6C1';
 
     this.triggerSupernovaBurst(originX, originY, particleColor, () => {
       this.overlay.classList.add('hidden');
       setTimeout(() => {
         this.dispose();
-        if (this.onComplete) this.onComplete(persona);
+        document.body.style.pointerEvents = 'auto';
+        if (this.onComplete) this.onComplete(normalized);
       }, 700);
     });
   }

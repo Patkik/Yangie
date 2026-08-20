@@ -58,7 +58,7 @@ class KiroStateManager extends StateEmitter {
         forest: 0,
         lofi: 0
       },
-      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.0',
+      installedVersion: localStorage.getItem('gn_installed_version') || '1.2.1',
       isOtaActive: false
     };
 
@@ -97,10 +97,19 @@ class KiroStateManager extends StateEmitter {
     return this.state[key];
   }
 
+  normalizePersona(persona) {
+    if (!persona) return 'pat';
+    const p = String(persona).toLowerCase();
+    if (p === 'pat' || p === 'patrick') return 'pat';
+    if (p === 'yang' || p === 'yangiee' || p === 'yangie') return 'yang';
+    return 'pat';
+  }
+
   setPersona(persona) {
-    this.state.persona = persona;
-    localStorage.setItem('starlight_persona', persona);
-    this.emit('persona:change', persona);
+    const normalized = this.normalizePersona(persona);
+    this.state.persona = normalized;
+    localStorage.setItem('starlight_persona', normalized);
+    this.emit('persona:change', normalized);
   }
 
   feed(candyType = 'star') {

@@ -304,6 +304,50 @@
   color: var(--color-pink-blush, #FFB6C1);
 }
 
+/* Premium Glassmorphic Choose Buttons */
+.portal-choose-btn {
+  margin-top: 8px;
+  padding: 0.5rem 1.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  color: #CDD6F4;
+  font-family: var(--font-heading, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 90%;
+  text-align: center;
+  z-index: 1020;
+}
+
+.portal-card.patrick:hover .portal-choose-btn,
+.portal-card.pat:hover .portal-choose-btn,
+.portal-card.patrick .portal-choose-btn:hover {
+  background: var(--color-mint, #4EC9B0);
+  border-color: var(--color-mint, #4EC9B0);
+  color: #0D1622;
+  box-shadow: 0 0 15px rgba(78, 201, 176, 0.5);
+  transform: scale(1.04);
+}
+
+.portal-card.yangiee:hover .portal-choose-btn,
+.portal-card.yang:hover .portal-choose-btn,
+.portal-card.yangiee .portal-choose-btn:hover {
+  background: var(--color-pink-blush, #FFB6C1);
+  border-color: var(--color-pink-blush, #FFB6C1);
+  color: #0D1622;
+  box-shadow: 0 0 15px rgba(255, 182, 193, 0.5);
+  transform: scale(1.04);
+}
+
+.portal-choose-btn:active {
+  transform: scale(0.95);
+}
+
 /* Supernova Radial Particle Canvas */
 #supernova-canvas {
   position: absolute;
