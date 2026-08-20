@@ -46,6 +46,10 @@
       </div>
 
       <div class="header-actions">
+        <button class="nav-btn" id="shuttle-steer-btn" title="Toggle Pilot Telescope">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s-5 3.5-5 10c0 2 1 4 1.5 5h7c.5-1 1.5-3 1.5-5 0-6.5-5-10-5-10zm-1.5 16h3L12 21l-1.5-3zM5 16s-.5 2 1 4 4-1 4-1-1.5-2.5-2-3-3 0-3 0zm14 0s.5 2-1 4-4-1-4-1 1.5-2.5 2-3 3 0 3 0z"/></svg>
+        </button>
+
         <button class="nav-btn" id="btn-nav-mailbox" title="Starlight Mailbox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -62,10 +66,29 @@
       </div>
     </header>
 
+    <!-- Shared Sleep Notification Sliding Banner -->
+    <div id="shared-sleep-banner" class="sleep-notification-banner" style="display: none;"></div>
+
     <!-- Zone B: Center Hero & Connection Hub -->
     <section class="hero-center">
       <div class="time-greeting" id="time-greeting">GOOD NIGHT</div>
-      <div class="live-clock" id="live-clock">--:-- -- PST</div>
+      <div class="live-clock" id="live-clock">--:--:-- PST</div>
+
+      <!-- Kiro Pou-Style Vitals Progress HUD -->
+      <div class="vitals-hud-card">
+        <div class="vital-item">
+          <span class="vital-name">Candy 🍬</span>
+          <div class="vital-track"><div id="vital-food-fill" class="vital-fill" style="width: 100%;"></div></div>
+        </div>
+        <div class="vital-item">
+          <span class="vital-name">Water 💧</span>
+          <div class="vital-track"><div id="vital-water-fill" class="vital-fill" style="width: 100%;"></div></div>
+        </div>
+        <div class="vital-item">
+          <span class="vital-name">Energy 😴</span>
+          <div class="vital-track"><div id="vital-energy-fill" class="vital-fill" style="width: 100%;"></div></div>
+        </div>
+      </div>
 
       <div class="unified-card">
         <div class="connection-meta">
@@ -82,7 +105,21 @@
       </div>
     </section>
 
-    <!-- Zone C: Bottom Action Controls -->
+    <!-- Zone C: Pilot D-Pad Joystick (Visible only in Telescope Mode) -->
+    <div id="cockpit-joystick-hud" class="cockpit-joystick-wrap" style="display: none;">
+      <button type="button" class="joystick-btn" data-dir="up">▲</button>
+      <div class="joystick-row">
+        <button type="button" class="joystick-btn" data-dir="left">◀</button>
+        <button type="button" class="joystick-btn center-btn" style="pointer-events:none;">🕹️</button>
+        <button type="button" class="joystick-btn" data-dir="right">▶</button>
+      </div>
+      <button type="button" class="joystick-btn" data-dir="down">▼</button>
+    </div>
+
+    <!-- Zone D: Telescope Target Aligned Card -->
+    <div id="telescope-aligned-screen" class="telescope-aligned-card" style="display: none;"></div>
+
+    <!-- Zone E: Bottom Action Controls -->
     <footer class="bottom-deck">
       <div class="quick-action-row">
         <button class="action-pill-btn" id="btn-feed-star" title="Feed Star Candy">
@@ -144,13 +181,13 @@
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
             Software Updates
           </span>
-          <span id="settings-current-ver-badge" style="font-family: var(--font-heading); font-size: 10px; font-weight: 700; background: rgba(78, 201, 176, 0.15); border: 1px solid rgba(78, 201, 176, 0.35); color: var(--color-mint); padding: 2px 8px; border-radius: 10px;">v1.2.7</span>
+          <span id="settings-current-ver-badge" style="font-family: var(--font-heading); font-size: 10px; font-weight: 700; background: rgba(78, 201, 176, 0.15); border: 1px solid rgba(78, 201, 176, 0.35); color: var(--color-mint); padding: 2px 8px; border-radius: 10px;">v1.3.0</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #A6ADC8;">
           <div style="display: flex; justify-content: space-between;">
             <span>Installed Version</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v1.2.7</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v1.3.0</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Release Channel</span>

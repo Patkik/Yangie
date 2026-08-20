@@ -1,10 +1,13 @@
 /**
- * mailbox.js
- * Starlight Messenger UI & Conversational Component (ES6 Module)
- * Inline-SVG avatars, double-tap SVG reactions, and real-time message dispatching.
+ * mailbox.js (StarlightMessenger V3)
+ * Full-featured Starlight Messenger and WebRTC interface for Patrick & Yangiee.
+ * Supports Discord-style emojis, inline base64 image sending, voice notes, and screen sharing preview.
  */
 
 import { KiroState } from '../state.js';
+import { synthEngine } from '../audio/synth.js';
+
+const DISCORD_EMOJIS = ["✨", "💖", "🌙", "🛸", "🍬", "🐱", "👨‍🚀", "🍩", "🔋", "🪐"];
 
 const SVGS = {
   patrick: `
@@ -28,14 +31,7 @@ const SVGS = {
     <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
     </svg>
-  `,
-  reactions: {
-    star: `<svg viewBox="0 0 24 24" fill="#F9E2AF" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`,
-    heart: `<svg viewBox="0 0 24 24" fill="#F5C2E7" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
-    moon: `<svg viewBox="0 0 24 24" fill="#89B4FA" xmlns="http://www.w3.org/2000/svg"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg>`,
-    planet: `<svg viewBox="0 0 24 24" fill="#FAB387" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.67 15.46C12.19 18.23 10.4 18 9 17.15c-2.45-1.5-3.15-4.52-2-6.85 1.15-2.33 3.84-3.45 6.3-2.6.72.25 1.34.66 1.83 1.2.6.66.97 1.49 1.04 2.41a4.992 4.992 0 0 1-2.5 6.15z"/><path d="M3.5 14.5c4.5-2 12.5-2 17 0" stroke="#FFF" stroke-width="1.2" stroke-linecap="round"/></svg>`,
-    rocket: `<svg viewBox="0 0 24 24" fill="#A6E3A1" xmlns="http://www.w3.org/2000/svg"><path d="M12 2s-5 3.5-5 10c0 2 1 4 1.5 5h7c.5-1 1.5-3 1.5-5 0-6.5-5-10-5-10zm-1.5 16h3L12 21l-1.5-3zM5 16s-.5 2 1 4 4-1 4-1-1.5-2.5-2-3-3 0-3 0zm14 0s.5 2-1 4-4-1-4-1 1.5-2.5 2-3 3 0 3 0z"/></svg>`
-  }
+  `
 };
 
 export class StarlightMessenger {
@@ -45,7 +41,9 @@ export class StarlightMessenger {
 
     this.currentSender = KiroState.get('persona') || 'patrick';
     this.messages = [];
-    this.pickerOpen = false;
+    this.isRecording = false;
+    this.recordStartTime = 0;
+    this.localScreenStream = null;
 
     this.init();
   }
@@ -75,7 +73,20 @@ export class StarlightMessenger {
           </button>
         </div>
 
+        <!-- WebRTC Screen Share Picture-In-Picture Overlay Panel -->
+        <div id="webrtc-pip-panel" style="display:none; position:relative; background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(148,226,213,0.2); width:100%; height:130px; overflow:hidden; border-radius: 8px; margin: 4px 0;">
+          <video id="pip-video-preview" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+          <div style="position:absolute; top:8px; right:8px; display:flex; gap:0.4rem;">
+            <button id="webrtc-close-share" style="padding:4px 8px; border-radius:6px; border:none; background:rgba(235,77,75,0.85); color:#FFF; font-size:11px; font-weight:700; cursor:pointer;" title="Stop Broadcast">❌ Stop</button>
+          </div>
+        </div>
+
         <div class="mailbox-feed" id="mailbox-feed"></div>
+
+        <!-- Custom Discord-style Emojis Quick Bar -->
+        <div class="emoji-quick-bar" style="display:flex; gap:6px; overflow-x:auto; padding:6px 0; border-top:1px solid rgba(255,255,255,0.06);">
+          ${DISCORD_EMOJIS.map(emoji => `<span class="emoji-tap-btn" data-emoji="${emoji}" style="cursor:pointer; font-size:18px; padding:2px 5px; border-radius:6px; background:rgba(255,255,255,0.04); transition:all 0.15s ease;">${emoji}</span>`).join('')}
+        </div>
 
         <div class="mailbox-footer">
           <div class="sender-selector">
@@ -87,8 +98,25 @@ export class StarlightMessenger {
             </div>
           </div>
 
-          <div class="input-row">
-            <input type="text" id="mailbox-input" class="chat-input" placeholder="Whisper something sweet to Yangiee..." autocomplete="off">
+          <div class="input-row" style="display:flex; gap:6px; align-items:center;">
+            <!-- Image Picker Button -->
+            <button id="attach-img-btn" class="chat-action-btn" title="Send Picture" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              🖼️
+              <input type="file" id="attach-img-file" accept="image/*" style="display:none;">
+            </button>
+
+            <!-- Voice Message Button -->
+            <button id="attach-voice-btn" class="chat-action-btn" title="Hold to record voice note" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              🎤
+            </button>
+
+            <!-- WebRTC Screen Share Button -->
+            <button id="webrtc-share-btn" class="chat-action-btn" title="Share Screen" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              🖥️
+            </button>
+
+            <input type="text" id="mailbox-input" class="chat-input" placeholder="Whisper something sweet to Yangiee..." autocomplete="off" style="flex:1;">
+            
             <button id="mailbox-send-btn" class="send-button" title="Send Note">
               ${SVGS.send}
             </button>
@@ -103,6 +131,11 @@ export class StarlightMessenger {
     const sendBtn = this.overlay.querySelector('#mailbox-send-btn');
     const closeBtn = this.overlay.querySelector('#mailbox-close-btn');
     const pills = this.overlay.querySelectorAll('.sender-pill');
+    const imgBtn = this.overlay.querySelector('#attach-img-btn');
+    const imgInput = this.overlay.querySelector('#attach-img-file');
+    const voiceBtn = this.overlay.querySelector('#attach-voice-btn');
+    const screenBtn = this.overlay.querySelector('#webrtc-share-btn');
+    const closeShareBtn = this.overlay.querySelector('#webrtc-close-share');
 
     if (closeBtn) closeBtn.addEventListener('click', () => this.close());
     if (sendBtn) sendBtn.addEventListener('click', () => this.send());
@@ -111,6 +144,15 @@ export class StarlightMessenger {
         if (e.key === 'Enter') this.send();
       });
     }
+
+    // Discord Emojis Bar
+    this.overlay.querySelectorAll('.emoji-tap-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const emoji = btn.getAttribute('data-emoji');
+        this.addMessageNode(this.currentSender, emoji, 'text');
+        synthEngine.playChimeSound(880);
+      });
+    });
 
     pills.forEach(pill => {
       pill.addEventListener('click', () => {
@@ -125,9 +167,97 @@ export class StarlightMessenger {
       });
     });
 
+    // Image Picker
+    if (imgBtn && imgInput) {
+      imgBtn.addEventListener('click', () => imgInput.click());
+      imgInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          this.addMessageNode(this.currentSender, event.target.result, 'image');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Voice Note Recorder
+    if (voiceBtn) {
+      const startVoice = async (e) => {
+        e.preventDefault();
+        if (this.isRecording) return;
+        this.isRecording = true;
+        this.recordStartTime = Date.now();
+        voiceBtn.style.background = 'rgba(235, 77, 75, 0.4)';
+        const success = await synthEngine.startRecordingVoice();
+        if (!success) {
+          this.isRecording = false;
+          voiceBtn.style.background = 'rgba(255,255,255,0.06)';
+        }
+      };
+
+      const stopVoice = async () => {
+        if (!this.isRecording) return;
+        this.isRecording = false;
+        voiceBtn.style.background = 'rgba(255,255,255,0.06)';
+        const audioUrl = await synthEngine.stopRecordingVoice();
+        const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
+        if (audioUrl && duration >= 1) {
+          this.addMessageNode(this.currentSender, audioUrl, 'audio');
+        }
+      };
+
+      voiceBtn.addEventListener('mousedown', startVoice);
+      voiceBtn.addEventListener('mouseup', stopVoice);
+      voiceBtn.addEventListener('mouseleave', stopVoice);
+      voiceBtn.addEventListener('touchstart', startVoice, { passive: false });
+      voiceBtn.addEventListener('touchend', stopVoice, { passive: true });
+    }
+
+    // WebRTC Screen Share
+    if (screenBtn) {
+      screenBtn.addEventListener('click', () => this.toggleWebRTCScreenShare());
+    }
+    if (closeShareBtn) {
+      closeShareBtn.addEventListener('click', () => this.stopScreenShareStream());
+    }
+
     this.overlay.addEventListener('click', (e) => {
       if (e.target === this.overlay) this.close();
     });
+  }
+
+  async toggleWebRTCScreenShare() {
+    const pipPanel = this.overlay.querySelector('#webrtc-pip-panel');
+    const video = this.overlay.querySelector('#pip-video-preview');
+
+    if (this.localScreenStream) {
+      this.stopScreenShareStream();
+      return;
+    }
+
+    try {
+      this.localScreenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true
+      });
+
+      video.srcObject = this.localScreenStream;
+      pipPanel.style.display = 'block';
+      this.addMessageNode(this.currentSender, "Started live screen broadcast! 🖥️", 'text');
+      this.localScreenStream.getVideoTracks()[0].onended = () => this.stopScreenShareStream();
+    } catch (err) {
+      console.warn("[WebRTC] Screen capture unavailable on device:", err);
+    }
+  }
+
+  stopScreenShareStream() {
+    const pipPanel = this.overlay.querySelector('#webrtc-pip-panel');
+    if (this.localScreenStream) {
+      this.localScreenStream.getTracks().forEach(track => track.stop());
+      this.localScreenStream = null;
+    }
+    if (pipPanel) pipPanel.style.display = 'none';
   }
 
   open() {
@@ -144,109 +274,48 @@ export class StarlightMessenger {
     const text = input.value.trim();
     if (!text) return;
 
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const msg = { id: `m-${Date.now()}`, sender: this.currentSender, content: text, timestamp: time, reactions: [] };
-    this.messages.push(msg);
-    this.renderRow(msg);
-
+    this.addMessageNode(this.currentSender, text, 'text');
     input.value = '';
-    this.scrollToBottom();
-
-    if (window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
-      const sender = this.currentSender === 'patrick' ? 'Patrick' : 'Yangiee';
-      window.AndroidHost.sendNotification(`Note from ${sender}`, text);
-    }
   }
 
-  renderRow(msg) {
+  addMessageNode(sender, content, type = 'text') {
     const feed = this.overlay.querySelector('#mailbox-feed');
     if (!feed) return;
 
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const row = document.createElement('div');
-    row.className = `message-row ${msg.sender}`;
-    row.id = msg.id;
+    row.className = `message-row ${sender}`;
 
-    const avatar = msg.sender === 'patrick' ? SVGS.patrick : SVGS.yangiee;
+    const avatar = sender === 'patrick' ? SVGS.patrick : SVGS.yangiee;
+
+    let contentHTML = '';
+    if (type === 'text') {
+      contentHTML = `<div class="message-text">${content}</div>`;
+    } else if (type === 'image') {
+      contentHTML = `<div class="message-media"><img src="${content}" style="width:100%; max-width:180px; border-radius:10px; display:block;"></div>`;
+    } else if (type === 'audio') {
+      contentHTML = `
+        <div class="message-media" style="min-width: 170px;">
+          <span style="font-size:10px; display:block; margin-bottom:4px;">🎤 Voice Note</span>
+          <audio src="${content}" controls style="width:100%; height:30px; outline:none; filter: invert(0.85);"></audio>
+        </div>`;
+    }
 
     row.innerHTML = `
       <div class="avatar-wrapper">${avatar}</div>
-      <div class="message-bubble" data-id="${msg.id}">
-        <div class="message-text">${msg.content}</div>
-        <span class="message-time">${msg.timestamp}</span>
-        <div class="reaction-container" style="display: none;"></div>
+      <div class="message-bubble">
+        ${contentHTML}
+        <span class="message-time">${time}</span>
       </div>
     `;
 
     feed.appendChild(row);
+    this.scrollToBottom();
 
-    const bubble = row.querySelector('.message-bubble');
-    bubble.addEventListener('dblclick', (e) => {
-      e.stopPropagation();
-      this.openPicker(bubble, msg.id, e.clientX, e.clientY);
-    });
-  }
-
-  openPicker(bubble, msgId, x, y) {
-    this.closePicker();
-    this.pickerOpen = true;
-
-    const picker = document.createElement('div');
-    picker.className = 'reaction-picker-modal';
-    picker.style.left = `${Math.max(10, x - 80)}px`;
-    picker.style.top = `${Math.max(10, y - 60)}px`;
-
-    picker.innerHTML = `
-      <div class="reaction-option" data-reaction="star">${SVGS.reactions.star}</div>
-      <div class="reaction-option" data-reaction="heart">${SVGS.reactions.heart}</div>
-      <div class="reaction-option" data-reaction="moon">${SVGS.reactions.moon}</div>
-      <div class="reaction-option" data-reaction="planet">${SVGS.reactions.planet}</div>
-      <div class="reaction-option" data-reaction="rocket">${SVGS.reactions.rocket}</div>
-    `;
-
-    document.body.appendChild(picker);
-
-    picker.querySelectorAll('.reaction-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        const type = opt.getAttribute('data-reaction');
-        this.react(msgId, type);
-        this.closePicker();
-      });
-    });
-  }
-
-  closePicker() {
-    const p = document.querySelector('.reaction-picker-modal');
-    if (p) p.remove();
-    this.pickerOpen = false;
-  }
-
-  react(msgId, type) {
-    const msg = this.messages.find(m => m.id === msgId);
-    if (!msg) return;
-
-    if (msg.reactions.includes(type)) {
-      msg.reactions = msg.reactions.filter(r => r !== type);
-    } else {
-      msg.reactions.push(type);
-    }
-
-    const bubble = this.overlay.querySelector(`.message-bubble[data-id="${msgId}"]`);
-    if (!bubble) return;
-
-    let badgeBox = bubble.querySelector('.reaction-container');
-    if (!badgeBox) {
-      badgeBox = document.createElement('div');
-      badgeBox.className = 'reaction-container';
-      bubble.appendChild(badgeBox);
-    }
-
-    if (msg.reactions.length > 0) {
-      badgeBox.style.display = 'flex';
-      badgeBox.innerHTML = msg.reactions.map(r => `
-        <div class="reaction-badge">${SVGS.reactions[r]}</div>
-      `).join('');
-    } else {
-      badgeBox.style.display = 'none';
+    if (window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
+      const senderName = sender === 'patrick' ? 'Patrick' : 'Yangiee';
+      const preview = type === 'text' ? content : `[Sent a ${type}]`;
+      window.AndroidHost.sendNotification(`Note from ${senderName}`, preview);
     }
   }
 
@@ -256,19 +325,8 @@ export class StarlightMessenger {
   }
 
   loadMockFeed() {
-    const welcomes = [
-      { id: 'm1', sender: 'patrick', content: "Hey! Did you see Kiro floating? He looks so happy today.", timestamp: "10:14 AM", reactions: ['star'] },
-      { id: 'm2', sender: 'yangiee', content: "I know! I fed him a strawberry donut earlier and his sparkles went crazy!", timestamp: "10:15 AM", reactions: ['heart'] },
-      { id: 'm3', sender: 'patrick', content: "Let's put on the Lo-Fi synth, I think it's storming over here.", timestamp: "10:16 AM", reactions: ['moon'] }
-    ];
-
-    this.messages = welcomes;
-    welcomes.forEach(w => {
-      this.renderRow(w);
-      if (w.reactions.length > 0) {
-        w.reactions.forEach(r => this.react(w.id, r));
-      }
-    });
-    this.scrollToBottom();
+    this.addMessageNode('patrick', "Hey! Did you see Kiro floating? He looks so happy today.", 'text');
+    this.addMessageNode('yangiee', "I know! I fed him a strawberry donut earlier and his sparkles went crazy!", 'text');
+    this.addMessageNode('patrick', "Let's steer the telescope towards the Butterfly Galaxy next! 🪐", 'text');
   }
 }

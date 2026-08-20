@@ -50,6 +50,17 @@ export class KiroSceneManager {
     this.activeCandies = [];
     this.waterDroplets = [];
 
+    // 4. Cockpit HUD & Telescope Space Systems
+    this.cockpitGroup = null;
+    this.crosshairMesh = null;
+    this.targetSystemMeshes = [];
+    this.spaceSystems = [
+      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 12, y: -8, z: -15, size: 0.45, color: 0xF5C2E7, unlockedGame: 'Nebula Dodge' },
+      { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -14, y: 15, z: -18, size: 0.55, color: 0x94E2D5, unlockedGame: 'Celestial Bounce' },
+      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 22, y: 14, z: -25, size: 0.6, color: 0xF9E2AF, unlockedGame: 'Cosmic Chime Sequence' },
+      { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -18, y: -16, z: -20, size: 0.5, color: 0xCBA6F7, unlockedGame: 'Supernova Blast' }
+    ];
+
     // Raycasting & Gyro Parallax
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2(-999, -999);
@@ -96,6 +107,7 @@ export class KiroSceneManager {
     this.buildDynamicSpiralGalaxy();
     this.buildEnvironment();
     this.buildKiro();
+    this.buildCockpitHUD();
 
     // 5. State & Events
     this.bindEvents();
@@ -324,6 +336,46 @@ export class KiroSceneManager {
     this.goldenAura.visible = KiroState.get('hasWellRestedBuff');
   }
 
+  buildCockpitHUD() {
+    this.cockpitGroup = new THREE.Group();
+    this.cockpitGroup.visible = false;
+    this.scene.add(this.cockpitGroup);
+
+    // Pilot HUD Reticle Ring Crosshair
+    const ringGeo = new THREE.RingGeometry(0.45, 0.48, 32);
+    const lineMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    this.crosshairMesh = new THREE.Mesh(ringGeo, lineMat);
+    this.crosshairMesh.position.set(0, 1.6, 3.5);
+    this.cockpitGroup.add(this.crosshairMesh);
+
+    // Reticle Crosshair Alignment Lines
+    const vertGeo = new THREE.PlaneGeometry(0.015, 1.2);
+    const horGeo = new THREE.PlaneGeometry(1.2, 0.015);
+    const hLine = new THREE.Mesh(horGeo, lineMat);
+    const vLine = new THREE.Mesh(vertGeo, lineMat);
+    hLine.position.set(0, 1.6, 3.48);
+    vLine.position.set(0, 1.6, 3.48);
+    this.cockpitGroup.add(hLine);
+    this.cockpitGroup.add(vLine);
+
+    // Build Holographic Wireframe Space System Planet Targets
+    this.spaceSystems.forEach(sys => {
+      const planetGeo = new THREE.SphereGeometry(sys.size, 16, 16);
+      const planetMat = new THREE.MeshBasicMaterial({
+        color: sys.color,
+        transparent: true,
+        opacity: 0.9,
+        wireframe: true
+      });
+      const mesh = new THREE.Mesh(planetGeo, planetMat);
+      mesh.position.set(sys.x, sys.y, sys.z);
+      mesh.userData = { id: sys.id, name: sys.name, basePos: new THREE.Vector3(sys.x, sys.y, sys.z) };
+
+      this.scene.add(mesh);
+      this.targetSystemMeshes.push(mesh);
+    });
+  }
+
   bindEvents() {
     window.addEventListener('resize', () => this.resize());
 
@@ -353,6 +405,8 @@ export class KiroSceneManager {
     // Petting Click
     this.container.addEventListener('click', (e) => {
       if (!this.kiroGroup || !this.camera) return;
+      if (KiroState.get('telescopeActive')) return;
+
       const rect = this.container.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -378,6 +432,30 @@ export class KiroSceneManager {
     KiroState.on('vital:feed', ({ type }) => this.dropCandy(type));
     KiroState.on('vital:water', () => this.splashWater());
     KiroState.on('sleep:change', ({ isSleeping, hasWellRestedBuff }) => this.onSleepChange(isSleeping, hasWellRestedBuff));
+
+    // Telescope State Listener
+    KiroState.on('change:telescopeActive', ({ newValue }) => {
+      const isActive = Boolean(newValue);
+      if (this.cockpitGroup) this.cockpitGroup.visible = isActive;
+
+      if (window.gsap && this.kiroGroup && this.pedestal && this.neonRing) {
+        gsap.to(this.kiroGroup.position, {
+          y: isActive ? -4 : 0,
+          duration: 1.2,
+          ease: "power2.inOut"
+        });
+        gsap.to(this.pedestal.position, {
+          y: isActive ? -5 : -1.6,
+          duration: 1.2,
+          ease: "power2.inOut"
+        });
+        gsap.to(this.neonRing.position, {
+          y: isActive ? -5 : -1.38,
+          duration: 1.2,
+          ease: "power2.inOut"
+        });
+      }
+    });
   }
 
   onSleepChange(isSleeping, hasWellRestedBuff) {
@@ -628,11 +706,40 @@ export class KiroSceneManager {
     this.camera.position.y = 1.6 + this.gyro.y;
     this.camera.lookAt(0, 0, 0);
 
-    // 2. Idle Bobbing
-    const freq = isSleeping ? 0.6 : 2.0;
-    const amp = isSleeping ? 0.02 : 0.06;
-    if (this.kiroGroup && (!window.gsap || !gsap.isAnimating(this.kiroGroup.position))) {
-      this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+    // 2. Idle Bobbing & Telescope Steering
+    const isTelescope = KiroState.get('telescopeActive');
+    const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
+
+    if (isTelescope) {
+      if (this.galaxyStars) {
+        this.galaxyStars.position.x = (steering.yaw || 0) * 0.06;
+        this.galaxyStars.position.y = (steering.pitch || 0) * 0.06;
+      }
+
+      this.targetSystemMeshes.forEach(mesh => {
+        const base = mesh.userData.basePos;
+        mesh.position.x = base.x + ((steering.yaw || 0) * 0.15);
+        mesh.position.y = base.y + ((steering.pitch || 0) * 0.15);
+
+        mesh.rotation.y += 0.01;
+        mesh.rotation.x += 0.005;
+
+        // Check lock-on alignment with pilot's HUD reticle (at x=0, y=1.6)
+        const distToHUD = Math.sqrt(Math.pow(mesh.position.x, 2) + Math.pow(mesh.position.y - 1.6, 2));
+        if (distToHUD < 0.75) {
+          if (KiroState.get('cockpitSteering.currentTarget') !== mesh.userData.id) {
+            KiroState.set('cockpitSteering.currentTarget', mesh.userData.id);
+            KiroState.set('cockpitSteering.aligned', true);
+            synthEngine.playChimeSound(660);
+          }
+        }
+      });
+    } else {
+      const freq = isSleeping ? 0.6 : 2.0;
+      const amp = isSleeping ? 0.02 : 0.06;
+      if (this.kiroGroup && (!window.gsap || !gsap.isAnimating(this.kiroGroup.position))) {
+        this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+      }
     }
 
     // 3. Dynamic Spiral Galaxy Twinkle & Pointer Repulsion

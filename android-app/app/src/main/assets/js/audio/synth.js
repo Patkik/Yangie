@@ -748,6 +748,89 @@ export class CosmicSynthEngine {
     }
   }
 
+  playChewSound() {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const osc = this.ctx.createOscillator();
+    const gainNode = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(320, this.ctx.currentTime + 0.12);
+    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.25);
+
+    gainNode.gain.setValueAtTime(0.35, this.ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+
+    osc.connect(gainNode);
+    gainNode.connect(this.masterGain);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.26);
+  }
+
+  playChimeSound(frequency = 880) {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const osc = this.ctx.createOscillator();
+    const gainNode = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, this.ctx.currentTime + 0.2);
+
+    gainNode.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.8);
+
+    osc.connect(gainNode);
+    gainNode.connect(this.masterGain);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.81);
+  }
+
+  async startRecordingVoice() {
+    try {
+      this.recordedChunks = [];
+      this.activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaRecorder = new MediaRecorder(this.activeStream);
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      };
+      this.mediaRecorder.start();
+      return true;
+    } catch (err) {
+      console.warn("[VoiceRecorder] Microphone input not accessible:", err);
+      return false;
+    }
+  }
+
+  stopRecordingVoice() {
+    return new Promise((resolve) => {
+      if (!this.mediaRecorder || this.mediaRecorder.state === "inactive") {
+        resolve(null);
+        return;
+      }
+
+      this.mediaRecorder.onstop = () => {
+        const blob = new Blob(this.recordedChunks, { type: "audio/ogg; codecs=opus" });
+        const audioURL = URL.createObjectURL(blob);
+        if (this.activeStream) {
+          this.activeStream.getTracks().forEach(track => track.stop());
+        }
+        resolve(audioURL);
+      };
+
+      this.mediaRecorder.stop();
+    });
+  }
+
   dispose() {
     this.stopCosmicAtmosphere(0.1);
     if (this.thunderTimer) clearTimeout(this.thunderTimer);

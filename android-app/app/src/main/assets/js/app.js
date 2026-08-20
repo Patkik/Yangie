@@ -1,6 +1,7 @@
 /**
- * app.js
+ * app.js (Space Capsule V3)
  * Master Application Bootstrap, Native Bridge, Lifecycle, & In-Settings Updater (ES6 Module)
+ * Connects KiroState V3, Web Audio Synthesizer, 3D Galaxy & Cockpit HUD, Starlight Messenger, and OTA Updater.
  */
 
 import { KiroState } from './state.js';
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   try {
-    introManager = new KiroIntroManager('intro-overlay', (persona) => {
+    introManager = new KiroIntroManager('intro-overlay', () => {
       revealDashboard();
     });
   } catch (e) {
@@ -183,36 +184,65 @@ document.addEventListener('DOMContentLoaded', () => {
     revealDashboard();
   }
 
-  // Live Philippine Standard Time Clock
-  function updateClock() {
+  // 1. Dynamic Timezone Greeting & Live Clock (Philippine Standard Time UTC+8)
+  function updateClockAndGreeting() {
     const clockEl = document.getElementById('live-clock');
     const greetEl = document.getElementById('time-greeting');
-    if (!clockEl) return;
 
     const now = new Date();
-    // UTC+8 calculation
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const pst = new Date(utc + (3600000 * 8));
 
     const hours = pst.getHours();
-    const mins = String(pst.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const h12 = hours % 12 || 12;
+    const mins = pst.getMinutes();
+    const secs = pst.getSeconds();
+    const totalMins = hours * 60 + mins;
 
-    clockEl.textContent = `${h12}:${mins} ${ampm} PST`;
+    if (clockEl) {
+      const hStr = String(hours).padStart(2, '0');
+      const mStr = String(mins).padStart(2, '0');
+      const sStr = String(secs).padStart(2, '0');
+      clockEl.textContent = `${hStr}:${mStr}:${sStr} PST`;
+    }
 
     if (greetEl) {
-      if (hours >= 5 && hours < 12) greetEl.textContent = 'GOOD MORNING';
-      else if (hours >= 12 && hours < 17) greetEl.textContent = 'GOOD AFTERNOON';
-      else if (hours >= 17 && hours < 21) greetEl.textContent = 'GOOD EVENING';
-      else greetEl.textContent = 'GOOD NIGHT';
+      // 06:00 - 11:59: GOOD MORNING
+      // 12:00 - 17:59: GOOD AFTERNOON
+      // 18:00 - 02:30: GOOD EVENING
+      // 02:31 - 05:59: GOODMORNIGHT
+      if (totalMins >= 360 && totalMins < 720) {
+        greetEl.textContent = 'GOOD MORNING ☀️';
+      } else if (totalMins >= 720 && totalMins < 1080) {
+        greetEl.textContent = 'GOOD AFTERNOON 🌤️';
+      } else if (totalMins >= 1080 || totalMins <= 150) {
+        greetEl.textContent = 'GOOD EVENING 🌌';
+      } else {
+        greetEl.textContent = 'GOODMORNIGHT 🌌✨';
+      }
     }
   }
 
-  updateClock();
-  setInterval(updateClock, 10000);
+  updateClockAndGreeting();
+  setInterval(updateClockAndGreeting, 1000);
 
-  // Quick Action Buttons
+  // 2. Vitals HUD Progress Update Binding
+  function updateVitalsHUD() {
+    const foodFill = document.getElementById('vital-food-fill');
+    const waterFill = document.getElementById('vital-water-fill');
+    const energyFill = document.getElementById('vital-energy-fill');
+
+    if (foodFill) foodFill.style.width = `${KiroState.get('food') ?? 100}%`;
+    if (waterFill) waterFill.style.width = `${KiroState.get('water') ?? 100}%`;
+    if (energyFill) energyFill.style.width = `${KiroState.get('energy') ?? 100}%`;
+  }
+
+  updateVitalsHUD();
+  KiroState.on('change', updateVitalsHUD);
+  KiroState.on('vital:feed', updateVitalsHUD);
+  KiroState.on('vital:water', updateVitalsHUD);
+  KiroState.on('sleep:change', updateVitalsHUD);
+
+  // 3. Quick Action Buttons (Candy, Donut, Water)
   const feedStarBtn = document.getElementById('btn-feed-star');
   const feedDonutBtn = document.getElementById('btn-feed-donut');
   const drinkWaterBtn = document.getElementById('btn-drink-water');
@@ -225,13 +255,93 @@ document.addEventListener('DOMContentLoaded', () => {
   const soundOceanBtn = document.getElementById('btn-sound-ocean');
   const soundRainBtn = document.getElementById('btn-sound-rain');
   const soundLofiBtn = document.getElementById('btn-sound-lofi');
+  const shuttleSteerBtn = document.getElementById('shuttle-steer-btn');
+  const joystickHud = document.getElementById('cockpit-joystick-hud');
+  const telescopeAlignedScreen = document.getElementById('telescope-aligned-screen');
+  const sleepBanner = document.getElementById('shared-sleep-banner');
 
   if (feedStarBtn) feedStarBtn.addEventListener('click', () => KiroState.feed('star'));
   if (feedDonutBtn) feedDonutBtn.addEventListener('click', () => KiroState.feed('donut'));
   if (drinkWaterBtn) drinkWaterBtn.addEventListener('click', () => KiroState.drinkWater());
   if (mailboxNavBtn) mailboxNavBtn.addEventListener('click', () => messenger?.open());
 
-  // Settings Modal Handlers
+  // 4. Pilot Cockpit Telescope & D-Pad Steering Controls
+  if (shuttleSteerBtn) {
+    shuttleSteerBtn.addEventListener('click', () => {
+      const active = !KiroState.get('telescopeActive');
+      KiroState.set('telescopeActive', active);
+      shuttleSteerBtn.classList.toggle('active', active);
+      if (joystickHud) joystickHud.style.display = active ? 'flex' : 'none';
+      if (!active && telescopeAlignedScreen) {
+        telescopeAlignedScreen.style.display = 'none';
+        KiroState.set('cockpitSteering.aligned', false);
+        KiroState.set('cockpitSteering.currentTarget', null);
+      }
+    });
+  }
+
+  // D-Pad Steering Joystick Handlers
+  if (joystickHud) {
+    joystickHud.querySelectorAll('.joystick-btn[data-dir]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = btn.getAttribute('data-dir');
+        let steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
+        const step = 6;
+
+        if (dir === 'up') steering.pitch = Math.min(50, (steering.pitch || 0) + step);
+        if (dir === 'down') steering.pitch = Math.max(-50, (steering.pitch || 0) - step);
+        if (dir === 'left') steering.yaw = Math.max(-50, (steering.yaw || 0) - step);
+        if (dir === 'right') steering.yaw = Math.min(50, (steering.yaw || 0) + step);
+
+        KiroState.set('cockpitSteering', { ...steering });
+      });
+    });
+  }
+
+  // Telescope Lock-On Target Alert Card
+  KiroState.on('change:cockpitSteering.aligned', ({ newValue }) => {
+    if (newValue && telescopeAlignedScreen) {
+      const targetId = KiroState.get('cockpitSteering.currentTarget');
+      const systemNames = {
+        butterfly: { name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge' },
+        helix: { name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce' },
+        sombrero: { name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes' },
+        crab: { name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast' }
+      };
+      const sys = systemNames[targetId] || { name: 'Unknown Celestial System', game: 'Star Pulse' };
+
+      telescopeAlignedScreen.innerHTML = `
+        <div style="font-size:10px; color:var(--color-mint); font-weight:700; text-transform:uppercase; letter-spacing:1px;">✦ Target Locked ✦</div>
+        <div style="font-size:13px; font-weight:700; color:#FFF; margin: 4px 0;">${sys.name}</div>
+        <button id="btn-play-minigame" style="margin-top:6px; padding:6px 14px; border-radius:12px; border:none; background:linear-gradient(90deg, var(--color-pink-blush), var(--color-mint)); color:#0D1622; font-weight:700; font-size:11px; cursor:pointer;">
+          Play ${sys.game}
+        </button>
+      `;
+      telescopeAlignedScreen.style.display = 'block';
+
+      const playBtn = telescopeAlignedScreen.querySelector('#btn-play-minigame');
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          synthEngine.playChimeSound(1080);
+          alert(`✨ Launching ${sys.game} mini-game with Kiro!`);
+        });
+      }
+    }
+  });
+
+  // 5. Shared Sleep Alert Sync
+  function showSleepAlert(sender) {
+    if (!sleepBanner) return;
+    const senderName = sender === 'pat' ? 'Patrick' : 'Yangiee';
+    const partnerName = sender === 'pat' ? 'Yangiee' : 'Patrick';
+    sleepBanner.innerHTML = `💤 ${senderName} has gone to sleep. Sweet dreams, ${partnerName}! ✨`;
+    sleepBanner.style.display = 'block';
+    setTimeout(() => {
+      sleepBanner.style.display = 'none';
+    }, 4500);
+  }
+
+  // 6. Settings Modal Handlers
   const settingsModal = document.getElementById('settings-modal');
   if (settingsNavBtn) {
     settingsNavBtn.addEventListener('click', () => {
@@ -277,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Procedural Sound Toggles
+  // 7. Procedural Sound Toggles
   let oceanVol = 0;
   let rainVol = 0;
   let lofiVol = 0;
@@ -309,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Sleep Mode Long-Press Switch
+  // 8. Sleep Mode Long-Press Switch
   const sleepBtn = document.getElementById('sleep-switch-btn');
   const sleepProgress = document.getElementById('sleep-switch-progress');
   let sleepTimer = null;
@@ -329,6 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ? '<svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg> Wake Kiro' 
             : '<svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg> Hold to Sleep';
           document.getElementById('app-ui').classList.toggle('dissipated', isSleeping);
+          if (isSleeping) {
+            showSleepAlert(KiroState.get('persona') || 'pat');
+          }
         }
       }, 50);
     };
