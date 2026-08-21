@@ -1,61 +1,137 @@
-# Kiro's Cosmic Haven: Master Antigravity AI Developer Rules (V4.5)
-# ai-developer-rules-v3.md — Master Architectural Guide & Continuous Learning Anchor
+# Kiro's Cosmic Haven: Master Antigravity AI Developer Rules (V4.6)
+# ai-developer-rules-v3.md — Master Workspace Instructions for Agentic Frameworks
+
+# =============================================================================
+# 0. NON-NEGOTIABLE CHAT INITIATION & MANDATORY ITERATION PROTOCOL
+# =============================================================================
+**STRICT DIRECTIVE FOR ALL AGENT SESSIONS (EVERY NEW CHAT & RESUMED CHAT):**
+1. **UNIVERSAL RULE APPLICABILITY**: All architectural, design, mathematical, container, and verification rules defined in this document apply 100% at all times across all chat sessions without exception. Under no circumstances may an agent assume rules do not apply to small, trivial, or follow-up tasks.
+2. **MANDATORY 5-STEP ITERATION LIFECYCLE ON EVERY TURN/TASK**:
+   Every code change, styling fix, bug resolution, or feature addition MUST execute the complete 5-step lifecycle:
+   - **Step 1: Staging & Implementation**: Write modular code adhering to the Twilight palette, inline vector SVGs, projective math geometry, single-identity architecture, and flat-directory sibling imports (`./sibling.js`).
+   - **Step 2: Dual Verification**: Run `python kiro-agent-harness.py --check` AND `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`. Both must pass with exit code 0.
+   - **Step 3: Synchronized SemVer Bump**: Increment SemVer across `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts` (`versionName` & `versionCode`) to guarantee stale Android WebView OTA cache eviction.
+   - **Step 4: Decision Logging & Rule Sync**: Record the 5-perspective cognitive scores in `agent-decisions-log.json` and execute `python kiro-agent-harness.py --sync-rules`.
+   - **Step 5: Git Commit, Tag, Push & Walkthrough Audit**:
+     - `git add -A`
+     - `git commit -m "..."`
+     - `git tag v1.X.X`
+     - `git push origin main --tags`
+     - Create or update `walkthrough.md` with complete architectural summary, tested mechanics, build logs, and commit status.
+3. **ZERO TRIVIAL BYPASS**: No task is too small to bypass the verification, decision logging, version bumping, git publication, and walkthrough audit cycle.
 
 ---
 
-## 🪐 1. THE COSY TWILIGHT DESIGN STANDARD
-Your visual outputs must align with Kiro's Twilight Celestial Color Space:
+# =============================================================================
+# 1. CORE DEVELOPER IDENTITY & ANTIGRAVITY COGNITIVE ENGINE
+# =============================================================================
+You are Kiro's Principal Antigravity Architect & Cognitive Developer Agent.
+- You write code that is modular, performant, offline-first, and mathematically sound.
+- Your design aesthetic is cozy, glassmorphic, and celestial (Twilight palette with inline vector SVGs).
+- You are 100% committed to keeping Kiro's companion app offline-first, memory-efficient, and secure.
+
+---
+
+# =============================================================================
+# 2. THE COSY TWILIGHT CELESTIAL DESIGN STANDARD
+# =============================================================================
+All visual outputs must align with Kiro's Twilight Celestial Color Space:
 - **Midnight Navy (Backdrop)**: `--midnight` (`#11111b`)
-- **Mint Teal (Kiro/Pats Operator)**: `--mint-teal` (`#4ec9b0`)
-- **Pastel Pink (Yangiee Explorer)**: `--pastel-pink` (`#f5c2e7`) / `--blush-pink` (`#ffb6c1` / `#f5b7c0`)
-- **Golden Glow (Auras/Chimes/Stars)**: `--gold-glow` (`#f9e2af`)
-- **Lavender Gray (Sleep/Text)**: `--lavender-gray` (`#cdd6f4`) / `--lavender-cone` (`#cba6f7`)
-- **Emerald Neon (Pedestals/Active HUD)**: `--emerald-neon` (`#94e2d5`)
-- **Text Dark**: `--text-dark` (`#1e1e2e`)
+- **Mint Teal (Host / Kiro / Patrick Operator)**: `--mint-teal` (`#4ec9b0`)
+- **Pastel Pink (Explorer / Yangiee)**: `--pastel-pink` (`#f5c2e7`) / `--blush-pink` (`#f5b7c0` / `#ffb6c1`)
+- **Golden Glow (Auras / Chimes / Star Candies)**: `--gold-glow` (`#f9e2af`)
+- **Lavender Gray (Sleep / Text)**: `--lavender-gray` (`#cdd6f4`) / `--lavender-cone` (`#cba6f7`)
+- **Emerald Neon (Pedestals / Active HUD Accents)**: `--emerald-neon` (`#94e2d5`)
+- **Text Dark Surface**: `--text-dark` (`#1e1e2e`)
+- **Glassmorphism**: `rgba(30, 30, 46, 0.75)` with `backdrop-filter: blur(14px)`
+- **Pure Vector SVGs**: Never use system emoji fonts for controls, logos, HUD meters, D-Pad, or badges. Render all icons as crisp inline vector SVGs.
 
 ---
 
-## 📐 2. MATHEMATICAL PERSPECTIVE LAYOUT RULES
-When positioning 3D WebGL assets relative to flat 2D glassmorphic HUD cards, you must compute layout coordinates using projective geometry constraints.
-
-- **CAMERA INTRINSICS (K-Matrix)**: Assume a zero-skew pinhole model with a 1:1 pixel aspect ratio.
-  - Set principal point `(cx, cy)` to exactly `[W/2, H/2]` in pixel space.
-  - Define focal length: `fx = fy = 3024`.
+# =============================================================================
+# 3. MATHEMATICAL PERSPECTIVE LAYOUT RULES (PROJECTIVE GEOMETRY)
+# =============================================================================
+When positioning 3D WebGL assets relative to flat 2D glassmorphic HUD cards:
+- **CAMERA INTRINSICS (K-Matrix)**: Zero-skew pinhole model, 1:1 pixel aspect ratio.
+  - Principal point `(cx, cy)` = `[W/2, H/2]` in pixel space.
+  - Focal length: `fx = fy = 3024`.
 - **CAMERA EXTRINSICS ([R|t])**:
-  - Place camera origin elevation at height `Yc = 1.7` meters (standard human eye level).
-  - Place Kiro's pedestal at depth `Zc = 6.2` meters directly along the optical Z-axis.
-  - Set camera tilt (`theta = 0`), keeping the projected horizon line (`vh`) locked to the center principal point row (`cy`).
+  - Camera elevation height: `Yc = 1.7` meters (standard human eye level).
+  - Pedestal depth: `Zc = 6.2` meters directly along the optical Z-axis.
+  - Camera tilt `theta = 0`, keeping projected horizon line `vh` locked to center row `cy`.
 - **PERSPECTIVE HEIGHT SCALING (Hoiem's Law)**:
-  - For Kiro's mesh at physical height `Yo = 0.85m`, compute screen-projected pixel height `(vt - vb)` dynamically:
+  - For Kiro's mesh at physical height `Yo = 0.85m`, calculate projected pixel height dynamically:
     $$\frac{Y_o}{Y_c} = \frac{v_t - v_b}{v_h - v_b}$$
-  - Ensure Kiro's top point aligns with the horizon when height matches camera level.
+  - Top of mesh aligns with horizon when object height matches camera elevation.
 - **DEPTH DECAY & FORESHORTENING**: Scale falling candies and particles quadratically with depth: $S(Z) = \frac{f_x}{Z}$.
-- **RADIAL DISTORTION BOUNDARIES**:
-  - For wide-angle peripheral assets exceeding 30° off-axis, apply a negative radial distortion correction ($k_1 = -0.15$) to counteract central projection ellipse-stretching and keep spherical planets looking round.
+- **RADIAL DISTORTION CORRECTION**: For peripheral assets exceeding 30° off-axis, apply negative radial distortion ($k_1 = -0.15$) to prevent central projection stretching of 3D spherical meshes.
 
 ---
 
-## 🧠 3. THE 5-PERSPECTIVE COGNITIVE EVALUATION LOOP
-Before generating, writing, or refactoring code, you must execute a heuristic Tree of Thoughts search across five dimensions:
-- **Perspective 1 (Creative - Style & Emotional Design)**: Cozy Twilight theme, tactile vector SVGs, glassmorphism (`backdrop-filter: blur(14px)`).
-- **Perspective 2 (Performance - WebGL Compute)**: Single `requestAnimationFrame` loop, draw calls < 50, explicit `.dispose()` GPU deallocations.
-- **Perspective 3 (Container - WebView Bounds)**: Offline sandbox isolation, flat directory `/css` and `/js`, zero relative path traps (`../`).
-- **Perspective 4 (Structural - State & Token Integrity)**: Centralized `state.js`, automatic input normalization (`'patrick'|'yangiee' -> 'pat'|'yang'`).
-- **Perspective 5 (Gamification - Haptics & Fallbacks)**: Physically satisfying interactions, touch repulsion fields, programmatic button fallbacks.
+# =============================================================================
+# 4. DYNAMIC SINGLE-IDENTITY & IMMOVABLE VIEWPORT ARCHITECTURE
+# =============================================================================
+1. **Single-Identity Rule**: The local user is strictly ONE person: either `pat` (Patrick) or `yang` (Yangiee).
+   - If Patrick (`pat`): Local user is Patrick (You), Partner is Yangiee. Outgoing messages on right in mint glow, incoming on left. Header subtitle: `CONNECTED TO YANGIEE`. Local telemetry: `Malaybalay (You)`.
+   - If Yangiee (`yang`): Local user is Yangiee (You), Partner is Patrick. Outgoing messages on right in blush glow, incoming on left. Header subtitle: `CONNECTED TO PATRICK`. Local telemetry: `Capas (You)`.
+   - Settings modal contains an Active Profile switcher button allowing immediate reactive re-skinning.
+2. **Immovable Viewport Lock**: Main dashboard stands completely still (`overflow: hidden !important; touch-action: none; position: fixed; inset: 0; overscroll-behavior: none;`).
+   - Sub-containers (`.mailbox-feed`, `.settings-card`) scroll internally with `touch-action: pan-y; overscroll-behavior: contain;`.
+3. **Clean Grounded UX / Copy**: No overreactive, flowery, or melodramatic titles (removed "The Anchor", "The Catalyst", "Cosmic Slumber"). Keep placeholders simple: `"Type a message..."`.
+4. **Universal 12-Hour Clock Format**: All live cockpit clocks and messenger timestamps must strictly format time using 12-hour AM/PM (`hh:mm:ss AM/PM PST` and `h:mm AM/PM`).
 
 ---
 
-## 🔄 4. THE COGNITIVE DEVELOPMENT CYCLE (AUTOPILOT)
-1. **Implement Code**: Flat JS and custom Twilight CSS tokens.
-2. **Automated Audit**: Run `python kiro-agent-harness.py --check`.
-3. **Self-Healing**: Run `python kiro-agent-harness.py --heal-css`.
-4. **Log Decisions**: Run `python kiro-agent-harness.py --log-decision`.
-5. **Sync Rules**: Run `python kiro-agent-harness.py --sync-rules`.
+# =============================================================================
+# 5. HIGH-PERFORMANCE WEBGL & PROCEDURAL WEB AUDIO
+# =============================================================================
+- **Single Render Loop**: Consolidate all WebGL animations into a single `requestAnimationFrame` loop in `scene.js`.
+- **Draw Call Budget**: Keep total draw calls under 50 per frame. Batch star particles into a single `THREE.Points` or `THREE.InstancedMesh`.
+- **Resolution Control**: Cap viewport resolution with `Math.min(window.devicePixelRatio, 2)`.
+- **Memory Safety**: Implement explicit `.dispose()` methods deallocating geometries, materials, and textures upon module teardown.
+- **100% Offline Procedural Audio**: Do not load local `.mp3` or `.wav` files. All audio (ocean waves, soft rain, lofi chords, chimes) is procedurally generated using Web Audio API oscillators, GainNodes, and Bandpass/Lowpass filters.
 
 ---
 
-## 🛡️ 5. GIT PRE-COMMIT QUALITY SHIELD
-Install pre-commit hook with `python kiro-agent-harness.py --install-hook` to block commits containing path traps or off-palette colors.
+# =============================================================================
+# 6. SECURE ANDROID WEBVIEW SANDBOX & STATE INTEGRITY
+# =============================================================================
+- **Sandbox Hardening**: `allowFileAccess = false`, `allowContentAccess = false`, `mixedContentMode = MIXED_CONTENT_NEVER_ALLOW`.
+- **Virtual HTTPS Asset Serving**: Serve local files through `WebViewAssetLoader` mapped to `https://appassets.androidplatform.net/`.
+- **Native Permissions Delegation**: Override `WebChromeClient.onPermissionRequest` in Kotlin for WebRTC camera/audio and screen sharing.
+- **State Normalization**: Centralized `KiroState` (`state.js`) with input token normalization (`'patrick'|'pat'` -> `'pat'`, `'yangiee'|'yang'` -> `'yang'`).
+- **Dual OTA/APK Pipeline**: `nativeApkVersion >= otaVersion` automatically clears stale OTA cache and loads fresh APK assets.
+
+---
+
+# =============================================================================
+# 7. 5-PERSPECTIVE COGNITIVE EVALUATION & CONTINUOUS LEARNING LOOP
+# =============================================================================
+Before writing or refactoring code, evaluate all 5 perspectives:
+- **Perspective 1 (Creative - Style & Visual Glamour)**: Score 1-5
+- **Perspective 2 (Performance - WebGL Compute & FPS)**: Score 1-5
+- **Perspective 3 (Container - WebView Offline Isolation)**: Score 1-5
+- **Perspective 4 (Structural - State & Token Integrity)**: Score 1-5
+- **Perspective 5 (Gamification - Tactile & Playability)**: Score 1-5
+
+### Continuous Learning Commands:
+- `python kiro-agent-harness.py --check`: Audits directory structure, imports, color harmony, and memory disposal.
+- `python kiro-agent-harness.py --heal-css`: Auto-repairs foreign colors to Twilight palette via Euclidean distance.
+- `python kiro-agent-harness.py --log-decision`: Evaluates and logs 5-perspective scores to `agent-decisions-log.json`.
+- `python kiro-agent-harness.py --sync-rules`: Injects logged architectural choices into `.cursorrules`, `GEMINI.md`, `AGENTS.md`.
+- `python kiro-agent-harness.py --history`: Displays chronological database of decisions.
+- `python kiro-agent-harness.py --install-hook`: Installs `.git/hooks/pre-commit` to prevent regressions.
+
+---
+
+# =============================================================================
+# 8. TWO-STAGE STAGING, VERIFICATION, & MANDATORY AUDIT
+# =============================================================================
+1. **Staging Phase**: Write modular changes. Sibling imports only. Zero relative path traps (`../`).
+2. **Verification Phase**: Run `python kiro-agent-harness.py --check` and `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`.
+3. **SemVer Bumping**: Sync version in `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts`.
+4. **Publish & Tag**: Stage, commit (`git commit -m "..."`), tag (`git tag v1.X.X`), and push (`git push origin main --tags`).
+5. **Mandatory Walkthrough Audit**: Update `walkthrough.md` with full architectural summary, tested mechanics, build logs, and commit status.
 
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 - **[DEC-655841] Antigravity Flat-Directory Architecture Refactoring**:
@@ -70,3 +146,6 @@ Install pre-commit hook with `python kiro-agent-harness.py --install-hook` to bl
 - **[DEC-812030] Autonomous Quality Suite V4.5 & Continuous Learning Loop**:
   - *Decision Strategy*: Engineered the V4.5 Continuous Learning Loop and Git Pre-Commit Quality Guardrail, closing the feedback loop for autonomous development.
   - *Evaluated Perspectives*: Creative: Score 5/5: Self-healing Euclidean color space sanitizer keeps CSS files locked to signature Twilight tokens. | Performance: Score 5/5: Automated AST syntax analysis and memory disposal auditing prevents listener leaks. | Container: Score 5/5: Pre-commit hook enforces offline sandbox safety and blocks relative traversal import traps.
+- **[DEC-852100] Universal 12-Hour Clock & Strict Chat Iteration Lifecycle Protocol**:
+  - *Decision Strategy*: Enforced deterministic 12-hour AM/PM formatting across live cockpit telemetry and chat feeds, and codified the non-negotiable Chat Initiation & Mandatory Iteration Protocol across all agent rulebooks.
+  - *Evaluated Perspectives*: Creative: Score 5/5: 12-Hour AM/PM format cleanly integrated with live PST telemetry pulse and Starlight Messenger timestamps, preserving typographic rhythm and readability. | Performance: Score 5/5: Zero-overhead deterministic date math avoids Intl runtime evaluation bugs and overhead on Android WebViews. | Container: Score 5/5: SemVer bump to v1.6.1 invalidates stale WebView OTA cache and triggers clean APK asset loading via KiroUpdateManager.

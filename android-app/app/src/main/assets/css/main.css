@@ -180,6 +180,7 @@ html, body {
   letter-spacing: 2.5px;
   background: linear-gradient(135deg, #FFFFFF 0%, #F5B7C0 55%, #4EC9B0 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 24px rgba(245, 183, 192, 0.35);
   line-height: 1;

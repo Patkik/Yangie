@@ -555,9 +555,11 @@ export class StarlightMessenger {
     if (!feed) return;
 
     const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
-    const isOutgoing = (normSender === this.localUser);
-
-    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+    const now = new Date();
+    const h12 = now.getHours() % 12 || 12;
+    const mStr = String(now.getMinutes()).padStart(2, '0');
+    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    const time = `${h12}:${mStr} ${ampm}`;
     const row = document.createElement('div');
     row.className = `message-row ${isOutgoing ? 'outgoing' : 'incoming'} ${normSender}`;
 

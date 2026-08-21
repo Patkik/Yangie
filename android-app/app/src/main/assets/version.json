@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
-  "updatedAt": "2026-08-21T13:07:00+08:00",
-  "releaseNotes": "Autonomous Self-Healing Quality Enforcement Suite V4.0 (kiro-agent-harness.py): AST & ES6 import offline sandbox verification, Euclidean color space Twilight palette sanitizer, event listener leak scanner, 5-perspective decision logger, and native Git pre-commit hook installer."
+  "version": "1.6.1",
+  "updatedAt": "2026-08-21T13:28:00+08:00",
+  "releaseNotes": "Enforced universal 12-hour clock format with AM/PM across live telemetry cockpit and Starlight Messenger, and added standard CSS background-clip support."
 }

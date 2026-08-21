@@ -1,5 +1,26 @@
-# Kiro's Cosmic Haven: Master Antigravity AI Developer Rules (V4.5)
+# Kiro's Cosmic Haven: Master Antigravity AI Developer Rules (V4.6)
 # AGENTS.md — Master Workspace Instructions for Agentic Frameworks
+
+# =============================================================================
+# 0. NON-NEGOTIABLE CHAT INITIATION & MANDATORY ITERATION PROTOCOL
+# =============================================================================
+**STRICT DIRECTIVE FOR ALL AGENT SESSIONS (EVERY NEW CHAT & RESUMED CHAT):**
+1. **UNIVERSAL RULE APPLICABILITY**: All architectural, design, mathematical, container, and verification rules defined in this document apply 100% at all times across all chat sessions without exception. Under no circumstances may an agent assume rules do not apply to small, trivial, or follow-up tasks.
+2. **MANDATORY 5-STEP ITERATION LIFECYCLE ON EVERY TURN/TASK**:
+   Every code change, styling fix, bug resolution, or feature addition MUST execute the complete 5-step lifecycle:
+   - **Step 1: Staging & Implementation**: Write modular code adhering to the Twilight palette, inline vector SVGs, projective math geometry, single-identity architecture, and flat-directory sibling imports (`./sibling.js`).
+   - **Step 2: Dual Verification**: Run `python kiro-agent-harness.py --check` AND `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`. Both must pass with exit code 0.
+   - **Step 3: Synchronized SemVer Bump**: Increment SemVer across `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts` (`versionName` & `versionCode`) to guarantee stale Android WebView OTA cache eviction.
+   - **Step 4: Decision Logging & Rule Sync**: Record the 5-perspective cognitive scores in `agent-decisions-log.json` and execute `python kiro-agent-harness.py --sync-rules`.
+   - **Step 5: Git Commit, Tag, Push & Walkthrough Audit**:
+     - `git add -A`
+     - `git commit -m "..."`
+     - `git tag v1.X.X`
+     - `git push origin main --tags`
+     - Create or update `walkthrough.md` with complete architectural summary, tested mechanics, build logs, and commit status.
+3. **ZERO TRIVIAL BYPASS**: No task is too small to bypass the verification, decision logging, version bumping, git publication, and walkthrough audit cycle.
+
+---
 
 # =============================================================================
 # 1. CORE DEVELOPER IDENTITY & ANTIGRAVITY COGNITIVE ENGINE
@@ -57,6 +78,7 @@ When positioning 3D WebGL assets relative to flat 2D glassmorphic HUD cards:
 2. **Immovable Viewport Lock**: Main dashboard stands completely still (`overflow: hidden !important; touch-action: none; position: fixed; inset: 0; overscroll-behavior: none;`).
    - Sub-containers (`.mailbox-feed`, `.settings-card`) scroll internally with `touch-action: pan-y; overscroll-behavior: contain;`.
 3. **Clean Grounded UX / Copy**: No overreactive, flowery, or melodramatic titles (removed "The Anchor", "The Catalyst", "Cosmic Slumber"). Keep placeholders simple: `"Type a message..."`.
+4. **Universal 12-Hour Clock Format**: All live cockpit clocks and messenger timestamps must strictly format time using 12-hour AM/PM (`hh:mm:ss AM/PM PST` and `h:mm AM/PM`).
 
 ---
 
@@ -124,3 +146,6 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 - **[DEC-812030] Autonomous Quality Suite V4.5 & Continuous Learning Loop**:
   - *Decision Strategy*: Engineered the V4.5 Continuous Learning Loop and Git Pre-Commit Quality Guardrail, closing the feedback loop for autonomous development.
   - *Evaluated Perspectives*: Creative: Score 5/5: Self-healing Euclidean color space sanitizer keeps CSS files locked to signature Twilight tokens. | Performance: Score 5/5: Automated AST syntax analysis and memory disposal auditing prevents listener leaks. | Container: Score 5/5: Pre-commit hook enforces offline sandbox safety and blocks relative traversal import traps.
+- **[DEC-852100] Universal 12-Hour Clock & Strict Chat Iteration Lifecycle Protocol**:
+  - *Decision Strategy*: Enforced deterministic 12-hour AM/PM formatting across live cockpit telemetry and chat feeds, and codified the non-negotiable Chat Initiation & Mandatory Iteration Protocol across all agent rulebooks.
+  - *Evaluated Perspectives*: Creative: Score 5/5: 12-Hour AM/PM format cleanly integrated with live PST telemetry pulse and Starlight Messenger timestamps, preserving typographic rhythm and readability. | Performance: Score 5/5: Zero-overhead deterministic date math avoids Intl runtime evaluation bugs and overhead on Android WebViews. | Container: Score 5/5: SemVer bump to v1.6.1 invalidates stale WebView OTA cache and triggers clean APK asset loading via KiroUpdateManager.
