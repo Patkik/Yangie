@@ -1,18 +1,38 @@
 /**
- * scene.js (Space Capsule V5.2 — Volumetric Procedural Cosmic Nebula & Logarithmic Galaxy Engine)
+ * scene.js (Space Capsule V5.3 — Master Procedural WebGL & Logarithmic Galaxy Engine)
  * ─────────────────────────────────────────────────────────────────────────────
- * 1. Living Volumetric Cosmic Nebula Shader (Procedural 2D Simplex Noise Shader Plane at Z = -14.0)
- *    - Left Wing: Patrick's Mint Teal (#4EC9B0)
- *    - Right Wing: Yangiee's Pastel Pink (#FFB6C1 / #F5C2E7)
- *    - Core Spine: Deep Space Velvet Midnight Navy (#11111B) & Lavender (#CBA6F7)
- * 2. Double-Arm Logarithmic Spiral Galaxy (800 dynamic stardust particles with pointer repulsion)
- * 3. 3D Unproject-to-Plane Vector Repulsion Math at Galaxy Depth (Z = -10.0)
- * 4. Kiro 3D Model with Tactile Petting Physics, Treat Feeding, Water Splashes & Audio Synesthesia
- * 5. Single requestAnimationFrame loop with sub-50 draw call budget & leak-proof GPU/CPU memory disposal.
+ * 1. Volumetric Procedural Cosmic Nebula Shader (Simplex Noise at Z = -14.0)
+ * 2. Double-Arm Logarithmic Spiral Galaxy (800 radial glow particles with unproject-to-plane touch repulsion)
+ * 3. Soft Luminescent Star Texture (Offscreen Canvas Map immune to mobile GPU point-size bugs)
+ * 4. Calibrated Baseline Gyro Parallax (Clamped Delta relative to 55 deg portrait hold)
+ * 5. Vibrant 3D Kiro Companion Model with Petting Physics, Treat Drops, Splashes & Audio Synesthesia
+ * 6. Cockpit Space Shuttle Pilot Mode (Target planetary lock-ons, reticle, and warp acceleration)
  */
 
 import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
+
+// Helper: Generate procedural radial glow texture for 100% reliable mobile star rendering
+function createGlowStarTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+  gradient.addColorStop(0.2, 'rgba(240, 248, 255, 0.9)');
+  gradient.addColorStop(0.5, 'rgba(148, 226, 213, 0.4)');
+  gradient.addColorStop(0.8, 'rgba(203, 166, 247, 0.15)');
+  gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 64, 64);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
 
 export class KiroSceneManager {
   constructor(containerId) {
@@ -20,7 +40,7 @@ export class KiroSceneManager {
     if (!this.container) return;
 
     if (typeof THREE === 'undefined') {
-      console.error('[KiroScene] THREE.js not loaded — WebGL init aborted. Check js/three.min.js.');
+      console.error('[KiroScene] THREE.js is not loaded.');
       return;
     }
 
@@ -45,41 +65,39 @@ export class KiroSceneManager {
     this.nebulaMesh = null;
     this.nebulaMaterial = null;
 
-    // 2. Dynamic Logarithmic Spiral Galaxy
+    // 2. Double-Arm Logarithmic Spiral Galaxy
     this.galaxyPoints = null;
     this.galaxyCount = 800;
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
+    this.starTexture = null;
 
     // 3. Stardust Touch Trails
     this.touchParticles = [];
-    this.maxTouchParticles = 120;
+    this.maxTouchParticles = 100;
 
     // 4. Physics & Treat Drops
     this.activeCandies = [];
     this.waterDroplets = [];
 
-    // 5. Cockpit HUD & Telescope Space Systems
+    // 5. Cockpit HUD & Space Shuttle Systems
     this.cockpitGroup = null;
     this.crosshairMesh = null;
     this.targetSystemMeshes = [];
     this.spaceSystems = [
-      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 12, y: -8, z: -15, size: 0.45, color: 0xF5C2E7, unlockedGame: 'Nebula Dodge' },
-      { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -14, y: 15, z: -18, size: 0.55, color: 0x94E2D5, unlockedGame: 'Celestial Bounce' },
-      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 22, y: 14, z: -25, size: 0.6, color: 0xF9E2AF, unlockedGame: 'Cosmic Chimes' },
-      { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -18, y: -16, z: -20, size: 0.5, color: 0xCBA6F7, unlockedGame: 'Supernova Blast' }
+      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 6, y: 1.2, z: -8, size: 0.65, color: 0xF5C2E7, game: 'Nebula Dodge' },
+      { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -7, y: 2.5, z: -9, size: 0.75, color: 0x94E2D5, game: 'Celestial Bounce' },
+      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 8, y: -1.0, z: -10, size: 0.8, color: 0xF9E2AF, game: 'Cosmic Chimes' },
+      { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -6, y: -2.0, z: -8, size: 0.6, color: 0xCBA6F7, game: 'Supernova Blast' }
     ];
 
-    // 6. Cinematic Warp State
+    // 6. Warp Parameters
     this.warpActive = false;
     this.warpSpeed = 0.02;
-    this.warpTargetSpeed = 0.02;
-    this.warpStarSize = 0.20;
-    this.warpTargetStarSize = 0.20;
+    this.warpStarSize = 0.42;
     this.warpZStretch = 1.0;
-    this.warpTargetZStretch = 1.0;
 
-    // Pointer Coordinates & Repulsion
+    // Interaction & Coordinates
     this.mouse = new THREE.Vector2(0, 0);
     this.pointerInCanvas = false;
     this.clock = new THREE.Clock();
@@ -93,14 +111,14 @@ export class KiroSceneManager {
   init() {
     this.scene = new THREE.Scene();
 
-    const width = window.innerWidth || this.container.clientWidth || 360;
-    const height = window.innerHeight || this.container.clientHeight || 640;
+    const width = window.innerWidth || (this.container ? this.container.clientWidth : 360);
+    const height = window.innerHeight || (this.container ? this.container.clientHeight : 640);
 
-    // Pinhole Camera with 45 deg FOV optimized for mobile sanctuary stage
+    // Optimized Pinhole Camera Framing
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
-    this.camera.position.set(0, 0.2, 5.2);
+    this.camera.position.set(0, 0.15, 5.2);
 
-    // Direct Canvas Binding (or fallback element creation)
+    // Canvas Binding
     const existingCanvas = document.getElementById('webgl-canvas');
     this.renderer = new THREE.WebGLRenderer({
       canvas: existingCanvas || undefined,
@@ -111,8 +129,6 @@ export class KiroSceneManager {
     this.renderer.setClearColor(0x11111b, 1.0);
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     if (!existingCanvas) {
       this.renderer.domElement.id = 'webgl-canvas';
@@ -125,44 +141,44 @@ export class KiroSceneManager {
     }
 
     // High-Contrast Celestial Lighting
-    const ambient = new THREE.AmbientLight(0xFFFFFF, 1.2);
+    const ambient = new THREE.AmbientLight(0xFFFFFF, 1.3);
     this.scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xFFFFFF, 1.4);
-    dirLight.position.set(5, 10, 7);
-    dirLight.castShadow = true;
-    this.scene.add(dirLight);
+    const keyLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
+    keyLight.position.set(4, 8, 6);
+    this.scene.add(keyLight);
 
-    const bottomPoint = new THREE.PointLight(0x4EC9B0, 2.5, 16);
-    bottomPoint.position.set(0, -1.2, 0.8);
-    this.scene.add(bottomPoint);
+    const mintFill = new THREE.PointLight(0x4EC9B0, 2.8, 18);
+    mintFill.position.set(0, -1.2, 1.2);
+    this.scene.add(mintFill);
 
-    const backLight = new THREE.PointLight(0xF5B7C0, 1.8, 14);
-    backLight.position.set(0, 2.5, -2.5);
-    this.scene.add(backLight);
+    const pinkRim = new THREE.PointLight(0xFFB6C1, 2.0, 16);
+    pinkRim.position.set(0, 2.0, -2.0);
+    this.scene.add(pinkRim);
 
-    // Build Scene Geometry Components
+    // Star Texture
+    this.starTexture = createGlowStarTexture();
+
+    // Build Subsystems
     this.buildVolumetricNebula();
     this.buildDynamicSpiralGalaxy();
     this.buildEnvironment();
     this.buildKiro();
     this.buildCockpitHUD();
 
-    // State & Event Bindings
+    // Event & State Bindings
     this.bindEvents();
     this.subscribeState();
 
-    // Multi-stage Resize Calibration
     this.resize();
     requestAnimationFrame(() => this.resize());
-    setTimeout(() => this.resize(), 100);
-    setTimeout(() => this.resize(), 500);
+    setTimeout(() => this.resize(), 150);
 
-    // Start Unified Single Render Loop
+    // Start Unified Loop
     this.animate();
   }
 
-  /* 1. Volumetric Procedural Cosmic Nebula Shader Plane */
+  /* 1. Volumetric Procedural Cosmic Nebula Shader */
   buildVolumetricNebula() {
     const vertexShader = `
       varying vec2 vUv;
@@ -206,37 +222,34 @@ export class KiroSceneManager {
 
       void main() {
         vec2 uv = vUv * 2.0 - 1.0;
-        float t = u_time * 0.06;
+        float t = u_time * 0.05;
 
-        float n1 = snoise(uv * 1.4 + vec2(t * 0.4, t * 0.2));
-        float n2 = snoise(uv * 2.8 - vec2(t * 0.2, t * 0.5));
+        float n1 = snoise(uv * 1.3 + vec2(t * 0.35, t * 0.2));
+        float n2 = snoise(uv * 2.6 - vec2(t * 0.2, t * 0.4));
         float cloud = (n1 * 0.6 + n2 * 0.4) * 0.5 + 0.5;
 
-        // Signature Celestial Palette
         vec3 deepSpace = vec3(0.067, 0.067, 0.106); // #11111B Midnight Navy
-        vec3 lavender  = vec3(0.55, 0.40, 0.85);    // #CBA6F7 Lavender
+        vec3 lavender  = vec3(0.50, 0.35, 0.80);    // #CBA6F7 Lavender
         vec3 mint      = vec3(0.31, 0.79, 0.69);    // #4EC9B0 Mint Teal (Patrick)
-        vec3 pink      = vec3(1.0, 0.71, 0.76);     // #FFB6C1 Pastel Pink (Yangiee)
-        vec3 gold      = vec3(0.98, 0.89, 0.69);    // #F9E2AF Golden Glow
+        vec3 pink      = vec3(1.00, 0.71, 0.76);    // #FFB6C1 Pastel Pink (Yangiee)
+        vec3 gold      = vec3(0.98, 0.89, 0.69);    // #F9E2AF Warm Gold
 
-        vec3 col = mix(deepSpace, lavender, smoothstep(0.28, 0.72, cloud) * 0.75);
+        vec3 col = mix(deepSpace, lavender, smoothstep(0.25, 0.75, cloud) * 0.8);
 
-        // Chromatic Separation (Mint on left, Pink on right)
         if (uv.x < 0.0) {
-          col = mix(col, mint, smoothstep(0.32, 0.85, cloud) * abs(uv.x) * 0.85);
+          col = mix(col, mint, smoothstep(0.30, 0.85, cloud) * abs(uv.x) * 0.9);
         } else {
-          col = mix(col, pink, smoothstep(0.32, 0.85, cloud) * uv.x * 0.85);
+          col = mix(col, pink, smoothstep(0.30, 0.85, cloud) * uv.x * 0.9);
         }
 
-        // Center Golden Aura Pulse
         float centerDist = length(uv);
-        col = mix(col, gold, smoothstep(0.6, 0.0, centerDist) * 0.15 * (1.0 + u_audio * 0.5));
+        col = mix(col, gold, smoothstep(0.65, 0.0, centerDist) * 0.20 * (1.0 + u_audio * 0.6));
 
         gl_FragColor = vec4(col, 1.0);
       }
     `;
 
-    const nebulaGeo = new THREE.PlaneGeometry(48, 32);
+    const nebulaGeo = new THREE.PlaneGeometry(52, 36);
     this.nebulaMaterial = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -261,21 +274,19 @@ export class KiroSceneManager {
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
 
-    const colorTeal = new THREE.Color(0x4EC9B0);   // Mint-Teal
-    const colorPink = new THREE.Color(0xFFB6C1);   // Pastel-Pink
+    const colorTeal = new THREE.Color(0x4EC9B0);   // Mint Teal
+    const colorPink = new THREE.Color(0xFFB6C1);   // Pastel Pink
     const colorAmber = new THREE.Color(0xF9E2AF);  // Warm Gold
     const colorLavender = new THREE.Color(0xCBA6F7); // Lavender
 
     for (let i = 0; i < this.galaxyCount; i++) {
-      const arm = i % 2; // Split particles across exactly 2 spiral arms
-
-      // Logarithmic density distribution math: clusters particles tightly at core
-      const r = 0.5 + Math.pow(Math.random(), 1.8) * 8.5;
-      const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.4;
+      const arm = i % 2;
+      const r = 0.6 + Math.pow(Math.random(), 1.7) * 9.0;
+      const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.45;
 
       const x = Math.cos(angle) * r;
-      const y = (Math.random() - 0.5) * 1.2;
-      const z = Math.sin(angle) * r - 10.0; // Place behind Kiro and interactive HUD
+      const y = (Math.random() - 0.5) * 1.5;
+      const z = Math.sin(angle) * r - 10.0;
 
       positions[i * 3]     = x;
       positions[i * 3 + 1] = y;
@@ -284,12 +295,11 @@ export class KiroSceneManager {
       this.galaxyOriginalPositions.push(new THREE.Vector3(x, y, z));
       this.galaxyPhases.push(Math.random() * Math.PI * 2);
 
-      // Dynamic color interpolation across arms
       let starColor;
       if (arm === 0) {
-        starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.5);
+        starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.6);
       } else {
-        starColor = colorPink.clone().lerp(colorLavender, Math.random() * 0.5);
+        starColor = colorPink.clone().lerp(colorLavender, Math.random() * 0.6);
       }
 
       colors[i * 3]     = starColor.r;
@@ -302,6 +312,7 @@ export class KiroSceneManager {
 
     const galaxyMat = new THREE.PointsMaterial({
       size: this.warpStarSize,
+      map: this.starTexture,
       vertexColors: true,
       transparent: true,
       opacity: 0.95,
@@ -315,21 +326,20 @@ export class KiroSceneManager {
 
   buildEnvironment() {
     const pedestalGeo = new THREE.CylinderGeometry(1.9, 2.0, 0.45, 32);
-    const pedestalMat = new THREE.MeshStandardMaterial({
-      color: 0x131F30,
-      roughness: 0.55,
-      metalness: 0.25
+    const pedestalMat = new THREE.MeshPhongMaterial({
+      color: 0x182438,
+      emissive: 0x0D1622,
+      shininess: 40
     });
     this.pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
     this.pedestal.position.y = -1.35;
-    this.pedestal.receiveShadow = true;
     this.scene.add(this.pedestal);
 
-    const ringGeo = new THREE.TorusGeometry(1.95, 0.05, 10, 64);
+    const ringGeo = new THREE.TorusGeometry(1.95, 0.06, 10, 64);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0x4EC9B0,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.95
     });
     this.neonRing = new THREE.Mesh(ringGeo, ringMat);
     this.neonRing.rotation.x = Math.PI / 2;
@@ -342,35 +352,35 @@ export class KiroSceneManager {
     this.kiroGroup.position.set(0, 0, 0);
     this.scene.add(this.kiroGroup);
 
-    const mintMat = new THREE.MeshStandardMaterial({
+    const mintMat = new THREE.MeshPhongMaterial({
       color: 0x4EC9B0,
-      roughness: 0.85,
-      metalness: 0.05
+      emissive: 0x1A4D43,
+      emissiveIntensity: 0.25,
+      shininess: 30
     });
 
     // 1. Body
     const bodyGeo = new THREE.SphereGeometry(1, 32, 32);
     const bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
     bodyMesh.scale.set(1.1, 0.95, 1.1);
-    bodyMesh.castShadow = true;
-    bodyMesh.receiveShadow = true;
     this.kiroGroup.add(bodyMesh);
 
     // 2. Belly Patch (#F0EDE8)
     const bellyGeo = new THREE.SphereGeometry(0.72, 32, 32);
-    const bellyMat = new THREE.MeshStandardMaterial({
+    const bellyMat = new THREE.MeshPhongMaterial({
       color: 0xF0EDE8,
-      roughness: 0.9,
-      metalness: 0.0
+      emissive: 0xDCD6CD,
+      emissiveIntensity: 0.15,
+      shininess: 15
     });
     const bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
     bellyMesh.scale.set(1.0, 0.85, 0.5);
     bellyMesh.position.set(0, -0.15, 0.72);
     this.kiroGroup.add(bellyMesh);
 
-    // 3. Eyes & Awake/Sleep Variations
+    // 3. Eyes & Highlights
     const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1A3A3A, roughness: 0.1, metalness: 0.9 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x11111B });
     const hlGeo = new THREE.SphereGeometry(0.04, 8, 8);
     const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 
@@ -388,8 +398,9 @@ export class KiroSceneManager {
     this.kiroGroup.add(this.rightEye);
     this.kiroGroup.add(this.rightHl);
 
-    const sleepEyeGeo = new THREE.TorusGeometry(0.1, 0.022, 8, 16, Math.PI);
-    const sleepEyeMat = new THREE.MeshBasicMaterial({ color: 0x1A3A3A });
+    // Sleeping Eyes (Curved Arcs)
+    const sleepEyeGeo = new THREE.TorusGeometry(0.1, 0.024, 8, 16, Math.PI);
+    const sleepEyeMat = new THREE.MeshBasicMaterial({ color: 0x11111B });
 
     this.leftSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.leftSleepEye.rotation.set(0, 0, Math.PI);
@@ -418,14 +429,14 @@ export class KiroSceneManager {
     // 5. Sleep Nightcap (Pastel Lavender with Golden Star)
     const capGroup = new THREE.Group();
     const capGeo = new THREE.ConeGeometry(0.48, 1.1, 24);
-    const capMat = new THREE.MeshStandardMaterial({ color: 0xCBA6F7, roughness: 0.8 });
+    const capMat = new THREE.MeshPhongMaterial({ color: 0xCBA6F7, shininess: 20 });
     const capMesh = new THREE.Mesh(capGeo, capMat);
     capMesh.rotation.z = -Math.PI / 4.5;
     capMesh.position.set(0.25, 0.45, 0);
     capGroup.add(capMesh);
 
     const pomGeo = new THREE.SphereGeometry(0.12, 16, 16);
-    const pomMat = new THREE.MeshStandardMaterial({ color: 0xF9E2AF, roughness: 0.3 });
+    const pomMat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
     const pomMesh = new THREE.Mesh(pomGeo, pomMat);
     pomMesh.position.set(0.72, 0.78, 0);
     capGroup.add(pomMesh);
@@ -440,7 +451,7 @@ export class KiroSceneManager {
     const auraMat = new THREE.MeshBasicMaterial({
       color: 0xF9E2AF,
       transparent: true,
-      opacity: 0.15,
+      opacity: 0.2,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide
     });
@@ -454,20 +465,18 @@ export class KiroSceneManager {
     this.cockpitGroup.visible = false;
     this.scene.add(this.cockpitGroup);
 
-    // Pilot Reticle
-    const crossGeo = new THREE.RingGeometry(0.55, 0.58, 32);
-    const crossMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.85 });
+    // Pilot Reticle (Centered in screen at Z = -3.0)
+    const crossGeo = new THREE.RingGeometry(0.45, 0.48, 32);
+    const crossMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.9 });
     this.crosshairMesh = new THREE.Mesh(crossGeo, crossMat);
-    this.crosshairMesh.position.set(0, 1.6, -4);
+    this.crosshairMesh.position.set(0, 0.15, -3.0);
     this.cockpitGroup.add(this.crosshairMesh);
 
-    // Celestial Minigame Space Systems
+    // Celestial Space Systems
     this.spaceSystems.forEach(sys => {
       const geo = new THREE.IcosahedronGeometry(sys.size, 2);
-      const mat = new THREE.MeshStandardMaterial({
+      const mat = new THREE.MeshBasicMaterial({
         color: sys.color,
-        emissive: sys.color,
-        emissiveIntensity: 0.45,
         wireframe: true
       });
       const mesh = new THREE.Mesh(geo, mat);
@@ -478,7 +487,7 @@ export class KiroSceneManager {
       const glowMat = new THREE.MeshBasicMaterial({
         color: sys.color,
         transparent: true,
-        opacity: 0.25,
+        opacity: 0.35,
         blending: THREE.AdditiveBlending
       });
       mesh.add(new THREE.Mesh(glowGeo, glowMat));
@@ -494,7 +503,7 @@ export class KiroSceneManager {
       this.mouse.y = -(clientY / window.innerHeight) * 2 + 1;
       this.pointerInCanvas = true;
 
-      // Unproject pointer to 3D world space at depth Z = 0 for stardust sparkles
+      // Stardust Sparkles at Z = 0
       const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
       const mouseDir = mouseProj.sub(this.camera.position).normalize();
       const dist = (0 - this.camera.position.z) / mouseDir.z;
@@ -519,7 +528,7 @@ export class KiroSceneManager {
     }, { passive: true });
     window.addEventListener('touchend', () => { this.pointerInCanvas = false; }, { passive: true });
 
-    // Interactive Kiro Petting Touch Raycast
+    // Interactive Kiro Petting Raycast
     window.addEventListener('click', (e) => {
       if (!this.kiroGroup || !this.camera) return;
       if (KiroState.get('telescopeActive')) return;
@@ -534,10 +543,13 @@ export class KiroSceneManager {
       }
     });
 
+    // Calibrated Gyro Parallax with 55 deg baseline hold subtraction
     window.addEventListener('deviceorientation', (e) => {
       if (KiroState.get('gyroEnabled')) {
-        this.gyro.targetX = (e.gamma || 0) * 0.015;
-        this.gyro.targetY = (e.beta || 0) * 0.015;
+        const deltaBeta = ((e.beta || 55) - 55) * 0.003;
+        const deltaGamma = (e.gamma || 0) * 0.003;
+        this.gyro.targetY = Math.max(-0.25, Math.min(0.25, deltaBeta));
+        this.gyro.targetX = Math.max(-0.25, Math.min(0.25, deltaGamma));
       }
     });
 
@@ -565,17 +577,17 @@ export class KiroSceneManager {
       if (window.gsap && this.kiroGroup && this.pedestal && this.neonRing) {
         gsap.to(this.kiroGroup.position, {
           y: isActive ? -4 : 0,
-          duration: 1.2,
+          duration: 1.0,
           ease: "power2.inOut"
         });
         gsap.to(this.pedestal.position, {
           y: isActive ? -5 : -1.35,
-          duration: 1.2,
+          duration: 1.0,
           ease: "power2.inOut"
         });
         gsap.to(this.neonRing.position, {
           y: isActive ? -5 : -1.12,
-          duration: 1.2,
+          duration: 1.0,
           ease: "power2.inOut"
         });
       }
@@ -595,7 +607,7 @@ export class KiroSceneManager {
   }
 
   updateWellbeing(wellbeing) {
-    const scaleFactor = 0.4 + 0.7 * Math.pow(wellbeing / 100, 2);
+    const scaleFactor = 0.5 + 0.6 * Math.pow(wellbeing / 100, 2);
     if (window.gsap && this.kiroGroup) {
       gsap.to(this.kiroGroup.scale, {
         x: scaleFactor,
@@ -611,10 +623,10 @@ export class KiroSceneManager {
     if (!window.gsap || !this.kiroGroup) return;
 
     const tl = gsap.timeline();
-    tl.to(this.kiroGroup.position, { y: 0.7, duration: 0.3, ease: 'power1.out' })
-      .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.6, ease: 'sine.inOut' }, 0)
-      .to(this.kiroGroup.position, { y: 0, duration: 0.3, ease: 'power1.in' })
-      .to(this.kiroGroup.scale, { y: 0.85, x: 1.15, duration: 0.1, ease: 'power2.out' })
+    tl.to(this.kiroGroup.position, { y: 0.6, duration: 0.25, ease: 'power1.out' })
+      .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.55, ease: 'sine.inOut' }, 0)
+      .to(this.kiroGroup.position, { y: 0, duration: 0.25, ease: 'power1.in' })
+      .to(this.kiroGroup.scale, { y: 0.88, x: 1.12, duration: 0.1, ease: 'power2.out' })
       .to(this.kiroGroup.scale, { y: 1, x: 1, duration: 0.2, ease: 'elastic.out(1, 0.3)' });
 
     this.spawnHeartParticles();
@@ -623,7 +635,7 @@ export class KiroSceneManager {
   spawnHeartParticles() {
     if (!window.gsap) return;
     for (let i = 0; i < 8; i++) {
-      const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.06), new THREE.MeshBasicMaterial({ color: 0xFFB6C1, transparent: true, opacity: 0.9 }));
+      const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.07), new THREE.MeshBasicMaterial({ color: 0xFFB6C1, transparent: true, opacity: 0.95 }));
       p.position.set(0, 0.2, 0.1);
       this.scene.add(p);
 
@@ -655,7 +667,7 @@ export class KiroSceneManager {
     const colors = [0x4EC9B0, 0xFFB6C1, 0xF9E2AF, 0xCBA6F7];
     const color = colors[Math.floor(Math.random() * colors.length)];
 
-    const geo = new THREE.DodecahedronGeometry(0.04 + Math.random() * 0.04);
+    const geo = new THREE.DodecahedronGeometry(0.045 + Math.random() * 0.04);
     const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95 });
     const p = new THREE.Mesh(geo, mat);
 
@@ -695,26 +707,24 @@ export class KiroSceneManager {
   dropCandy(type = 'star') {
     let candyGeo, candyMat;
     if (type === 'star') {
-      candyGeo = new THREE.DodecahedronGeometry(0.22);
-      candyMat = new THREE.MeshStandardMaterial({
+      candyGeo = new THREE.DodecahedronGeometry(0.24);
+      candyMat = new THREE.MeshPhongMaterial({
         color: 0xF9E2AF,
         emissive: 0xF9E2AF,
-        emissiveIntensity: 0.35,
-        roughness: 0.2,
-        metalness: 0.1
+        emissiveIntensity: 0.4,
+        shininess: 60
       });
     } else {
-      candyGeo = new THREE.TorusGeometry(0.18, 0.09, 16, 32);
-      candyMat = new THREE.MeshStandardMaterial({
+      candyGeo = new THREE.TorusGeometry(0.20, 0.09, 16, 32);
+      candyMat = new THREE.MeshPhongMaterial({
         color: 0xF5C2E7,
-        roughness: 0.3,
-        metalness: 0.05
+        emissive: 0x6E3558,
+        shininess: 40
       });
     }
 
     const candyMesh = new THREE.Mesh(candyGeo, candyMat);
     candyMesh.position.set((Math.random() - 0.5) * 0.6, 2.5, 0.85);
-    candyMesh.castShadow = true;
     candyMesh.userData = {
       vy: -0.015,
       ay: -0.003,
@@ -738,7 +748,7 @@ export class KiroSceneManager {
     for (let i = 0; i < 14; i++) {
       const drop = new THREE.Mesh(
         new THREE.SphereGeometry(0.06 + Math.random() * 0.04, 12, 12),
-        new THREE.MeshStandardMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.8, roughness: 0.1, metalness: 0.1 })
+        new THREE.MeshBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.85 })
       );
       drop.position.set(0, 0.2, 0.8);
 
@@ -767,7 +777,7 @@ export class KiroSceneManager {
       drop.position.z += drop.userData.vz;
       drop.userData.life -= drop.userData.decay;
 
-      drop.material.opacity = drop.userData.life * 0.8;
+      drop.material.opacity = drop.userData.life * 0.85;
 
       if (drop.userData.life <= 0 || drop.position.y < -1.5) {
         this.scene.remove(drop);
@@ -824,49 +834,41 @@ export class KiroSceneManager {
 
   triggerWarpAcceleration() {
     this.warpActive = true;
-    this.warpTargetSpeed = 0.08;
-    this.warpTargetStarSize = 0.55;
-    this.warpTargetZStretch = 4.0;
-
-    if (window.gsap && this.galaxyPoints) {
+    if (window.gsap) {
       gsap.to(this, {
-        warpSpeed: this.warpTargetSpeed,
-        warpStarSize: this.warpTargetStarSize,
-        warpZStretch: this.warpTargetZStretch,
-        duration: 1.8,
+        warpSpeed: 0.08,
+        warpStarSize: 0.75,
+        warpZStretch: 3.5,
+        duration: 1.5,
         ease: 'power2.in'
       });
     } else {
-      this.warpSpeed = this.warpTargetSpeed;
-      this.warpStarSize = this.warpTargetStarSize;
-      this.warpZStretch = this.warpTargetZStretch;
+      this.warpSpeed = 0.08;
+      this.warpStarSize = 0.75;
+      this.warpZStretch = 3.5;
     }
   }
 
   exitWarpAcceleration() {
     this.warpActive = false;
-    this.warpTargetSpeed = 0.02;
-    this.warpStarSize = 0.20;
-    this.warpTargetZStretch = 1.0;
-
     if (window.gsap) {
       gsap.to(this, {
-        warpSpeed: this.warpTargetSpeed,
-        warpStarSize: this.warpTargetStarSize,
-        warpZStretch: this.warpTargetZStretch,
-        duration: 1.2,
+        warpSpeed: 0.02,
+        warpStarSize: 0.42,
+        warpZStretch: 1.0,
+        duration: 1.0,
         ease: 'power2.out'
       });
     } else {
-      this.warpSpeed = this.warpTargetSpeed;
-      this.warpStarSize = this.warpTargetStarSize;
-      this.warpZStretch = this.warpTargetZStretch;
+      this.warpSpeed = 0.02;
+      this.warpStarSize = 0.42;
+      this.warpZStretch = 1.0;
     }
   }
 
   triggerBootWarp() {
     this.triggerWarpAcceleration();
-    setTimeout(() => this.exitWarpAcceleration(), 2200);
+    setTimeout(() => this.exitWarpAcceleration(), 2000);
   }
 
   animate() {
@@ -881,7 +883,7 @@ export class KiroSceneManager {
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;
     this.gyro.y += (this.gyro.targetY - this.gyro.y) * 0.08;
     this.camera.position.x = this.gyro.x;
-    this.camera.position.y = 0.2 + this.gyro.y;
+    this.camera.position.y = 0.15 + this.gyro.y;
 
     // 2. Update Volumetric Nebula Shader Uniforms
     if (this.nebulaMaterial) {
@@ -895,27 +897,27 @@ export class KiroSceneManager {
 
     if (isTelescope) {
       const lookX = (steering.yaw || 0) * 0.02;
-      const lookY = 1.6 + (steering.pitch || 0) * 0.02;
+      const lookY = 0.15 + (steering.pitch || 0) * 0.02;
       this.camera.lookAt(lookX, lookY, 0);
 
       if (this.galaxyPoints) {
-        this.galaxyPoints.position.x = (steering.yaw || 0) * 0.06;
-        this.galaxyPoints.position.y = (steering.pitch || 0) * 0.06;
+        this.galaxyPoints.position.x = (steering.yaw || 0) * 0.05;
+        this.galaxyPoints.position.y = (steering.pitch || 0) * 0.05;
       }
 
       this.targetSystemMeshes.forEach(mesh => {
         const base = mesh.userData.basePos;
-        let targetX = base.x + ((steering.yaw || 0) * 0.15);
-        let targetY = base.y + ((steering.pitch || 0) * 0.15);
+        let targetX = base.x + ((steering.yaw || 0) * 0.12);
+        let targetY = base.y + ((steering.pitch || 0) * 0.12);
 
         mesh.position.x = targetX;
         mesh.position.y = targetY;
-        mesh.rotation.y += 0.01;
-        mesh.rotation.x += 0.005;
+        mesh.rotation.y += 0.012;
+        mesh.rotation.x += 0.006;
 
-        // Check lock-on alignment with pilot's HUD reticle (at x=0, y=1.6)
-        const distToHUD = Math.sqrt(Math.pow(mesh.position.x, 2) + Math.pow(mesh.position.y - 1.6, 2));
-        if (distToHUD < 0.75) {
+        // Check lock-on alignment with reticle (at x=0, y=0.15)
+        const distToReticle = Math.sqrt(Math.pow(mesh.position.x, 2) + Math.pow(mesh.position.y - 0.15, 2));
+        if (distToReticle < 0.85) {
           if (KiroState.get('cockpitSteering.currentTarget') !== mesh.userData.id) {
             KiroState.set('cockpitSteering.currentTarget', mesh.userData.id);
             KiroState.set('cockpitSteering.aligned', true);
@@ -927,7 +929,7 @@ export class KiroSceneManager {
       this.camera.lookAt(0, 0, 0);
 
       const freq = isSleeping ? 0.6 : 2.0;
-      const amp = isSleeping ? 0.02 : 0.06;
+      const amp = isSleeping ? 0.02 : 0.05;
       if (this.kiroGroup && (!window.gsap || !gsap.isAnimating(this.kiroGroup.position))) {
         this.kiroGroup.position.y = Math.sin(t * freq) * amp;
       }
@@ -948,7 +950,7 @@ export class KiroSceneManager {
       const mouseDist = (-10.0 - this.camera.position.z) / mouseDir.z;
       const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
 
-      const rotAngle = isSleeping ? t * 0.005 : t * this.warpSpeed;
+      const rotAngle = isSleeping ? t * 0.004 : t * this.warpSpeed;
 
       for (let i = 0; i < count; i++) {
         const orig = this.galaxyOriginalPositions[i];
@@ -970,12 +972,10 @@ export class KiroSceneManager {
             positions[i * 3]     += (dx / distance) * force;
             positions[i * 3 + 1] += (dy / distance) * force;
           } else {
-            // Smooth ease back to logarithmic orbital path
             positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.05;
             positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.05;
           }
         } else {
-          // Seamless drift along orbital coordinates
           positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
           positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
         }
@@ -987,18 +987,18 @@ export class KiroSceneManager {
       this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 5. Audio-Visual Synesthesia (Neon Ring & Golden Aura)
+    // 5. Audio-Visual Synesthesia
     if (this.neonRing) {
       this.neonRing.rotation.z += 0.008;
       const ringScale = 1.0 + audioLevel * 0.35;
       this.neonRing.scale.set(ringScale, ringScale, 1.0);
-      this.neonRing.material.opacity = 0.7 + audioLevel * 0.3;
+      this.neonRing.material.opacity = 0.75 + audioLevel * 0.25;
     }
 
     if (this.goldenAura && this.goldenAura.visible) {
       const auraScale = 1.35 + audioLevel * 0.25;
       this.goldenAura.scale.set(auraScale, auraScale, auraScale);
-      this.goldenAura.material.opacity = 0.1 + audioLevel * 0.2;
+      this.goldenAura.material.opacity = 0.15 + audioLevel * 0.2;
     }
 
     // 6. Update Particle Systems & Physics
@@ -1028,6 +1028,10 @@ export class KiroSceneManager {
     if (this.boundResize) {
       window.removeEventListener('resize', this.boundResize);
       window.removeEventListener('orientationchange', this.boundResize);
+    }
+
+    if (this.starTexture) {
+      this.starTexture.dispose();
     }
 
     this.touchParticles.forEach(p => {

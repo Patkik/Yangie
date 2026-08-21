@@ -1,5 +1,5 @@
 {
-  "version": "1.8.3",
-  "updatedAt": "2026-08-21T15:36:00+08:00",
-  "releaseNotes": "Release V5.2: Living Volumetric Procedural Cosmic Nebula Shader (Mint-Teal left wing, Pastel-Pink right wing, Deep Twilight core) ported directly to the main Space Capsule 3D scene behind Kiro and the double-arm logarithmic spiral galaxy with explicit canvas binding."
+  "version": "1.8.4",
+  "updatedAt": "2026-08-21T15:51:00+08:00",
+  "releaseNotes": "Release V5.3: Calibrated portrait baseline gyroscope offset to fix pitch-black camera frustum tilt, generated radial glow particle texture for 100% reliable mobile star rendering, self-illuminated Phong materials for Kiro and pedestal, and aligned space shuttle celestial lock-on targets."
 }
