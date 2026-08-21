@@ -14,9 +14,9 @@
   --color-pink-soft: rgba(245, 183, 192, 0.12);
   --color-lavender: #CBA6F7;
   --color-lavender-glow: rgba(203, 166, 247, 0.35);
-  --color-cream: #F0EDE8;
-  --color-obsidian: #0A1118;
-  --color-twilight-bg: #0D1622;
+  --color-cream: #f5c2e7;
+  --color-obsidian: #11111b;
+  --color-twilight-bg: #11111b;
   
   /* Precision Glassmorphism */
   --color-panel-glass: rgba(15, 25, 38, 0.72);
@@ -53,7 +53,7 @@ html, body {
   -webkit-overflow-scrolling: auto;
   background-color: var(--color-twilight-bg);
   background-image: 
-    radial-gradient(circle at 50% 20%, #18283B 0%, #0D1622 70%, #060B11 100%);
+    radial-gradient(circle at 50% 20%, #1e1e2e 0%, #11111b 70%, #11111b 100%);
   font-family: var(--font-body);
   color: var(--color-cream);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -395,17 +395,17 @@ html, body {
 }
 
 .vital-fill.food-fill {
-  background: linear-gradient(90deg, #F5B7C0, #FF8DA1);
+  background: linear-gradient(90deg, #F5B7C0, #ffb6c1);
   box-shadow: 0 0 8px rgba(245, 183, 192, 0.6);
 }
 
 .vital-fill.water-fill {
-  background: linear-gradient(90deg, #4EC9B0, #2BC0E4);
+  background: linear-gradient(90deg, #4EC9B0, #4ec9b0);
   box-shadow: 0 0 8px rgba(78, 201, 176, 0.6);
 }
 
 .vital-fill.energy-fill {
-  background: linear-gradient(90deg, #CBA6F7, #9B5DE5);
+  background: linear-gradient(90deg, #CBA6F7, #cba6f7);
   box-shadow: 0 0 8px rgba(203, 166, 247, 0.6);
 }
 
@@ -453,7 +453,7 @@ html, body {
   font-family: var(--font-heading);
   font-size: 11px;
   font-weight: 600;
-  color: #BAC2DE;
+  color: #cdd6f4;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -749,7 +749,7 @@ html, body {
 .settings-close-btn {
   background: transparent;
   border: none;
-  color: #A6ADC8;
+  color: #94e2d5;
   width: 30px;
   height: 30px;
   display: flex;
@@ -801,7 +801,7 @@ html, body {
 
 .settings-toggle-btn.active {
   background: var(--color-mint);
-  color: #0D1622;
+  color: #11111b;
 }
 
 .settings-replay-btn {
@@ -823,7 +823,7 @@ html, body {
   background: linear-gradient(135deg, var(--color-pink-blush) 0%, var(--color-mint) 100%);
   border: none;
   border-radius: 14px;
-  color: #0A1118;
+  color: #11111b;
   font-family: var(--font-heading);
   font-size: 12px;
   font-weight: 700;

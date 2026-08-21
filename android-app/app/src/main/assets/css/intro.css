@@ -1,7 +1,7 @@
 /**
  * intro.css
  * Cinematic 4-Act Lightspeed Warp Intro & Identity Portal Styling
- * Colors: Mint-Teal (#4EC9B0), Pastel Pink (#FFB6C1 / #F5B7C0), Twilight (#0D1622)
+ * Colors: Mint-Teal (#4EC9B0), Pastel Pink (#FFB6C1 / #F5B7C0), Twilight (#11111b)
  */
 
 .intro-overlay {
@@ -294,7 +294,7 @@
 
 .portal-role {
   font-size: 11px;
-  color: #A6ADC8;
+  color: #94e2d5;
   letter-spacing: 0.2px;
 }
 
@@ -340,7 +340,7 @@
 .portal-card.patrick .portal-choose-btn:hover {
   background: var(--color-mint, #4EC9B0);
   border-color: var(--color-mint, #4EC9B0);
-  color: #0D1622;
+  color: #11111b;
   box-shadow: 0 0 15px rgba(78, 201, 176, 0.5);
   transform: scale(1.04);
 }
@@ -350,7 +350,7 @@
 .portal-card.yangiee .portal-choose-btn:hover {
   background: var(--color-pink-blush, #FFB6C1);
   border-color: var(--color-pink-blush, #FFB6C1);
-  color: #0D1622;
+  color: #11111b;
   box-shadow: 0 0 15px rgba(255, 182, 193, 0.5);
   transform: scale(1.04);
 }

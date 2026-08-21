@@ -82,7 +82,7 @@
 .mailbox-sub {
   font-family: var(--font-heading, sans-serif);
   font-size: 11px;
-  color: #A6ADC8;
+  color: #94e2d5;
 }
 
 .mailbox-feed {
@@ -154,12 +154,12 @@
 .message-text {
   font-size: 13px;
   line-height: 1.45;
-  color: var(--color-cream, #F0EDE8);
+  color: var(--color-cream, #f5c2e7);
 }
 
 .message-time {
   font-size: 9.5px;
-  color: #A6ADC8;
+  color: #94e2d5;
   margin-top: 4px;
   display: block;
   text-align: right;
@@ -261,7 +261,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   padding: 10px 14px;
-  color: var(--color-cream, #F0EDE8);
+  color: var(--color-cream, #f5c2e7);
   font-family: var(--font-body, sans-serif);
   font-size: 13px;
   outline: none;
@@ -272,7 +272,7 @@
 }
 
 .send-button {
-  background: linear-gradient(135deg, var(--color-mint, #4EC9B0) 0%, #3BA892 100%);
+  background: linear-gradient(135deg, var(--color-mint, #4EC9B0) 0%, #4ec9b0 100%);
   border: none;
   border-radius: 14px;
   width: 42px;

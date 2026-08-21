@@ -54,7 +54,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: #060d18;
+  background: #11111b;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +202,7 @@
 .call-status-badge.negotiating {
   background: rgba(255, 195, 66, 0.12);
   border: 1px solid rgba(255, 195, 66, 0.4);
-  color: #FFC342;
+  color: #f9e2af;
   animation: statusPulse 1.5s ease-in-out infinite;
 }
 
@@ -216,7 +216,7 @@
 .call-status-badge.ended {
   background: rgba(235, 77, 75, 0.12);
   border: 1px solid rgba(235, 77, 75, 0.3);
-  color: #EB4D4B;
+  color: #f5b7c0;
   animation: none;
 }
 
@@ -368,7 +368,7 @@
 .call-hud-btn.active-red {
   background: rgba(235, 77, 75, 0.22);
   border-color: rgba(235, 77, 75, 0.55);
-  color: #EB4D4B;
+  color: #f5b7c0;
 }
 
 /* End call — prominent red */

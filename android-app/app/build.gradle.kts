@@ -10,8 +10,8 @@ android {
         applicationId = "com.starlight.sanctuary"
         minSdk = 24
         targetSdk = 34
-        versionCode = 20
-        versionName = "1.5.2"
+        versionCode = 21
+        versionName = "1.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -61,7 +61,8 @@ abstract class VerifyKiroAssetsTask : DefaultTask() {
             "css/main.css", "css/intro.css", "css/messenger.css", "css/call.css",
             "js/app.js", "js/state.js", "js/audio/synth.js",
             "js/three/intro.js", "js/three/scene.js", "js/ui/mailbox.js",
-            "js/rtc/call-engine.js", "js/rtc/crypto-engine.js"
+            "js/rtc/call-engine.js", "js/rtc/crypto-engine.js",
+            "kiro-agent-harness.py"
         )
 
         required.forEach { path ->

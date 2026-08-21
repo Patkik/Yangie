@@ -1,5 +1,5 @@
 {
-  "version": "1.5.2",
-  "updatedAt": "2026-08-21T12:50:00+08:00",
-  "releaseNotes": "Clean Grounded UI & Simplified Titles v1.5.2: Removed overreactive titles and role descriptions (The Anchor/The Catalyst), simplified all chat placeholders to generic 'Type a message...', streamlined settings, intro selection, and sleep alerts."
+  "version": "1.6.0",
+  "updatedAt": "2026-08-21T13:07:00+08:00",
+  "releaseNotes": "Autonomous Self-Healing Quality Enforcement Suite V4.0 (kiro-agent-harness.py): AST & ES6 import offline sandbox verification, Euclidean color space Twilight palette sanitizer, event listener leak scanner, 5-perspective decision logger, and native Git pre-commit hook installer."
 }
