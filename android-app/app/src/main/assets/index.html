@@ -76,23 +76,46 @@
           </svg>
         </div>
 
-        <div class="sanctuary-meta-group">
-          <div class="sanctuary-title-row">
-            <span class="sanctuary-brand-text">HAKDOG</span>
-            <span class="live-clock-pulse"></span>
-            <span class="sanctuary-live-clock" id="live-clock">--:-- -- PST</span>
+    <header class="sanctuary-top-bar">
+      <!-- Left Token: Partner Status Beacon Pill -->
+      <div class="partner-beacon-pill" id="partner-beacon-pill" title="Twin Sanctuary Connection">
+        <div class="beacon-pulse-indicator" id="partner-beacon-pulse">
+          <div class="beacon-core-dot"></div>
+          <div class="beacon-ring-wave"></div>
+        </div>
+        <div class="beacon-meta-info">
+          <div class="beacon-primary-row">
+            <span class="beacon-sparkle">✦</span>
+            <span id="partner-status-name" class="beacon-partner-name">Yangiee</span>
+            <span class="beacon-sep">•</span>
+            <span id="partner-status-location" class="beacon-location-name">Capas</span>
           </div>
-          <div class="sanctuary-partner-sub">
-            <svg class="partner-star-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
-            <span id="brand-connected-sub">CONNECTED TO YANGIEE</span>
-          </div>
+          <span class="sanctuary-live-clock" id="live-clock">--:--:-- PST</span>
         </div>
       </div>
 
-      <!-- Right: Floating Starlight Action Navigation Pills -->
-      <div class="header-actions">
+      <!-- Right Token: Unified Comms Hub Cluster -->
+      <div class="comms-hub-cluster">
+        <!-- Starlight Mailbox -->
+        <button class="comms-icon-btn" id="btn-nav-mailbox" title="Starlight Mailbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <path d="M3 8l9 6 9-6"/>
+            <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
+          </svg>
+          <span class="comms-unread-badge" id="mailbox-unread-dot">1</span>
+        </button>
+
+        <!-- Starlight Holographic Video Call -->
+        <button class="comms-icon-btn" id="call-btn" title="Starlight Video Call">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <div class="call-live-dot"></div>
+        </button>
+
         <!-- Shuttle Pilot Observatory Telescope -->
-        <button class="nav-btn" id="shuttle-steer-btn" title="Toggle Pilot Telescope">
+        <button class="comms-icon-btn" id="shuttle-steer-btn" title="Toggle Observatory Telescope">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/>
             <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
@@ -101,25 +124,8 @@
           </svg>
         </button>
 
-        <!-- Starlight Holographic Video Call -->
-        <button class="nav-btn" id="call-btn" title="Starlight Video Call" style="position:relative;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-          </svg>
-          <div class="call-live-dot"></div>
-        </button>
-
-        <!-- Starlight Mailbox -->
-        <button class="nav-btn" id="btn-nav-mailbox" title="Starlight Mailbox">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2z"/>
-            <path d="M3 8l9 6 9-6"/>
-            <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
-          </svg>
-        </button>
-
         <!-- Sanctuary Settings & Updates -->
-        <button class="nav-btn" id="btn-nav-settings" title="Sanctuary Settings & Updates">
+        <button class="comms-icon-btn" id="btn-nav-settings" title="Sanctuary Settings & Updates">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
@@ -128,8 +134,14 @@
       </div>
     </header>
 
-    <!-- Shared Sleep Notification Banner -->
-    <div id="shared-sleep-banner" class="sleep-notification-banner" style="display: none;"></div>
+    <!-- Sleep Greeting & Transition Flash Overlay -->
+    <div id="sleep-greeting-overlay" class="sleep-greeting-overlay" style="display: none;">
+      <div class="sleep-greeting-card" id="sleep-greeting-card">
+        <div class="sleep-greeting-icon" id="sleep-greeting-icon">✨</div>
+        <div class="sleep-greeting-title" id="sleep-greeting-title">Goodnight, Starlight</div>
+        <div class="sleep-greeting-sub" id="sleep-greeting-sub">Dreaming in Capas & Malaybalay</div>
+      </div>
+    </div>
 
     <!-- Center Sanctuary Open 3D Stage (90% unobstructed, direct touch & petting) -->
     <div class="center-sanctuary-stage" id="center-sanctuary-stage"></div>
@@ -163,73 +175,94 @@
     <!-- Telescope Target Card -->
     <div id="telescope-aligned-screen" class="telescope-aligned-card" style="display: none;"></div>
 
-    <!-- Bottom Starlight Floating Dock -->
-    <footer class="starlight-floating-dock">
-      <!-- Direct Starlight Treats -->
-      <div class="dock-pill-group">
-        <button class="starlight-pill-btn treat-btn" id="btn-feed-star" title="Drop Star Candy">
-          <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Bottom Satellite Orbital Dock (Zero-Scroll 2-Tier Spatial Architecture) -->
+    <footer class="satellite-orbital-dock" id="satellite-orbital-dock">
+      <!-- Ephemeral Fan-Out Petals (Tier 2) -->
+      <div class="satellite-petal-rack" id="rack-care-petals" style="display: none;">
+        <button class="satellite-petal-btn treat-petal" id="btn-feed-star" title="Drop Star Candy">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(249, 226, 175, 0.3)" stroke="#F9E2AF"/>
           </svg>
-          <span>Star</span>
+          <span class="petal-label">Star</span>
         </button>
 
-        <button class="starlight-pill-btn treat-btn" id="btn-feed-donut" title="Drop Starlight Donut">
-          <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <button class="satellite-petal-btn treat-petal" id="btn-feed-donut" title="Drop Galaxy Donut">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9" stroke="#F5B7C0"/>
             <circle cx="12" cy="12" r="3.5" fill="rgba(245, 183, 192, 0.3)" stroke="#F5B7C0"/>
           </svg>
-          <span>Donut</span>
+          <span class="petal-label">Donut</span>
         </button>
 
-        <button class="starlight-pill-btn treat-btn" id="btn-feed-water" title="Give Luminous Water">
-          <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <button class="satellite-petal-btn treat-petal" id="btn-feed-water" title="Give Starlight Water">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="rgba(78, 201, 176, 0.3)" stroke="#4EC9B0"/>
           </svg>
-          <span>Water</span>
+          <span class="petal-label">Water</span>
         </button>
       </div>
 
-      <div class="dock-divider"></div>
-
-      <!-- Ambient Soundscape Presets -->
-      <div class="dock-pill-group">
-        <button class="starlight-pill-btn audio-btn" id="btn-audio-waves" title="Ocean Waves Soundscape">
-          <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <div class="satellite-petal-rack" id="rack-vibe-petals" style="display: none;">
+        <button class="satellite-petal-btn vibe-petal" id="btn-audio-waves" title="Ocean Waves Soundscape">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7 0M2 17c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7 0" stroke="#94E2D5"/>
           </svg>
-          <span>Waves</span>
+          <span class="petal-label">Waves</span>
         </button>
 
-        <button class="starlight-pill-btn audio-btn" id="btn-audio-rain" title="Soft Rain Soundscape">
-          <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <button class="satellite-petal-btn vibe-petal" id="btn-audio-rain" title="Soft Cosmic Rain">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <line x1="8" y1="19" x2="8" y2="21" stroke="#4EC9B0"/><line x1="8" y1="13" x2="8" y2="15" stroke="#4EC9B0"/>
             <line x1="16" y1="19" x2="16" y2="21" stroke="#4EC9B0"/><line x1="16" y1="13" x2="16" y2="15" stroke="#4EC9B0"/>
             <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25" stroke="#4EC9B0"/>
           </svg>
-          <span>Rain</span>
+          <span class="petal-label">Rain</span>
         </button>
 
-        <button class="starlight-pill-btn audio-btn" id="btn-audio-lofi" title="Cozy Lo-Fi Chords">
-          <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <button class="satellite-petal-btn vibe-petal" id="btn-audio-lofi" title="Cozy Lo-Fi Chords">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 18V5l12-2v13M9 9l12-2M6 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM18 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" stroke="#CBA6F7"/>
           </svg>
-          <span>Lo-Fi</span>
+          <span class="petal-label">Lo-Fi</span>
         </button>
       </div>
 
-      <div class="dock-divider"></div>
-
-      <!-- Sleep / Wake Pill Button (Hold to Toggle) -->
-      <button class="sleep-pill" id="sleep-pill-btn" title="Hold to toggle Kiro's Sleep Mode">
-        <div class="sleep-pill-progress" id="sleep-pill-progress"></div>
-        <div class="sleep-pill-content">
-          <svg class="sleep-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="rgba(203, 166, 247, 0.3)"/>
+      <!-- 3-Segment Master Capsule (Tier 1) -->
+      <nav class="master-capsule-dock" id="master-capsule-dock">
+        <!-- 1. Care Master Segment -->
+        <button class="master-capsule-btn" id="btn-master-care" title="Companion Care & Feeding">
+          <svg class="capsule-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8" stroke="#F9E2AF"/>
+            <path d="M12 8v8M8 12h8" stroke="#F9E2AF"/>
           </svg>
-          <span id="sleep-pill-label">SLEEP</span>
-        </div>
-      </button>
+          <span class="capsule-label">Care</span>
+          <div class="capsule-active-dot"></div>
+        </button>
+
+        <div class="master-capsule-sep"></div>
+
+        <!-- 2. Sleep Master Segment (Hold to Toggle) -->
+        <button class="master-capsule-btn master-sleep-btn" id="sleep-pill-btn" title="Hold to toggle Kiro's Sleep Mode">
+          <div class="sleep-hold-ring" id="sleep-hold-ring"></div>
+          <svg class="capsule-icon-svg sleep-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="rgba(203, 166, 247, 0.35)" stroke="#CBA6F7"/>
+          </svg>
+          <span class="capsule-label" id="sleep-pill-label">Sleep</span>
+          <div class="sleep-active-beacon" id="sleep-active-beacon"></div>
+        </button>
+
+        <div class="master-capsule-sep"></div>
+
+        <!-- 3. Ambience / Vibe Master Segment -->
+        <button class="master-capsule-btn" id="btn-master-vibe" title="Atmospheric Ambience Soundscapes">
+          <svg class="capsule-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6" stroke="#94E2D5"/>
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" stroke="#94E2D5"/>
+          </svg>
+          <span class="capsule-label">Vibe</span>
+          <div class="capsule-active-dot"></div>
+        </button>
+      </nav>
     </footer>
   </main>
 
@@ -277,13 +310,13 @@
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
             Updates
           </span>
-          <span id="settings-current-ver-badge" class="settings-version-badge">v1.9.6</span>
+          <span id="settings-current-ver-badge" class="settings-version-badge">v1.9.7</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #A6ADC8;">
           <div style="display: flex; justify-content: space-between;">
             <span>Installed Version</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v1.9.6</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v1.9.7</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>

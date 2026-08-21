@@ -111,8 +111,8 @@ if (fs.existsSync(mainCssPath)) {
   assert(cssContent.includes('overflow: hidden') && (cssContent.includes('touch-action: none') || cssContent.includes('position: fixed')), 'Immovable Viewport Lock enforced (overflow: hidden, position: fixed, inset: 0)');
 
   // Top crest & floating dock
-  assert(cssContent.includes('.sanctuary-top-bar') || cssContent.includes('.sanctuary-crest-pill'), 'Minimalist top crest capsule defined (.sanctuary-crest-pill)');
-  assert(cssContent.includes('.starlight-floating-dock'), 'Floating bottom starlight dock defined (.starlight-floating-dock)');
+  assert(cssContent.includes('.sanctuary-top-bar') || cssContent.includes('.partner-beacon-pill'), 'Twin Sanctuary Beacon top bar defined (.partner-beacon-pill)');
+  assert(cssContent.includes('.satellite-orbital-dock') || cssContent.includes('.master-capsule-dock') || cssContent.includes('.starlight-floating-dock'), 'Satellite Orbital Master Dock defined (.satellite-orbital-dock)');
   assert(cssContent.includes('border-radius: 9999px') || cssContent.includes('border-radius: 999px'), 'Continuous organic pill curves enforced (border-radius: 9999px)');
 
   // Mathematical vertical footprint calculation

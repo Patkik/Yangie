@@ -9,6 +9,7 @@ import { synthEngine } from './synth.js';
 import { KiroSceneManager } from './scene.js';
 import { KiroIntroManager } from './intro.js';
 import { StarlightMessenger } from './mailbox.js';
+import { KiroAgenticOrchestrator } from './orchestrator.js';
 
 // ============================================================================
 // 1. Native Lifecycle & Notification Bridges
@@ -189,21 +190,38 @@ document.addEventListener('DOMContentLoaded', () => {
     revealDashboard();
   }
 
-  // 1. Dynamic Single-Identity Profile Architecture
+  // 0. Boot Kiro's Agentic Orchestration Engine (Supervisor-Specialist MAS)
+  const orchestrator = new KiroAgenticOrchestrator(synthEngine, sceneManager);
+
+  // 1. Dynamic Single-Identity Profile Architecture (Twin Sanctuary Beacon)
   function updatePersonaProfile() {
     const rawPersona = KiroState.get('persona') || 'pat';
     const persona = (rawPersona === 'yang' || rawPersona === 'yangiee') ? 'yang' : 'pat';
     const partner = persona === 'pat' ? 'yang' : 'pat';
     const personaName = persona === 'pat' ? 'Patrick' : 'Yangiee';
     const partnerName = persona === 'pat' ? 'Yangiee' : 'Patrick';
+    const partnerLocation = partner === 'yang' ? 'Capas' : 'Malaybalay';
 
-    // A. Update Top Header Connected Subtitle
-    const brandSub = document.getElementById('brand-connected-sub');
-    if (brandSub) {
-      brandSub.textContent = `CONNECTED TO ${partnerName.toUpperCase()}`;
+    // A. Update Top Header Twin Sanctuary Beacon
+    const partnerNameEl = document.getElementById('partner-status-name');
+    const partnerLocEl = document.getElementById('partner-status-location');
+    const beaconPulseEl = document.getElementById('partner-beacon-pulse');
+    if (partnerNameEl) partnerNameEl.textContent = partnerName;
+    if (partnerLocEl) partnerLocEl.textContent = partnerLocation;
+    if (beaconPulseEl) {
+      const coreDot = beaconPulseEl.querySelector('.beacon-core-dot');
+      const ringWave = beaconPulseEl.querySelector('.beacon-ring-wave');
+      const color = partner === 'yang' ? 'var(--color-pink-blush)' : 'var(--color-mint)';
+      if (coreDot) {
+        coreDot.style.background = color;
+        coreDot.style.boxShadow = `0 0 8px ${color}`;
+      }
+      if (ringWave) {
+        ringWave.style.borderColor = color;
+      }
     }
 
-    // B. Update Weather/Telemetry Hub
+    // B. Update Weather/Telemetry Hub if present
     const localStationEl = document.getElementById('telemetry-local-station');
     const partnerStationEl = document.getElementById('telemetry-partner-station');
     if (localStationEl) {
@@ -248,8 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Dynamic Timezone Greeting & Live Clock (Philippine Standard Time UTC+8)
   function updateClockAndGreeting() {
     const clockEl = document.getElementById('live-clock');
-    const greetEl = document.getElementById('time-greeting');
-
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const pst = new Date(utc + (3600000 * 8));
@@ -257,7 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const hours = pst.getHours();
     const mins = pst.getMinutes();
     const secs = pst.getSeconds();
-    const totalMins = hours * 60 + mins;
 
     if (clockEl) {
       const hours12 = hours % 12 || 12;
@@ -267,72 +282,92 @@ document.addEventListener('DOMContentLoaded', () => {
       const sStr = String(secs).padStart(2, '0');
       clockEl.textContent = `${hStr}:${mStr}:${sStr} ${ampm} PST`;
     }
-
-    if (greetEl) {
-      const GREETING_SVGS = {
-        morning: `<svg class="greeting-svg-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-        afternoon: `<svg class="greeting-svg-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/></svg>`,
-        evening: `<svg class="greeting-svg-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
-        deepNight: `<svg class="greeting-svg-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>`
-      };
-
-      // 06:00 - 11:59: GOOD MORNING
-      // 12:00 - 17:59: GOOD AFTERNOON
-      // 18:00 - 02:30: GOOD EVENING
-      // 02:31 - 05:59: GOODMORNIGHT
-      if (totalMins >= 360 && totalMins < 720) {
-        greetEl.innerHTML = `${GREETING_SVGS.morning} <span>GOOD MORNING</span>`;
-      } else if (totalMins >= 720 && totalMins < 1080) {
-        greetEl.innerHTML = `${GREETING_SVGS.afternoon} <span>GOOD AFTERNOON</span>`;
-      } else if (totalMins >= 1080 || totalMins <= 150) {
-        greetEl.innerHTML = `${GREETING_SVGS.evening} <span>GOOD EVENING</span>`;
-      } else {
-        greetEl.innerHTML = `${GREETING_SVGS.deepNight} <span>GOODMORNIGHT</span>`;
-      }
-    }
   }
 
   updateClockAndGreeting();
   setInterval(updateClockAndGreeting, 1000);
 
-  // 2. Vitals HUD Progress Update Binding
-  function updateVitalsHUD() {
-    const foodFill = document.getElementById('vital-food-fill');
-    const waterFill = document.getElementById('vital-water-fill');
-    const energyFill = document.getElementById('vital-energy-fill');
+  // 3. Satellite Orbital Dock (2-Tier Spatial Hierarchy Interactions)
+  const masterCareBtn = document.getElementById('btn-master-care');
+  const masterVibeBtn = document.getElementById('btn-master-vibe');
+  const rackCarePetals = document.getElementById('rack-care-petals');
+  const rackVibePetals = document.getElementById('rack-vibe-petals');
 
-    if (foodFill) foodFill.style.width = `${KiroState.get('food') ?? 100}%`;
-    if (waterFill) waterFill.style.width = `${KiroState.get('water') ?? 100}%`;
-    if (energyFill) energyFill.style.width = `${KiroState.get('energy') ?? 100}%`;
+  function closeAllPetals() {
+    if (rackCarePetals) rackCarePetals.style.display = 'none';
+    if (rackVibePetals) rackVibePetals.style.display = 'none';
+    if (masterCareBtn) masterCareBtn.classList.remove('active');
+    if (masterVibeBtn) masterVibeBtn.classList.remove('active');
   }
 
-  updateVitalsHUD();
-  KiroState.on('change', updateVitalsHUD);
-  KiroState.on('vital:feed', updateVitalsHUD);
-  KiroState.on('vital:water', updateVitalsHUD);
-  KiroState.on('sleep:change', updateVitalsHUD);
+  if (masterCareBtn) {
+    masterCareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = rackCarePetals && rackCarePetals.style.display !== 'none';
+      closeAllPetals();
+      if (!isVisible && rackCarePetals) {
+        rackCarePetals.style.display = 'flex';
+        masterCareBtn.classList.add('active');
+        synthEngine.playChimeSound(660);
+      }
+    });
+  }
 
-  // 3. Quick Action Buttons (Candy, Donut, Water)
+  if (masterVibeBtn) {
+    masterVibeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = rackVibePetals && rackVibePetals.style.display !== 'none';
+      closeAllPetals();
+      if (!isVisible && rackVibePetals) {
+        rackVibePetals.style.display = 'flex';
+        masterVibeBtn.classList.add('active');
+        synthEngine.playChimeSound(520);
+      }
+    });
+  }
+
+  // Collapse open petals when touching canvas or outside dock
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('#satellite-orbital-dock')) {
+      closeAllPetals();
+    }
+  });
+
+  // Ephemeral Care Treat Petal Buttons
   const feedStarBtn = document.getElementById('btn-feed-star');
   const feedDonutBtn = document.getElementById('btn-feed-donut');
-  const drinkWaterBtn = document.getElementById('btn-feed-water') || document.getElementById('btn-drink-water');
+  const drinkWaterBtn = document.getElementById('btn-feed-water');
+
+  if (feedStarBtn) {
+    feedStarBtn.addEventListener('click', () => {
+      orchestrator.executeFeedingSOP('star');
+      KiroState.feed('star');
+    });
+  }
+  if (feedDonutBtn) {
+    feedDonutBtn.addEventListener('click', () => {
+      orchestrator.executeFeedingSOP('donut');
+      KiroState.feed('donut');
+    });
+  }
+  if (drinkWaterBtn) {
+    drinkWaterBtn.addEventListener('click', () => {
+      orchestrator.executeFeedingSOP('water');
+      KiroState.drinkWater();
+    });
+  }
+
+  // Comms Hub Navigation Buttons
   const mailboxNavBtn = document.getElementById('btn-nav-mailbox');
   const settingsNavBtn = document.getElementById('btn-nav-settings');
   const settingsCloseBtn = document.getElementById('settings-close-btn');
   const updateNowBtn = document.getElementById('settings-update-now-btn');
   const gyroToggleBtn = document.getElementById('settings-gyro-toggle');
   const replayIntroBtn = document.getElementById('settings-replay-intro-btn');
-  const soundOceanBtn = document.getElementById('btn-audio-waves') || document.getElementById('btn-sound-ocean');
-  const soundRainBtn = document.getElementById('btn-audio-rain') || document.getElementById('btn-sound-rain');
-  const soundLofiBtn = document.getElementById('btn-audio-lofi') || document.getElementById('btn-sound-lofi');
   const shuttleSteerBtn = document.getElementById('shuttle-steer-btn');
   const joystickHud = document.getElementById('cockpit-joystick-hud');
   const telescopeAlignedScreen = document.getElementById('telescope-aligned-screen');
-  const sleepBanner = document.getElementById('shared-sleep-banner');
 
-  if (feedStarBtn) feedStarBtn.addEventListener('click', () => KiroState.feed('star'));
-  if (feedDonutBtn) feedDonutBtn.addEventListener('click', () => KiroState.feed('donut'));
-  if (drinkWaterBtn) drinkWaterBtn.addEventListener('click', () => KiroState.drinkWater());
   if (mailboxNavBtn) mailboxNavBtn.addEventListener('click', () => messenger?.open());
 
   // 4. Pilot Cockpit Telescope & D-Pad Steering Controls
@@ -401,19 +436,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 5. Sleep Alert
-  function showSleepAlert(sender) {
-    if (!sleepBanner) return;
-    const senderName = sender === 'pat' ? 'Patrick' : 'Yangiee';
-    const partnerName = sender === 'pat' ? 'Yangiee' : 'Patrick';
-    sleepBanner.innerHTML = `
-      <svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg>
-      <span>${senderName} is now sleeping. Good night, ${partnerName}!</span>
-    `;
-    sleepBanner.style.display = 'flex';
+  // 5. Sleep Mode Greeting Flash Toast
+  function flashSleepToast(isSleeping) {
+    const overlay = document.getElementById('sleep-greeting-overlay');
+    const icon = document.getElementById('sleep-greeting-icon');
+    const title = document.getElementById('sleep-greeting-title');
+    const sub = document.getElementById('sleep-greeting-sub');
+    const rawPersona = KiroState.get('persona') || 'pat';
+    const partnerName = (rawPersona === 'pat' || rawPersona === 'patrick') ? 'Yangiee' : 'Patrick';
+
+    if (!overlay || !title) return;
+
+    if (isSleeping) {
+      if (icon) icon.textContent = '🌙';
+      title.textContent = 'Goodnight, Starlight ✨';
+      if (sub) sub.textContent = `Sweet dreams in Capas & Malaybalay`;
+    } else {
+      if (icon) icon.textContent = '☀️';
+      title.textContent = 'Good morning, Sunshine ✨';
+      if (sub) sub.textContent = `Awakened with ${partnerName}`;
+    }
+
+    overlay.style.display = 'flex';
+    const card = document.getElementById('sleep-greeting-card');
+    if (card) {
+      card.style.animation = 'none';
+      void card.offsetHeight; // trigger reflow
+      card.style.animation = 'sleepToastFlash 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+    }
+
     setTimeout(() => {
-      sleepBanner.style.display = 'none';
-    }, 4000);
+      overlay.style.display = 'none';
+    }, 2400);
   }
 
   // 6. Settings Modal Handlers
@@ -474,7 +528,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 7. Procedural Sound Toggles
+  // 7. Ephemeral Vibe Soundscape Petals
+  const soundOceanBtn = document.getElementById('btn-audio-waves') || document.getElementById('btn-sound-ocean');
+  const soundRainBtn = document.getElementById('btn-audio-rain') || document.getElementById('btn-sound-rain');
+  const soundLofiBtn = document.getElementById('btn-audio-lofi') || document.getElementById('btn-sound-lofi');
+
   let oceanVol = 0;
   let rainVol = 0;
   let lofiVol = 0;
@@ -506,46 +564,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 8. Sleep Mode Long-Press Switch
+  // 8. Sleep Mode Hold-to-Toggle Segment (with Ring Fill Animation & Toast Flash)
   const sleepBtn = document.getElementById('sleep-pill-btn') || document.getElementById('sleep-switch-btn');
-  const sleepProgress = document.getElementById('sleep-pill-progress') || document.getElementById('sleep-switch-progress');
+  const sleepHoldRing = document.getElementById('sleep-hold-ring') || document.getElementById('sleep-pill-progress');
+  const sleepLabel = document.getElementById('sleep-pill-label');
   let sleepTimer = null;
   let sleepProgressVal = 0;
 
-  if (sleepBtn && sleepProgress) {
+  if (sleepBtn && sleepHoldRing) {
     const startSleepPress = () => {
       sleepProgressVal = 0;
       sleepTimer = setInterval(() => {
-        sleepProgressVal += 4;
-        sleepProgress.style.width = `${sleepProgressVal}%`;
+        sleepProgressVal += 8;
+        sleepHoldRing.style.width = `${sleepProgressVal}%`;
         if (sleepProgressVal >= 100) {
           clearInterval(sleepTimer);
+          sleepHoldRing.style.width = '0%';
           const isSleeping = !KiroState.get('isSleeping');
           KiroState.setSleep(isSleeping);
-          const contentEl = sleepBtn.querySelector('.sleep-pill-content') || sleepBtn.querySelector('.btn-text');
-          if (contentEl) {
-            contentEl.innerHTML = isSleeping 
-              ? '<svg class="sleep-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><span id="sleep-pill-label">WAKE KIRO</span>' 
-              : '<svg class="sleep-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="rgba(203, 166, 247, 0.3)"/></svg><span id="sleep-pill-label">HOLD TO SLEEP</span>';
+          sleepBtn.classList.toggle('sleeping', isSleeping);
+          if (sleepLabel) {
+            sleepLabel.textContent = isSleeping ? 'Wake' : 'Sleep';
           }
-          document.getElementById('app-ui').classList.toggle('dissipated', isSleeping);
-          if (isSleeping) {
-            showSleepAlert(KiroState.get('persona') || 'pat');
-          }
+          flashSleepToast(isSleeping);
         }
-      }, 50);
+      }, 45);
     };
 
     const cancelSleepPress = () => {
       if (sleepTimer) clearInterval(sleepTimer);
-      sleepProgress.style.width = '0%';
+      sleepHoldRing.style.width = '0%';
     };
 
-    sleepBtn.addEventListener('mousedown', startSleepPress);
-    sleepBtn.addEventListener('touchstart', startSleepPress, { passive: true });
-    sleepBtn.addEventListener('mouseup', cancelSleepPress);
-    sleepBtn.addEventListener('mouseleave', cancelSleepPress);
-    sleepBtn.addEventListener('touchend', cancelSleepPress);
+    sleepBtn.addEventListener('pointerdown', startSleepPress);
+    sleepBtn.addEventListener('pointerup', cancelSleepPress);
+    sleepBtn.addEventListener('pointerleave', cancelSleepPress);
+    sleepBtn.addEventListener('pointercancel', cancelSleepPress);
   }
 
   // 9. Rigid Viewport Lock — Prevent screen bounce/scrolling
