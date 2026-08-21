@@ -557,7 +557,7 @@ export class StarlightMessenger {
     const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
     const isOutgoing = (normSender === this.localUser);
 
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
     const row = document.createElement('div');
     row.className = `message-row ${isOutgoing ? 'outgoing' : 'incoming'} ${normSender}`;
 

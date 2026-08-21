@@ -255,10 +255,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalMins = hours * 60 + mins;
 
     if (clockEl) {
-      const hStr = String(hours).padStart(2, '0');
+      const hours12 = hours % 12 || 12;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hStr = String(hours12).padStart(2, '0');
       const mStr = String(mins).padStart(2, '0');
       const sStr = String(secs).padStart(2, '0');
-      clockEl.textContent = `${hStr}:${mStr}:${sStr} PST`;
+      clockEl.textContent = `${hStr}:${mStr}:${sStr} ${ampm} PST`;
     }
 
     if (greetEl) {
