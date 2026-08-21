@@ -184,6 +184,12 @@ def run_integrity_checks():
     # Test 4: Resource Disposal Auditing
     passed = audit_memory_disposal() and passed
 
+    # Test 5: Synchronized SemVer Audit across 4 targets
+    passed = audit_semver_sync() and passed
+
+    # Test 6: Anti-Distortion Flexbox Geometry Audit
+    passed = audit_anti_distortion_geometry() and passed
+
     print(f"\n{Colors.BRIGHT}========================================{Colors.RESET}")
     if passed:
         print(f"{Colors.GREEN}{Colors.BRIGHT}🎉 WORKSPACE VERIFICATION SUCCESSFUL: Ready for Android Studio compile! ✨{Colors.RESET}\n")
@@ -372,6 +378,94 @@ def audit_memory_disposal():
             print(f"  {Colors.YELLOW}⚠️ Class in {rel_path} attaches {adds} listeners but lacks explicit dispose/destroy hooks.{Colors.RESET}")
 
     print(f"  {Colors.GREEN}✔ Found {disposal_count} active cleanup hooks across {listener_count} registered event listeners.{Colors.RESET}")
+    return passed
+
+def audit_semver_sync():
+    print(f"\n{Colors.TEAL}5. Auditing synchronized SemVer across targets...{Colors.RESET}")
+    passed = True
+    versions = {}
+
+    # 1. version.json
+    vjson = ASSETS_DIR / "version.json"
+    if vjson.exists():
+        try:
+            with open(vjson, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                versions["version.json"] = data.get("version", "").strip().lstrip("v")
+        except Exception as e:
+            print(f"  {Colors.RED}❌ Failed reading version.json: {e}{Colors.RESET}")
+            passed = False
+
+    # 2. build.gradle.kts
+    gradle_file = PROJECT_ROOT / "android-app" / "app" / "build.gradle.kts"
+    if gradle_file.exists():
+        try:
+            with open(gradle_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            m = re.search(r'versionName\s*=\s*"([^"]+)"', content)
+            if m:
+                versions["build.gradle.kts"] = m.group(1).strip().lstrip("v")
+        except Exception as e:
+            print(f"  {Colors.RED}❌ Failed reading build.gradle.kts: {e}{Colors.RESET}")
+            passed = False
+
+    # 3. index.html
+    idx_file = ASSETS_DIR / "index.html"
+    if idx_file.exists():
+        try:
+            with open(idx_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            m = re.search(r'id="settings-val-version"[^>]*>v?([^<]+)<', content)
+            if m:
+                versions["index.html"] = m.group(1).strip().lstrip("v")
+        except Exception as e:
+            print(f"  {Colors.RED}❌ Failed reading index.html: {e}{Colors.RESET}")
+            passed = False
+
+    # 4. state.js
+    state_file = ASSETS_DIR / "js" / "state.js"
+    if state_file.exists():
+        try:
+            with open(state_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            m = re.search(r"installedVersion:\s*localStorage\.getItem\([^)]+\)\s*\|\|\s*'([^']+)'", content)
+            if m:
+                versions["state.js"] = m.group(1).strip().lstrip("v")
+        except Exception as e:
+            print(f"  {Colors.RED}❌ Failed reading state.js: {e}{Colors.RESET}")
+            passed = False
+
+    unique_vers = set(versions.values())
+    if len(unique_vers) == 1 and "" not in unique_vers:
+        ver = list(unique_vers)[0]
+        print(f"  {Colors.GREEN}✔ SemVer synchronized across all {len(versions)} targets: v{ver}{Colors.RESET}")
+    else:
+        print(f"  {Colors.RED}❌ SemVer mismatch detected among targets: {versions}{Colors.RESET}")
+        passed = False
+
+    return passed
+
+def audit_anti_distortion_geometry():
+    print(f"\n{Colors.TEAL}6. Auditing flexbox geometry & anti-distortion constraints...{Colors.RESET}")
+    passed = True
+    messenger_css = ASSETS_DIR / "css" / "messenger.css"
+    if messenger_css.exists():
+        with open(messenger_css, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        required_patterns = [
+            (r'\.chat-action-btn\s*\{[^}]*flex-shrink:\s*0', "chat-action-btn requires flex-shrink: 0"),
+            (r'\.send-button\s*\{[^}]*flex-shrink:\s*0', "send-button requires flex-shrink: 0"),
+            (r'\.avatar-wrapper\s*\{[^}]*flex-shrink:\s*0', "avatar-wrapper requires flex-shrink: 0"),
+            (r'\.chat-input\s*\{[^}]*min-width:\s*0', "chat-input requires min-width: 0")
+        ]
+        for pattern, desc in required_patterns:
+            if not re.search(pattern, content):
+                print(f"  {Colors.RED}❌ Anti-distortion violation: {desc}{Colors.RESET}")
+                passed = False
+
+        if passed:
+            print(f"  {Colors.GREEN}✔ Anti-distortion geometry rules verified (buttons & avatars protected from flex squishing).{Colors.RESET}")
     return passed
 
 # ─────────────────────────────────────────────────────────────────────────────
