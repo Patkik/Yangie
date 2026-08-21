@@ -341,19 +341,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (feedStarBtn) {
     feedStarBtn.addEventListener('click', () => {
       orchestrator.executeFeedingSOP('star');
-      KiroState.feed('star');
     });
   }
   if (feedDonutBtn) {
     feedDonutBtn.addEventListener('click', () => {
       orchestrator.executeFeedingSOP('donut');
-      KiroState.feed('donut');
     });
   }
   if (drinkWaterBtn) {
     drinkWaterBtn.addEventListener('click', () => {
       orchestrator.executeFeedingSOP('water');
-      KiroState.drinkWater();
     });
   }
 

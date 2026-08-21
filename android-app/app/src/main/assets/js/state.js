@@ -17,6 +17,17 @@ class StateEmitter {
     return () => this.off(event, callback);
   }
 
+  subscribe(path, callback) {
+    // Allows subscribing either to a state path or custom event
+    if (path.startsWith('change:') || path.includes(':')) {
+      return this.on(path, callback);
+    }
+    return this.on(`change:${path}`, (data) => {
+      const val = data && data.newValue !== undefined ? data.newValue : data;
+      callback(val);
+    });
+  }
+
   off(event, callback) {
     if (!this.listeners.has(event)) return;
     const callbacks = this.listeners.get(event).filter(cb => cb !== callback);
@@ -286,5 +297,7 @@ class KiroStateManager extends StateEmitter {
 }
 
 export const KiroState = new KiroStateManager();
-window.KiroState = KiroState;
+if (typeof window !== 'undefined') {
+  window.KiroState = KiroState;
+}
 export default KiroState;

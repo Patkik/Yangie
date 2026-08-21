@@ -135,7 +135,26 @@ if (fs.existsSync(mainCssPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Final Audit Summary
+// 4. Agentic Orchestration Engine (MAS) Audit in orchestrator.js
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}4. Auditing Agentic Orchestration Engine (MAS) & SOPs in orchestrator.js...${Colors.RESET}`);
+
+const orchestratorJsPath = path.join(ASSETS_DIR, 'js', 'orchestrator.js');
+if (fs.existsSync(orchestratorJsPath)) {
+  const orchContent = fs.readFileSync(orchestratorJsPath, 'utf8');
+
+  assert(orchContent.includes('class KiroAgenticOrchestrator'), 'Supervisor Agentic Orchestrator class exported');
+  assert(orchContent.includes('class VitalsSpecialist'), 'VitalsSpecialist sub-agent manages autonomous decay & boosts');
+  assert(orchContent.includes('class SoundscapeSpecialist'), 'SoundscapeSpecialist sub-agent manages bedtime frequency sweeps');
+  assert(orchContent.includes('class AstrogationSpecialist'), 'AstrogationSpecialist sub-agent coordinates observatory & sleep cosmology');
+  assert(orchContent.includes('executeBedtimeSOP') && orchContent.includes('executeWakeupSOP'), 'Deterministic Bedtime & Wakeup Standard Operating Procedures (SOPs) present');
+  assert(orchContent.includes('executeFeedingSOP') && orchContent.includes('executePettingSOP'), 'Feeding & Petting SOP state machine graph present');
+} else {
+  assert(false, `orchestrator.js not found at ${orchestratorJsPath}`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

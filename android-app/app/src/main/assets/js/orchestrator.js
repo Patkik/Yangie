@@ -83,8 +83,10 @@ export class KiroAgenticOrchestrator {
   executeBedtimeSOP() {
     this.workingMemory.activeSOP = 'BEDTIME';
 
-    // 1. Vitals update
-    KiroState.set('isSleeping', true);
+    // 1. Vitals update via SSOT
+    if (KiroState.get('isSleeping') !== true) {
+      KiroState.setSleep(true);
+    }
 
     // 2. Soundscape muffling (lowpass filter down to 180Hz)
     this.soundscapeAgent.applyBedtimeFilter(true);
@@ -92,8 +94,8 @@ export class KiroAgenticOrchestrator {
     // 3. Astrogation & 3D scene adjustments
     this.astrogationAgent.applySleepCosmology(true);
 
-    // 4. Trigger audio chime
-    if (this.synth) {
+    // 4. Trigger procedural purr
+    if (this.synth && this.synth.playPurrSound) {
       this.synth.playPurrSound(1.2);
     }
   }
@@ -104,8 +106,10 @@ export class KiroAgenticOrchestrator {
   executeWakeupSOP() {
     this.workingMemory.activeSOP = 'WAKEUP';
 
-    // 1. Vitals update
-    KiroState.set('isSleeping', false);
+    // 1. Vitals update via SSOT
+    if (KiroState.get('isSleeping') !== false) {
+      KiroState.setSleep(false);
+    }
 
     // 2. Soundscape restore
     this.soundscapeAgent.applyBedtimeFilter(false);
@@ -114,9 +118,8 @@ export class KiroAgenticOrchestrator {
     this.astrogationAgent.applySleepCosmology(false);
 
     // 4. Play morning wakeup chime
-    if (this.synth) {
-      this.synth.playPetChime(587.33); // D5
-      setTimeout(() => this.synth.playPetChime(880.00), 120); // A5
+    if (this.synth && this.synth.playPetChime) {
+      this.synth.playPetChime();
     }
   }
 
@@ -128,17 +131,17 @@ export class KiroAgenticOrchestrator {
     this.workingMemory.activeSOP = 'FEEDING';
 
     if (treatType === 'star') {
-      if (this.scene) this.scene.dropCandy();
-      if (this.synth) this.synth.playFeedSound();
-      this.vitalsAgent.boostHunger(15);
+      if (this.scene && this.scene.dropCandy) this.scene.dropCandy('star');
+      if (this.synth && this.synth.playChewSound) this.synth.playChewSound();
+      KiroState.feed('star');
     } else if (treatType === 'donut') {
-      if (this.scene) this.scene.dropDonut();
-      if (this.synth) this.synth.playFeedSound();
-      this.vitalsAgent.boostHunger(25);
+      if (this.scene && this.scene.dropCandy) this.scene.dropCandy('donut');
+      if (this.synth && this.synth.playChewSound) this.synth.playChewSound();
+      KiroState.feed('donut');
     } else if (treatType === 'water') {
-      if (this.scene) this.scene.dropWaterDroplet();
-      if (this.synth) this.synth.playWaterSipSound();
-      this.vitalsAgent.boostHydration(20);
+      if (this.scene && this.scene.splashWater) this.scene.splashWater();
+      if (this.synth && this.synth.playWaterSound) this.synth.playWaterSound();
+      KiroState.drinkWater();
     }
   }
 
