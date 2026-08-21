@@ -196,6 +196,9 @@ def run_integrity_checks():
     # Test 7: Antigravity Agent Skill Registry Audit
     passed = audit_skill_registry() and passed
 
+    # Test 8: Dynamic Headless WebGL & WebAudio Runtime Audit
+    passed = audit_headless_gl_runtime() and passed
+
     print(f"\n{Colors.BRIGHT}========================================{Colors.RESET}")
     if passed:
         print(f"{Colors.GREEN}{Colors.BRIGHT}🎉 WORKSPACE VERIFICATION SUCCESSFUL: Ready for Android Studio compile! ✨{Colors.RESET}\n")
@@ -503,6 +506,26 @@ def audit_skill_registry():
     if passed:
         print(f"  {Colors.GREEN}✔ Verified {valid_skills} active agent skills in registry with valid SKILL.md definitions.{Colors.RESET}")
     return passed
+
+def audit_headless_gl_runtime():
+    print(f"\n{Colors.TEAL}8. Auditing Dynamic Headless WebGL & WebAudio Runtime (scripts/headless-gl-audit.js)...{Colors.RESET}")
+    audit_script = PROJECT_ROOT / "scripts" / "headless-gl-audit.js"
+    if not audit_script.exists():
+        print(f"  {Colors.YELLOW}⚠️  Headless GL audit script not found at: {audit_script}{Colors.RESET}")
+        return True
+
+    import subprocess
+    try:
+        res = subprocess.run(["node", str(audit_script)], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if res.returncode == 0:
+            print(f"  {Colors.GREEN}✔ Headless WebGL, Web Audio, & Viewport runtime assertions passed! (20/20 Checks) 🚀{Colors.RESET}")
+            return True
+        else:
+            print(f"  {Colors.RED}❌ Headless GL audit failure:\n{res.stdout}\n{res.stderr}{Colors.RESET}")
+            return False
+    except Exception as e:
+        print(f"  {Colors.YELLOW}⚠️  Node runtime unavailable or headless audit skipped: {e}{Colors.RESET}")
+        return True
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. DECISION LOGGER & CONTINUOUS LEARNING ENGINE

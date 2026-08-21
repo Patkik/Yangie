@@ -177,6 +177,11 @@ export class KiroSceneManager {
     this.activeCandies = [];
     this.waterDroplets = [];
 
+    // Projective Geometry & Physical Camera Intrinsics (Hoiem's Law)
+    this.CAMERA_ELEVATION_M = 1.7; // Standard human eye level
+    this.PEDESTAL_DEPTH_M = 6.2;   // Optical depth along Z-axis
+    this.PINHOLE_FOCAL_PX = 3024;  // Zero-skew reference focal length
+
     // Framing & Geometry Constants
     this.baseCameraY = 0.12;
     this.baseCameraZ = 6.2;

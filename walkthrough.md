@@ -1,47 +1,40 @@
-# 🌌 Kiro's Cosmic Haven — Space Capsule V6.4 Walkthrough & Input Analysis Engine Audit
+# 🌌 Kiro's Cosmic Haven — Space Capsule V6.5 Walkthrough & Remediation Blueprint Audit
 
 ## 1. Executive Summary
-- **Release Version**: `v1.9.5` (Android `versionCode = 43`)
-- **Scope**: Integration of the **Input Analysis & Rule Guardrail Engine** (`--eval-input` / `--analyze-prompt`) into `kiro-agent-harness.py`. This engine evaluates developer intent, enforces master invariants (Twilight color space, offline procedural Web Audio, projective math perspective, single-identity profile, immovable viewport lock), maps skills, blocks forbidden assets, and generates structured pre-execution blueprints before code is written. Also integrated automated submodule skill library synchronization (`--sync-skills`).
+- **Release Version**: `v1.9.6` (Android `versionCode = 44`)
+- **Scope**: Integration of the **Remediation Blueprint & Headless GL Audit Suite V5.0** ([`remediation-blueprint-v5.md`](file:///./remediation-blueprint-v5.md)), implementing dynamic headless runtime verification ([`scripts/headless-gl-audit.js`](file:///./scripts/headless-gl-audit.js)), responsive viewport bounding checks across 16:9, 21:9, and 4:3 viewports, Web Audio graph safety bounds, and integrating Test 8 into [`kiro-agent-harness.py`](file:///./android-app/app/src/main/assets/kiro-agent-harness.py).
 
 ---
 
-## 2. Input Analysis Engine Capabilities (`--eval-input`)
+## 2. 5 Core Agentic Gaps Remediation Status
+
+| Gap | Status | Implementation Details |
+|---|---|---|
+| **1. Planning Mode Block vs Vibe-Coding** | ✅ Resolved | Continuous Unblocked Development Protocol V4.7 with async drift guardrail |
+| **2. Checkpoint Truncation & State Amnesia** | ✅ Resolved | Serialized memory (`agent-decisions-log.json`, `DECISIONS.md`) synced to rules |
+| **3. Static AST Verification Ceiling** | ✅ Resolved | Dynamic Headless GL Audit (`scripts/headless-gl-audit.js`) running 20/20 checks |
+| **4. Dual Workspace Drift** | ✅ Resolved | Submodule Skill Sync (`python kiro-agent-harness.py --sync-skills`) |
+| **5. Gradle 1-Minute Compile Latency** | ✅ Resolved | Dual Compilation Split: sub-second `--check` for web assets, Gradle at Git gate |
+
+---
+
+## 3. Dynamic Headless GL & Audio Audit (`scripts/headless-gl-audit.js`)
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│             INPUT ANALYSIS & RULE GUARDRAIL ENGINE (V4.7)             │
+│             DYNAMIC HEADLESS WEBGL & WEBAUDIO RUNNER (V5.0)            │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 1. Intent Classification:                                              │
-│    • WEBGL_3D_GRAPHICS, PROCEDURAL_WEB_AUDIO, UI_GLASSMORPHISM_LAYOUT  │
-│    • MESSENGER_STATE_TELEMETRY, ANDROID_CONTAINER_SANDBOX, TDD, BUGS   │
-│                                                                        │
-│ 2. Automated Invariant Checks:                                         │
-│    • Twilight Palette Guardrail: Auto-maps foreign colors to tokens    │
-│    • Offline Audio Guardrail: Blocks .mp3/.wav; enforces Web Audio API │
-│    • Projective Math Guardrail: Asserts Yc=1.7m, Zc=6.2m, Hoiem's law  │
-│    • Single Identity & Clock Guardrail: Checks pat/yang & 12hr AM/PM   │
-│    • Viewport Lock Guardrail: Fixed position & inline vector SVGs      │
-│                                                                        │
-│ 3. Skill Dispatch Matrix Routing:                                      │
-│    • Automatically maps domains to exact .agents/skills/ definitions   │
-│                                                                        │
-│ 4. Pre-Flight 5-Perspective Cognitive Scoring:                         │
-│    • Creative (5/5), Performance (5/5), Container (5/5),               │
-│      Structural (5/5), Gamification (5/5)                              │
-│                                                                        │
-│ 5. Action Blueprint Generation:                                        │
-│    • Target files to touch, design tokens, mathematical constraints,   │
-│      and mandatory finishing gate checklist.                           │
+│ • WebGL Geometry & Intrinsics: Yc=1.7m, Zc=6.2m, fx=3024               │
+│ • Volumetric Nebula Shader: u_time and u_audio cleanly bound           │
+│ • Batched Particle Systems: Sub-50 draw calls (THREE.Points)           │
+│ • Web Audio Synthesis: 52Hz purr, 28Hz tremolo, 240Hz lowpass filter   │
+│ • Gain Envelope Safety: Linear and exponential ramp clamping           │
+│ • Multi-Viewport Bounding Analysis:                                    │
+│   - 16:9 Mobile: 78.1% unobstructed WebGL space (>= 70%)               │
+│   - 21:9 Mobile: 83.3% unobstructed WebGL space (>= 70%)               │
+│   - 4:3 Tablet:  86.3% unobstructed WebGL space (>= 70%)               │
 └────────────────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## 3. Submodule Skill Synchronization (`--sync-skills`)
-
-- Synchronizes all promoted skills from `skills-1.2.3/skills/` (`engineering/`, `productivity/`) into `.agents/skills/` flatly.
-- Verified 40 active skills registered and validated in the workspace registry.
 
 ---
 
@@ -49,11 +42,11 @@
 
 | Test / Gate | Command | Result |
 |---|---|---|
-| **Input Analysis Valid Test** | `python kiro-agent-harness.py --eval-input "add treat button with sound"` | ✅ **Exit Code 0 (Blueprint Generated)** |
-| **Input Analysis Violation Test** | `python kiro-agent-harness.py --eval-input "load sound.mp3 and color red"` | ✅ **Exit Code 1 (Blocked & Alerted)** |
-| **Submodule Skill Synchronization** | `python kiro-agent-harness.py --sync-skills` | ✅ **Exit Code 0 (35 Skills Synced)** |
-| **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Exit Code 0 (All 40 Skills Verified)** |
+| **Dynamic Headless GL & Audio Audit** | `node scripts/headless-gl-audit.js` | ✅ **20/20 Assertions Passed (Exit 0)** |
+| **Input Analysis Engine** | `python kiro-agent-harness.py --eval-input "test"` | ✅ **Passed (Exit 0)** |
+| **Submodule Skill Sync** | `python kiro-agent-harness.py --sync-skills` | ✅ **35 Skills Synced (40 Active)** |
+| **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Passed with 8/8 Tests Green** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
 | **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL** |
-| **Synchronized SemVer** | `v1.9.5` (Android `versionCode = 43`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-241900 synced across rules & `DECISIONS.md` |
+| **Synchronized SemVer** | `v1.9.6` (Android `versionCode = 44`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-251900 synced across rules & `DECISIONS.md` |

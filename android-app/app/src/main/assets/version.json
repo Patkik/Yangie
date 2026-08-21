@@ -1,5 +1,5 @@
 {
-  "version": "1.9.5",
-  "updatedAt": "2026-08-22T00:46:00+08:00",
-  "releaseNotes": "Release V6.4: Input Analysis & Rule Guardrail Engine V4.7 — Autonomous prompt triage, invariant violation blocking, Twilight color auto-mapping, skills-1.2.3 submodule sync, and structured pre-execution blueprint generation."
+  "version": "1.9.6",
+  "updatedAt": "2026-08-22T00:55:00+08:00",
+  "releaseNotes": "Release V6.5: Remediation Blueprint & Headless GL Audit Suite V5.0 — Dynamic Headless WebGL/WebAudio runtime assertions, viewport anti-overlap verification, input analysis engine, and automated skills synchronization."
 }
