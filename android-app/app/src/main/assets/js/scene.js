@@ -1031,21 +1031,22 @@ export class KiroSceneManager {
 
     // 1. Cute Rounded Chubby Spherical Dino Body
     const bodyGeo = new THREE.SphereGeometry(0.85, 36, 36);
-    const bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
-    bodyMesh.scale.set(1.08, 0.98, 1.04);
-    bodyMesh.position.set(0, 0, 0);
-    this.kiroGroup.add(bodyMesh);
+    this.bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
+    this.bodyMesh.scale.set(1.08, 0.98, 1.04);
+    this.bodyMesh.position.set(0, 0, 0);
+    this.kiroGroup.add(this.bodyMesh);
     this.registerDisposable(bodyGeo);
 
     // 2. Large Smooth Creamy Belly Patch (#FFF8EB)
     const bellyGeo = new THREE.SphereGeometry(0.58, 32, 24);
-    const bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
-    bellyMesh.scale.set(1.04, 0.90, 0.44);
-    bellyMesh.position.set(0, -0.16, 0.65);
-    this.kiroGroup.add(bellyMesh);
+    this.bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
+    this.bellyMesh.scale.set(1.04, 0.90, 0.44);
+    this.bellyMesh.position.set(0, -0.16, 0.65);
+    this.kiroGroup.add(this.bellyMesh);
     this.registerDisposable(bellyGeo);
 
     // 3. Banana-Yellow 3-Lobed Scalloped Head Crest (Crown Spines)
+    this.headCrests = [];
     const headCrests = [
       { x: -0.15, y: 0.88, z: 0.04, s: 0.17, sy: 1.15, sz: 0.95 },
       { x: 0.00, y: 0.95, z: -0.06, s: 0.20, sy: 1.25, sz: 1.05 },
@@ -1057,15 +1058,16 @@ export class KiroSceneManager {
       spMesh.scale.set(0.55, c.sy, c.sz);
       spMesh.position.set(c.x, c.y, c.z);
       this.kiroGroup.add(spMesh);
+      this.headCrests.push(spMesh);
       this.registerDisposable(spGeo);
     });
 
     // 4. Cute Chubby Dino Tail & Yellow Spines
     const tailGeo = new THREE.ConeGeometry(0.30, 0.72, 20);
-    const tailMesh = new THREE.Mesh(tailGeo, mintMat);
-    tailMesh.position.set(0, -0.38, -0.80);
-    tailMesh.rotation.set(-Math.PI / 2.6, 0, 0);
-    this.kiroGroup.add(tailMesh);
+    this.tailMesh = new THREE.Mesh(tailGeo, mintMat);
+    this.tailMesh.position.set(0, -0.38, -0.80);
+    this.tailMesh.rotation.set(-Math.PI / 2.6, 0, 0);
+    this.kiroGroup.add(this.tailMesh);
     this.registerDisposable(tailGeo);
 
     const tailPlateGeo = new THREE.SphereGeometry(0.10, 14, 14);
@@ -1078,19 +1080,20 @@ export class KiroSceneManager {
     tp2.scale.set(0.38, 0.9, 0.8);
     tp2.position.set(0, -0.35, -1.02);
     this.kiroGroup.add(tp2);
+    this.tailPlates = [tp1, tp2];
     this.registerDisposable(tailPlateGeo);
 
     // 5. Two Cute Little Stubby Dinosaur Feet at Base
     const footGeo = new THREE.SphereGeometry(0.18, 16, 16);
-    const leftFoot = new THREE.Mesh(footGeo, mintMat);
-    leftFoot.scale.set(0.95, 0.60, 1.30);
-    leftFoot.position.set(-0.36, -0.78, 0.30);
-    this.kiroGroup.add(leftFoot);
+    this.leftFoot = new THREE.Mesh(footGeo, mintMat);
+    this.leftFoot.scale.set(0.95, 0.60, 1.30);
+    this.leftFoot.position.set(-0.36, -0.78, 0.30);
+    this.kiroGroup.add(this.leftFoot);
 
-    const rightFoot = new THREE.Mesh(footGeo, mintMat);
-    rightFoot.scale.set(0.95, 0.60, 1.30);
-    rightFoot.position.set(0.36, -0.78, 0.30);
-    this.kiroGroup.add(rightFoot);
+    this.rightFoot = new THREE.Mesh(footGeo, mintMat);
+    this.rightFoot.scale.set(0.95, 0.60, 1.30);
+    this.rightFoot.position.set(0.36, -0.78, 0.30);
+    this.kiroGroup.add(this.rightFoot);
     this.registerDisposable(footGeo);
 
     // 6. Soulful Obsidian Eyes & Starlight Catchlights
@@ -1143,21 +1146,21 @@ export class KiroSceneManager {
 
     // 7. Sweet Rosy Peach/Pink Blush Cheeks (#FFB6C1)
     const blushGeo = new THREE.SphereGeometry(0.12, 20, 20);
-    const blushMat = new THREE.MeshBasicMaterial({
+    this.blushMat = new THREE.MeshBasicMaterial({
       color: 0xFFB6C1,
       transparent: true,
       opacity: 0.70
     });
     this.registerDisposable(blushGeo);
-    this.registerDisposable(blushMat);
+    this.registerDisposable(this.blushMat);
 
-    this.leftBlush = new THREE.Mesh(blushGeo, blushMat);
+    this.leftBlush = new THREE.Mesh(blushGeo, this.blushMat);
     this.leftBlush.scale.set(1.0, 0.75, 0.25);
     this.leftBlush.position.set(-0.46, -0.02, 0.74);
     this.leftBlush.rotation.set(0.1, -0.2, 0.15);
     this.kiroGroup.add(this.leftBlush);
 
-    this.rightBlush = new THREE.Mesh(blushGeo, blushMat);
+    this.rightBlush = new THREE.Mesh(blushGeo, this.blushMat);
     this.rightBlush.scale.set(1.0, 0.75, 0.25);
     this.rightBlush.position.set(0.46, -0.02, 0.74);
     this.rightBlush.rotation.set(0.1, 0.2, -0.15);
@@ -1175,12 +1178,17 @@ export class KiroSceneManager {
 
     const toothGeo = new THREE.ConeGeometry(0.022, 0.035, 10);
     const toothMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-    const tooth = new THREE.Mesh(toothGeo, toothMat);
-    tooth.position.set(0.02, 0.00, 0.87);
-    tooth.rotation.set(Math.PI, 0, 0);
-    this.kiroGroup.add(tooth);
+    this.tooth = new THREE.Mesh(toothGeo, toothMat);
+    this.tooth.position.set(0.02, 0.00, 0.87);
+    this.tooth.rotation.set(Math.PI, 0, 0);
+    this.kiroGroup.add(this.tooth);
     this.registerDisposable(toothGeo);
     this.registerDisposable(toothMat);
+
+    // Dynamic Animation State Trackers
+    this.isChewing = false;
+    this.blinkTimer = 0;
+    this.nextBlinkTime = 3.2;
 
     // 9. Sleeping Eyes (Peaceful Curved Crescents)
     const sleepEyeGeo = new THREE.TorusGeometry(0.095, 0.022, 10, 20, Math.PI);
@@ -1439,38 +1447,68 @@ export class KiroSceneManager {
     }
   }
 
+  performBlink() {
+    if (!window.gsap || !this.leftEye || !this.rightEye) return;
+    const isSleeping = KiroState.get('isSleeping');
+    if (isSleeping) return;
+
+    gsap.timeline()
+      .to([this.leftEye.scale, this.rightEye.scale], { y: 0.08, duration: 0.07, ease: 'power2.in' })
+      .to([this.leftEye.scale, this.rightEye.scale], { y: 1.0, duration: 0.09, ease: 'power2.out' });
+  }
+
   triggerPetReaction() {
     if (!this.kiroGroup) return;
     this.isPetting = true;
 
     // Synthesize cozy procedural purr & sweet pentatonic pet chime
-    synthEngine.playPurrSound(1.2);
+    synthEngine.playPurrSound(1.4);
     synthEngine.playPetChime(660);
 
     // Warm blushing cheek glow reaction
-    if (window.gsap && this.leftBlush && this.rightBlush) {
-      gsap.to([this.leftBlush.scale, this.rightBlush.scale], {
-        x: 1.3,
-        y: 1.1,
-        z: 0.4,
-        duration: 0.25,
-        yoyo: true,
-        repeat: 1,
-        ease: 'power2.out'
-      });
+    if (this.blushMat && window.gsap) {
+      gsap.to(this.blushMat, { opacity: 0.95, yoyo: true, repeat: 1, duration: 0.4 });
     }
 
     if (window.gsap) {
+      const baseScale = 1.0;
       const tl = gsap.timeline({
         onComplete: () => {
           this.isPetting = false;
+          if (this.leftArm) this.leftArm.rotation.set(0.25, -0.45, 0.50);
+          if (this.rightArm) this.rightArm.rotation.set(0.25, 0.45, -0.50);
+          if (this.leftEye) this.leftEye.scale.set(1, 1, 1);
+          if (this.rightEye) this.rightEye.scale.set(1, 1, 1);
         }
       });
-      tl.to(this.kiroGroup.position, { y: 0.5, duration: 0.22, ease: 'power1.out' })
-        .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.55, ease: 'sine.inOut' }, 0)
-        .to(this.kiroGroup.position, { y: 0, duration: 0.22, ease: 'power1.in' })
-        .to(this.kiroGroup.scale, { y: 0.85, x: 1.15, duration: 0.12, ease: 'power2.out' })
-        .to(this.kiroGroup.scale, { y: 1, x: 1, duration: 0.25, ease: 'elastic.out(1, 0.3)' });
+
+      // 1. Soft living squish: compress under touch like soft memory foam
+      tl.to(this.kiroGroup.scale, { y: baseScale * 0.78, x: baseScale * 1.18, z: baseScale * 1.15, duration: 0.16, ease: 'power2.out' })
+        // 2. Joyful rebound hop with affectionate head tilt
+        .to(this.kiroGroup.position, { y: 0.22, duration: 0.22, ease: 'power1.out' })
+        .to(this.kiroGroup.rotation, { z: (Math.random() > 0.5 ? 0.14 : -0.14), duration: 0.22, ease: 'power1.out' }, '<')
+        .to(this.kiroGroup.scale, { y: baseScale * 1.10, x: baseScale * 0.94, z: baseScale * 0.94, duration: 0.20, ease: 'power1.in' })
+        // 3. Elastic settle back to pedestal
+        .to(this.kiroGroup.position, { y: 0, duration: 0.25, ease: 'bounce.out' })
+        .to(this.kiroGroup.rotation, { z: 0, duration: 0.25, ease: 'elastic.out(1, 0.4)' }, '<')
+        .to(this.kiroGroup.scale, { x: baseScale, y: baseScale, z: baseScale, duration: 0.35, ease: 'elastic.out(1.2, 0.35)' }, '<');
+
+      // Happy Rapid Tail Waggle
+      if (this.tailMesh) {
+        tl.to(this.tailMesh.rotation, { y: 0.55, yoyo: true, repeat: 5, duration: 0.07, ease: 'sine.inOut' }, 0);
+      }
+
+      // Happy Arm Flutter
+      if (this.leftArm && this.rightArm) {
+        tl.to(this.leftArm.rotation, { z: -0.9, yoyo: true, repeat: 3, duration: 0.1 }, 0)
+          .to(this.rightArm.rotation, { z: 0.9, yoyo: true, repeat: 3, duration: 0.1 }, 0);
+      }
+
+      // Affectionate Winking / Smiling Eyes
+      if (this.leftEye && this.rightEye) {
+        tl.to(this.leftEye.scale, { y: 0.15, duration: 0.12 }, 0)
+          .to(this.leftEye.scale, { y: 1.0, duration: 0.18 }, 0.25);
+      }
     } else {
       this.isPetting = false;
     }
@@ -1586,9 +1624,21 @@ export class KiroSceneManager {
   splashWater() {
     synthEngine.playWaterSound();
 
-    if (window.gsap && this.leftArm && this.rightArm) {
-      gsap.to(this.leftArm.rotation, { z: -Math.PI / 3, yoyo: true, repeat: 3, duration: 0.12 });
-      gsap.to(this.rightArm.rotation, { z: Math.PI / 3, yoyo: true, repeat: 3, duration: 0.12 });
+    if (window.gsap && this.kiroGroup) {
+      const tl = gsap.timeline();
+      // Mouth opens in cute "O" drinking shape
+      if (this.mouth) {
+        tl.to(this.mouth.scale, { x: 1.4, y: 2.2, z: 1.4, duration: 0.15, ease: 'power1.out' })
+          .to(this.mouth.scale, { x: 1.0, y: 1.0, z: 1.0, duration: 0.25, ease: 'elastic.out(1, 0.3)' }, 0.3);
+      }
+      // Joyful water splash arms flutter
+      if (this.leftArm && this.rightArm) {
+        tl.to(this.leftArm.rotation, { z: -Math.PI / 3, yoyo: true, repeat: 3, duration: 0.12 }, 0)
+          .to(this.rightArm.rotation, { z: Math.PI / 3, yoyo: true, repeat: 3, duration: 0.12 }, 0);
+      }
+      // Refreshed puppy-like body shake
+      tl.to(this.kiroGroup.rotation, { z: 0.10, yoyo: true, repeat: 5, duration: 0.06, ease: 'sine.inOut' }, 0.2)
+        .to(this.kiroGroup.rotation, { z: 0, duration: 0.15 }, 0.6);
     }
 
     for (let i = 0; i < 14; i++) {
@@ -1666,13 +1716,60 @@ export class KiroSceneManager {
 
   onEatCandy(type) {
     synthEngine.playChewSound();
+    this.isChewing = true;
 
     if (window.gsap && this.kiroGroup) {
-      const scale = this.kiroGroup.scale.x;
-      const tl = gsap.timeline();
-      tl.to(this.kiroGroup.scale, { y: scale * 0.78, x: scale * 1.15, duration: 0.12 })
-        .to(this.kiroGroup.scale, { y: scale * 1.12, x: scale * 0.9, duration: 0.12 })
-        .to(this.kiroGroup.scale, { x: scale, y: scale, z: scale, duration: 0.2, ease: 'elastic.out(1, 0.3)' });
+      const baseScale = 1.0;
+      const tl = gsap.timeline({
+        onComplete: () => {
+          this.isChewing = false;
+          if (this.mouth) this.mouth.scale.set(1, 1, 1);
+          if (this.tooth) this.tooth.position.set(0.02, 0.00, 0.87);
+          if (this.leftEye) this.leftEye.scale.set(1, 1, 1);
+          if (this.rightEye) this.rightEye.scale.set(1, 1, 1);
+          if (this.leftArm) this.leftArm.rotation.set(0.25, -0.45, 0.50);
+          if (this.rightArm) this.rightArm.rotation.set(0.25, 0.45, -0.50);
+        }
+      });
+
+      // 1. Anticipation: mouth opens wide to catch the treat
+      if (this.mouth && this.tooth) {
+        tl.to(this.mouth.scale, { x: 1.5, y: 2.6, z: 1.4, duration: 0.12, ease: 'power1.out' })
+          .to(this.tooth.position, { y: -0.04, duration: 0.12 }, 0);
+
+        // 2. Dynamic Chomping / Munching Chewing cycles (4 quick delicious munches)
+        for (let m = 0; m < 4; m++) {
+          tl.to(this.mouth.scale, { y: 0.35, duration: 0.08, ease: 'power2.in' })
+            .to(this.tooth.position, { y: 0.02, duration: 0.08 }, '<')
+            .to(this.mouth.scale, { y: 1.8, duration: 0.08, ease: 'power2.out' })
+            .to(this.tooth.position, { y: -0.03, duration: 0.08 }, '<');
+        }
+      }
+
+      // Happy Eye Squint & Cheerful Wiggle during chewing
+      if (this.leftEye && this.rightEye) {
+        tl.to([this.leftEye.scale, this.rightEye.scale], { y: 0.25, duration: 0.15 }, 0.1)
+          .to([this.leftEye.scale, this.rightEye.scale], { y: 1.0, duration: 0.2 }, 0.6);
+      }
+
+      // Excited Tail Wag during munching
+      if (this.tailMesh) {
+        tl.to(this.tailMesh.rotation, { y: 0.45, yoyo: true, repeat: 4, duration: 0.08, ease: 'sine.inOut' }, 0);
+      }
+
+      // Cute Front Arms grasping treat
+      if (this.leftArm && this.rightArm) {
+        tl.to(this.leftArm.rotation, { z: -0.85, yoyo: true, repeat: 3, duration: 0.1, ease: 'power1.inOut' }, 0)
+          .to(this.rightArm.rotation, { z: 0.85, yoyo: true, repeat: 3, duration: 0.1, ease: 'power1.inOut' }, 0);
+      }
+
+      // Joyful Body Bounce & Belly Expansion (Yum!)
+      tl.to(this.kiroGroup.position, { y: 0.26, duration: 0.2, ease: 'power2.out' }, 0.3)
+        .to(this.kiroGroup.scale, { y: baseScale * 0.88, x: baseScale * 1.12, duration: 0.15, ease: 'power1.out' }, 0.3)
+        .to(this.kiroGroup.position, { y: 0, duration: 0.25, ease: 'bounce.out' }, 0.5)
+        .to(this.kiroGroup.scale, { x: baseScale, y: baseScale, z: baseScale, duration: 0.3, ease: 'elastic.out(1, 0.3)' }, 0.5);
+    } else {
+      this.isChewing = false;
     }
 
     this.spawnHeartParticles();
@@ -1715,9 +1812,6 @@ export class KiroSceneManager {
     if (this.isDisposed) return;
     this.animationFrameId = requestAnimationFrame(() => this.animate());
 
-    // FIX: getDelta() first (resets internal oldTime), then accumulate elapsed
-    // manually. Calling getElapsedTime() before getDelta() caused the clock's
-    // internal state to desync, making nebula u_time jump erratically.
     const delta = this.clock.getDelta();
     this._elapsedTime += delta;
     const t = this._elapsedTime;
@@ -1759,12 +1853,47 @@ export class KiroSceneManager {
       this.backgroundCelestialGroup.position.y += (0 - this.backgroundCelestialGroup.position.y) * 0.05;
       this.camera.lookAt(0, 0, 0);
 
-      // Kiro Breathing Idle (only when idle, not during active pet or telescope transitions)
+      // Organic Soft-Body Breathing & Living Creature Kinematics
       const isSleeping = KiroState.get('isSleeping');
-      const freq = isSleeping ? 0.6 : 2.0;
-      const amp = isSleeping ? 0.02 : 0.05;
-      if (this.kiroGroup && !this.isPetting && !this.isTelescopeTransitioning) {
+      const freq = isSleeping ? 0.8 : 2.2;
+      const amp = isSleeping ? 0.02 : 0.045;
+
+      if (this.kiroGroup && !this.isPetting && !this.isChewing && !this.isTelescopeTransitioning) {
+        // Natural squish-and-stretch breathing (Volume-conserving organic chest & belly expansion)
+        const breathY = 1.0 + Math.sin(t * freq) * (isSleeping ? 0.022 : 0.038);
+        const breathXZ = 1.0 - Math.sin(t * freq) * (isSleeping ? 0.011 : 0.019);
+        this.kiroGroup.scale.y = breathY;
+        this.kiroGroup.scale.x = breathXZ;
+        this.kiroGroup.scale.z = breathXZ;
         this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+
+        // Soft tail breathing sway
+        if (this.tailMesh) {
+          this.tailMesh.rotation.y = Math.sin(t * (freq * 0.9)) * (isSleeping ? 0.03 : 0.12);
+        }
+
+        // Soft arm breathing sway
+        if (this.leftArm && this.rightArm) {
+          this.leftArm.rotation.x = 0.25 + Math.sin(t * freq) * 0.04;
+          this.rightArm.rotation.x = 0.25 + Math.sin(t * freq) * 0.04;
+        }
+
+        // Soft head crest breathing bounce
+        if (this.headCrests) {
+          this.headCrests.forEach((c, idx) => {
+            c.rotation.x = Math.sin(t * freq + idx * 0.5) * 0.06;
+          });
+        }
+
+        // Natural Organic Eye Blinking
+        if (!isSleeping) {
+          this.blinkTimer += delta;
+          if (this.blinkTimer >= this.nextBlinkTime) {
+            this.blinkTimer = 0;
+            this.nextBlinkTime = 2.8 + Math.random() * 3.5;
+            this.performBlink();
+          }
+        }
 
         // Head & Eye Tracking towards User Touch / Pointer
         if (!isSleeping && this.pointerInCanvas) {

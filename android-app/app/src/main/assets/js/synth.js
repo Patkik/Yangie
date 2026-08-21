@@ -885,6 +885,148 @@ export class CosmicSynthEngine {
     noise.stop(now + 0.95);
   }
 
+  playChewSound() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // 1. Cartoon Munch / Chomp (Triangle wave pitch sweep downward)
+    for (let c = 0; c < 3; c++) {
+      const delay = c * 0.11;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320 + Math.random() * 40, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(110, now + delay + 0.08);
+
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.18, now + delay + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.09);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.10);
+    }
+
+    // 2. Crunchy Sparkle Crunch (Filtered noise burst)
+    const crunch = this.ctx.createBufferSource();
+    crunch.buffer = this.createPinkNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2200, now);
+    filter.Q.setValueAtTime(4.0, now);
+
+    const cGain = this.ctx.createGain();
+    cGain.gain.setValueAtTime(0.12, now);
+    cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    crunch.connect(filter);
+    filter.connect(cGain);
+    cGain.connect(this.masterGain);
+
+    crunch.start(now);
+    crunch.stop(now + 0.36);
+  }
+
+  playPurrSound(duration = 1.4) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // Feline Purr Carrier (52Hz low rumble) + AM Tremolo Modulation (28Hz LFO)
+    const carrier = this.ctx.createOscillator();
+    carrier.type = 'sine';
+    carrier.frequency.setValueAtTime(52, now);
+
+    const lfo = this.ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(28, now);
+
+    const lfoGain = this.ctx.createGain();
+    lfoGain.gain.setValueAtTime(0.08, now);
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(220, now);
+
+    const purrGain = this.ctx.createGain();
+    purrGain.gain.setValueAtTime(0.001, now);
+    purrGain.gain.linearRampToValueAtTime(0.16, now + 0.2);
+    purrGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(purrGain.gain);
+
+    carrier.connect(filter);
+    filter.connect(purrGain);
+    purrGain.connect(this.masterGain);
+
+    carrier.start(now);
+    lfo.start(now);
+    carrier.stop(now + duration + 0.05);
+    lfo.stop(now + duration + 0.05);
+  }
+
+  playPetChime(baseFreq = 660) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const intervals = [1.0, 1.25, 1.5]; // Pentatonic happy step
+
+    intervals.forEach((ratio, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const delay = i * 0.06;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq * ratio, now + delay);
+
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.09, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.8);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.85);
+    });
+  }
+
+  playWaterSound() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // Crystal water droplet swooshes
+    for (let d = 0; d < 4; d++) {
+      const delay = d * 0.07;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880 + d * 180, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(1760 + d * 220, now + delay + 0.08);
+
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.12, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.38);
+    }
+  }
+
   startCosmicAtmosphere() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
