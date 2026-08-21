@@ -1,20 +1,24 @@
-# 🌌 Kiro's Cosmic Haven — Space Capsule V5.7 Walkthrough & Architecture Audit
+# 🌌 Kiro's Cosmic Haven — Space Capsule V5.8 Walkthrough & Architecture Audit
 
 ## 1. Executive Summary
-- **Release Version**: `v1.8.8` (Android `versionCode = 36`)
-- **Scope**: Fixed runtime TypeError crash in Chromium / Android WebView render loop (`gsap.isAnimating is not a function`), updated Gradle toolchain to Gradle 9.7.0 / AGP 9.3.1, and verified full 5-phase celestial space capsule rendering.
+- **Release Version**: `v1.8.9` (Android `versionCode = 37`)
+- **Scope**: Cleaned SVG path syntax in `index.html` to eliminate Chromium XML parser warnings, resolved `gsap.isAnimating` runtime exception in the render loop, updated Gradle toolchain to Gradle 9.7.0 / AGP 9.3.1, and verified full 5-phase celestial space capsule rendering.
 
 ---
 
 ## 2. Root Cause Bug Resolution
 
-### 🐛 Bug Fix: Render Loop Uncaught TypeError (`v1.8.8`)
+### 🐛 Bug Fix 1: Render Loop Uncaught TypeError (`v1.8.8`)
 - **Issue**: `scene.js:1345` invoked `gsap.isAnimating(this.kiroGroup.position)` on every frame inside `requestAnimationFrame`. Because `gsap.isAnimating` does not exist in standard GSAP 3, Chromium threw `TypeError: gsap.isAnimating is not a function` at 60–120Hz, halting all subsequent Three.js rendering and celestial updates.
 - **Resolution**:
   1. Replaced `gsap.isAnimating(...)` check with deterministic instance lifecycle flags:
      - `this.isPetting`: Set during `triggerPetReaction()` timeline and reset in `onComplete`.
      - `this.isTelescopeTransitioning`: Set during `telescopeActive` toggle and reset in `onComplete`.
   2. Idle breathing procedural sine wave (`Math.sin(t * freq) * amp`) only executes when `!this.isPetting && !this.isTelescopeTransitioning`.
+
+### 🐛 Bug Fix 2: Malformed SVG `<path>` Syntax in `index.html` (`v1.8.9`)
+- **Issue**: Settings gear icons on lines 128 and 327 had cramped/missing coordinate separators in SVG `d` attribute causing `Error: <path> attribute d: Expected number` in Chromium WebView.
+- **Resolution**: Normalized gear icon SVG vectors to standard Lucide coordinate paths with clean spacing.
 
 ---
 
@@ -64,5 +68,5 @@
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Exit Code 0** |
 | **Android Unit & Instrumentation Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
 | **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL (52/52 tasks)** |
-| **Synchronized SemVer** | `v1.8.8` | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Git Lifecycle Tag** | `git tag v1.8.8` | ✅ Pushed to `origin/main` |
+| **Synchronized SemVer** | `v1.8.9` | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Git Lifecycle Tag** | `git tag v1.8.9` | ✅ Pushed to `origin/main` |
