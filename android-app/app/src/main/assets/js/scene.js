@@ -142,18 +142,28 @@ export class KiroSceneManager {
     this.kiroGroup = null;
     this.pedestal = null;
     this.neonRing = null;
+    this.pedestalSparkles = null;
     this.goldenAura = null;
     this.nightcap = null;
     this.leftEye = null;
     this.rightEye = null;
     this.leftHl = null;
     this.rightHl = null;
+    this.leftHl2 = null;
+    this.rightHl2 = null;
+    this.leftBlush = null;
+    this.rightBlush = null;
+    this.mouth = null;
     this.leftSleepEye = null;
     this.rightSleepEye = null;
     this.leftArm = null;
     this.rightArm = null;
     this.activeCandies = [];
     this.waterDroplets = [];
+
+    // Framing & Geometry Constants
+    this.baseCameraY = 0.12;
+    this.baseCameraZ = 6.2;
 
     this.init();
   }
@@ -166,10 +176,15 @@ export class KiroSceneManager {
 
     const width = window.innerWidth || (this.container ? this.container.clientWidth : 360);
     const height = window.innerHeight || (this.container ? this.container.clientHeight : 640);
+    const aspect = width / height;
 
-    // Optimized Pinhole Camera Framing (45 deg FOV at Z = 5.2)
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
-    this.camera.position.set(0, 0.15, 5.2);
+    // Optimized Pinhole Camera with Dynamic Mobile Portrait Viewport Calibration
+    this.baseCameraZ = aspect < 0.8
+      ? Math.max(5.6, 2.7 / (2 * Math.tan((45 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
+      : 5.4;
+
+    this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 200);
+    this.camera.position.set(0, this.baseCameraY, this.baseCameraZ);
 
     // Pre-rendered Canvas Binding
     const existingCanvas = document.getElementById('webgl-canvas');
@@ -193,21 +208,25 @@ export class KiroSceneManager {
       this.container.appendChild(this.renderer.domElement);
     }
 
-    // High-Contrast Celestial Lighting
-    const ambient = new THREE.AmbientLight(0xFFFFFF, 1.3);
+    // High-Contrast Balanced Celestial Lighting
+    const ambient = new THREE.AmbientLight(0xDBE7F5, 0.75);
     this.scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
-    keyLight.position.set(4, 8, 6);
+    const keyLight = new THREE.DirectionalLight(0xFFFFFF, 0.90);
+    keyLight.position.set(3.5, 6.0, 5.0);
     this.scene.add(keyLight);
 
-    const mintFill = new THREE.PointLight(0x4EC9B0, 2.8, 18);
-    mintFill.position.set(0, -1.2, 1.2);
+    const mintFill = new THREE.PointLight(0x4EC9B0, 1.3, 10);
+    mintFill.position.set(0, -1.2, 1.8);
     this.scene.add(mintFill);
 
-    const pinkRim = new THREE.PointLight(0xFFB6C1, 2.0, 16);
-    pinkRim.position.set(0, 2.0, -2.0);
+    const pinkRim = new THREE.DirectionalLight(0xFFB6C1, 0.70);
+    pinkRim.position.set(-3.5, 3.0, -3.0);
     this.scene.add(pinkRim);
+
+    const warmGlow = new THREE.PointLight(0xF9E2AF, 0.50, 8);
+    warmGlow.position.set(0, 2.4, 1.5);
+    this.scene.add(warmGlow);
 
     // 1. Instantiate the Master Background Celestial Group
     this.backgroundCelestialGroup = new THREE.Group();
@@ -770,17 +789,20 @@ export class KiroSceneManager {
      Kiro Companion & Sanctuary Setup (Z = 0.0)
      ───────────────────────────────────────────────────────────────────────── */
   buildEnvironment() {
-    const pedestalGeo = new THREE.CylinderGeometry(1.9, 2.0, 0.45, 32);
+    // 1. Dark Obsidian Floating Island Pedestal
+    const pedestalGeo = new THREE.CylinderGeometry(1.35, 1.45, 0.35, 32);
     const pedestalMat = new THREE.MeshPhongMaterial({
-      color: 0x182438,
-      emissive: 0x0D1622,
-      shininess: 40
+      color: 0x152232,
+      emissive: 0x0A121E,
+      specular: 0x4EC9B0,
+      shininess: 45
     });
     this.pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
-    this.pedestal.position.y = -1.35;
+    this.pedestal.position.y = -1.08;
     this.scene.add(this.pedestal);
 
-    const ringGeo = new THREE.TorusGeometry(1.95, 0.06, 10, 64);
+    // 2. Luminous Orbiting Neon Ring (#4EC9B0 Mint-Teal)
+    const ringGeo = new THREE.TorusGeometry(1.40, 0.045, 12, 64);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0x4EC9B0,
       transparent: true,
@@ -788,8 +810,35 @@ export class KiroSceneManager {
     });
     this.neonRing = new THREE.Mesh(ringGeo, ringMat);
     this.neonRing.rotation.x = Math.PI / 2;
-    this.neonRing.position.y = -1.12;
+    this.neonRing.position.y = -0.92;
     this.scene.add(this.neonRing);
+
+    // 3. Orbiting Pedestal Sparkle Ring
+    this.pedestalSparkles = new THREE.Group();
+    this.pedestalSparkles.position.y = -0.92;
+    const sparkleGeo = new THREE.DodecahedronGeometry(0.028);
+    const sparkleColors = [0x4EC9B0, 0xFFB6C1, 0xF9E2AF, 0xCBA6F7];
+
+    for (let i = 0; i < 16; i++) {
+      const angle = (i / 16) * Math.PI * 2;
+      const dist = 1.45 + (Math.random() - 0.5) * 0.12;
+      const spMat = new THREE.MeshBasicMaterial({
+        color: sparkleColors[i % sparkleColors.length],
+        transparent: true,
+        opacity: 0.85
+      });
+      const sp = new THREE.Mesh(sparkleGeo, spMat);
+      sp.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 0.1, Math.sin(angle) * dist);
+      this.pedestalSparkles.add(sp);
+      this.registerDisposable(spMat);
+    }
+    this.registerDisposable(sparkleGeo);
+    this.scene.add(this.pedestalSparkles);
+
+    this.registerDisposable(pedestalGeo);
+    this.registerDisposable(pedestalMat);
+    this.registerDisposable(ringGeo);
+    this.registerDisposable(ringMat);
   }
 
   buildKiro() {
@@ -799,110 +848,194 @@ export class KiroSceneManager {
 
     const mintMat = new THREE.MeshPhongMaterial({
       color: 0x4EC9B0,
-      emissive: 0x1A4D43,
-      emissiveIntensity: 0.25,
-      shininess: 30
+      emissive: 0x14352D,
+      emissiveIntensity: 0.20,
+      specular: 0x94E2D5,
+      shininess: 45
     });
+    this.registerDisposable(mintMat);
 
-    // 1. Body
-    const bodyGeo = new THREE.SphereGeometry(1, 32, 32);
+    // 1. Cute Chubby Mint Body
+    const bodyGeo = new THREE.SphereGeometry(0.85, 36, 36);
     const bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
-    bodyMesh.scale.set(1.1, 0.95, 1.1);
+    bodyMesh.scale.set(1.06, 0.94, 1.02);
     this.kiroGroup.add(bodyMesh);
+    this.registerDisposable(bodyGeo);
 
-    // 2. Belly Patch (#F0EDE8)
-    const bellyGeo = new THREE.SphereGeometry(0.72, 32, 32);
+    // 2. Smooth Creamy Belly Patch (#FDFBF7) — Placed softly without z-fighting
+    const bellyGeo = new THREE.SphereGeometry(0.56, 32, 24);
     const bellyMat = new THREE.MeshPhongMaterial({
-      color: 0xF0EDE8,
-      emissive: 0xDCD6CD,
-      emissiveIntensity: 0.15,
-      shininess: 15
+      color: 0xFDFBF7,
+      emissive: 0x24201A,
+      emissiveIntensity: 0.12,
+      specular: 0xFFFFFF,
+      shininess: 20
     });
     const bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
-    bellyMesh.scale.set(1.0, 0.85, 0.5);
-    bellyMesh.position.set(0, -0.15, 0.72);
+    bellyMesh.scale.set(1.05, 0.88, 0.42);
+    bellyMesh.position.set(0, -0.18, 0.64);
     this.kiroGroup.add(bellyMesh);
+    this.registerDisposable(bellyGeo);
+    this.registerDisposable(bellyMat);
 
-    // 3. Eyes & Highlights
-    const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x11111B });
-    const hlGeo = new THREE.SphereGeometry(0.04, 8, 8);
-    const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    // 3. Soulful Obsidian Eyes & Starlight Catchlights
+    const eyeGeo = new THREE.SphereGeometry(0.125, 24, 24);
+    const eyeMat = new THREE.MeshPhongMaterial({
+      color: 0x11111B,
+      specular: 0x668899,
+      shininess: 90
+    });
+    this.registerDisposable(eyeGeo);
+    this.registerDisposable(eyeMat);
 
+    // Left Eye
     this.leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.leftEye.position.set(-0.35, 0.18, 0.85);
-    this.leftHl = new THREE.Mesh(hlGeo, hlMat);
-    this.leftHl.position.set(-0.31, 0.22, 0.95);
+    this.leftEye.position.set(-0.28, 0.16, 0.74);
     this.kiroGroup.add(this.leftEye);
+
+    // Right Eye
+    this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+    this.rightEye.position.set(0.28, 0.16, 0.74);
+    this.kiroGroup.add(this.rightEye);
+
+    // Primary Starlight Specular Highlights (Catchlights)
+    const hlGeo = new THREE.SphereGeometry(0.042, 16, 16);
+    const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    this.registerDisposable(hlGeo);
+    this.registerDisposable(hlMat);
+
+    this.leftHl = new THREE.Mesh(hlGeo, hlMat);
+    this.leftHl.position.set(-0.24, 0.20, 0.855);
     this.kiroGroup.add(this.leftHl);
 
-    this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.rightEye.position.set(0.35, 0.18, 0.85);
     this.rightHl = new THREE.Mesh(hlGeo, hlMat);
-    this.rightHl.position.set(0.39, 0.22, 0.95);
-    this.kiroGroup.add(this.rightEye);
+    this.rightHl.position.set(0.24, 0.20, 0.855);
     this.kiroGroup.add(this.rightHl);
 
-    // Sleeping Eyes (Curved Arcs)
-    const sleepEyeGeo = new THREE.TorusGeometry(0.1, 0.024, 8, 16, Math.PI);
+    // Secondary Mini Kawaii Sparkles (#F9E2AF Starlight Gold)
+    const hl2Geo = new THREE.SphereGeometry(0.020, 12, 12);
+    const hl2Mat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
+    this.registerDisposable(hl2Geo);
+    this.registerDisposable(hl2Mat);
+
+    this.leftHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
+    this.leftHl2.position.set(-0.31, 0.11, 0.845);
+    this.kiroGroup.add(this.leftHl2);
+
+    this.rightHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
+    this.rightHl2.position.set(0.31, 0.11, 0.845);
+    this.kiroGroup.add(this.rightHl2);
+
+    // 4. Rosy Blush Cheeks (#FFB6C1 Soft Pastel-Pink)
+    const blushGeo = new THREE.SphereGeometry(0.12, 20, 20);
+    const blushMat = new THREE.MeshBasicMaterial({
+      color: 0xFFB6C1,
+      transparent: true,
+      opacity: 0.65
+    });
+    this.registerDisposable(blushGeo);
+    this.registerDisposable(blushMat);
+
+    this.leftBlush = new THREE.Mesh(blushGeo, blushMat);
+    this.leftBlush.scale.set(1.0, 0.75, 0.25);
+    this.leftBlush.position.set(-0.46, -0.02, 0.73);
+    this.leftBlush.rotation.set(0.1, -0.2, 0.15);
+    this.kiroGroup.add(this.leftBlush);
+
+    this.rightBlush = new THREE.Mesh(blushGeo, blushMat);
+    this.rightBlush.scale.set(1.0, 0.75, 0.25);
+    this.rightBlush.position.set(0.46, -0.02, 0.73);
+    this.rightBlush.rotation.set(0.1, 0.2, -0.15);
+    this.kiroGroup.add(this.rightBlush);
+
+    // 5. Sweet Little Smile
+    const mouthGeo = new THREE.TorusGeometry(0.048, 0.015, 8, 16, Math.PI);
+    const mouthMat = new THREE.MeshBasicMaterial({ color: 0x162432 });
+    this.mouth = new THREE.Mesh(mouthGeo, mouthMat);
+    this.mouth.rotation.set(0, 0, Math.PI);
+    this.mouth.position.set(0, 0.02, 0.855);
+    this.kiroGroup.add(this.mouth);
+    this.registerDisposable(mouthGeo);
+    this.registerDisposable(mouthMat);
+
+    // 6. Sleeping Eyes (Peaceful Curved Crescents)
+    const sleepEyeGeo = new THREE.TorusGeometry(0.095, 0.022, 10, 20, Math.PI);
     const sleepEyeMat = new THREE.MeshBasicMaterial({ color: 0x11111B });
+    this.registerDisposable(sleepEyeGeo);
+    this.registerDisposable(sleepEyeMat);
 
     this.leftSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.leftSleepEye.rotation.set(0, 0, Math.PI);
-    this.leftSleepEye.position.set(-0.35, 0.18, 0.86);
+    this.leftSleepEye.position.set(-0.28, 0.15, 0.815);
     this.leftSleepEye.visible = false;
     this.kiroGroup.add(this.leftSleepEye);
 
     this.rightSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.rightSleepEye.rotation.set(0, 0, Math.PI);
-    this.rightSleepEye.position.set(0.35, 0.18, 0.86);
+    this.rightSleepEye.position.set(0.28, 0.15, 0.815);
     this.rightSleepEye.visible = false;
     this.kiroGroup.add(this.rightSleepEye);
 
-    // 4. Arms
-    const armGeo = new THREE.SphereGeometry(0.24, 16, 16);
+    // 7. Rounded Flippers / Arms
+    const armGeo = new THREE.SphereGeometry(0.22, 24, 24);
     this.leftArm = new THREE.Mesh(armGeo, mintMat);
-    this.leftArm.scale.set(0.8, 1.2, 0.8);
-    this.leftArm.position.set(-0.95, -0.15, 0.3);
+    this.leftArm.scale.set(0.72, 1.25, 0.72);
+    this.leftArm.position.set(-0.84, -0.16, 0.18);
+    this.leftArm.rotation.set(0.1, 0.15, 0.35);
     this.kiroGroup.add(this.leftArm);
 
     this.rightArm = new THREE.Mesh(armGeo, mintMat);
-    this.rightArm.scale.set(0.8, 1.2, 0.8);
-    this.rightArm.position.set(0.95, -0.15, 0.3);
+    this.rightArm.scale.set(0.72, 1.25, 0.72);
+    this.rightArm.position.set(0.84, -0.16, 0.18);
+    this.rightArm.rotation.set(0.1, -0.15, -0.35);
     this.kiroGroup.add(this.rightArm);
+    this.registerDisposable(armGeo);
 
-    // 5. Sleep Nightcap (Pastel Lavender with Golden Star)
+    // 8. Sleep Nightcap (Pastel Lavender with Golden Star)
     const capGroup = new THREE.Group();
-    const capGeo = new THREE.ConeGeometry(0.48, 1.1, 24);
-    const capMat = new THREE.MeshPhongMaterial({ color: 0xCBA6F7, shininess: 20 });
+    const capGeo = new THREE.ConeGeometry(0.42, 0.95, 24);
+    const capMat = new THREE.MeshPhongMaterial({
+      color: 0xCBA6F7,
+      emissive: 0x2A1A40,
+      emissiveIntensity: 0.15,
+      shininess: 25
+    });
     const capMesh = new THREE.Mesh(capGeo, capMat);
-    capMesh.rotation.z = -Math.PI / 4.5;
-    capMesh.position.set(0.25, 0.45, 0);
+    capMesh.rotation.z = -Math.PI / 4.2;
+    capMesh.position.set(0.22, 0.40, 0);
     capGroup.add(capMesh);
 
-    const pomGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    const pomGeo = new THREE.SphereGeometry(0.11, 16, 16);
     const pomMat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
     const pomMesh = new THREE.Mesh(pomGeo, pomMat);
-    pomMesh.position.set(0.72, 0.78, 0);
+    pomMesh.position.set(0.66, 0.72, 0);
     capGroup.add(pomMesh);
 
-    capGroup.position.set(0, 0.85, 0);
+    capGroup.position.set(0, 0.76, 0);
     capGroup.visible = false;
     this.nightcap = capGroup;
     this.kiroGroup.add(this.nightcap);
 
-    // 6. Well-Rested Golden Aura
-    const auraGeo = new THREE.SphereGeometry(1.4, 32, 32);
+    this.registerDisposable(capGeo);
+    this.registerDisposable(capMat);
+    this.registerDisposable(pomGeo);
+    this.registerDisposable(pomMat);
+
+    // 9. Well-Rested Golden Aura
+    const auraGeo = new THREE.SphereGeometry(1.35, 32, 32);
     const auraMat = new THREE.MeshBasicMaterial({
       color: 0xF9E2AF,
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.20,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide
     });
     this.goldenAura = new THREE.Mesh(auraGeo, auraMat);
     this.goldenAura.visible = false;
     this.kiroGroup.add(this.goldenAura);
+
+    this.registerDisposable(auraGeo);
+    this.registerDisposable(auraMat);
   }
 
   buildCockpitHUD() {
@@ -1013,15 +1146,22 @@ export class KiroSceneManager {
           }
         });
         gsap.to(this.pedestal.position, {
-          y: isActive ? -5 : -1.35,
+          y: isActive ? -5 : -1.08,
           duration: 1.0,
           ease: "power2.inOut"
         });
         gsap.to(this.neonRing.position, {
-          y: isActive ? -5 : -1.12,
+          y: isActive ? -5 : -0.92,
           duration: 1.0,
           ease: "power2.inOut"
         });
+        if (this.pedestalSparkles) {
+          gsap.to(this.pedestalSparkles.position, {
+            y: isActive ? -5 : -0.92,
+            duration: 1.0,
+            ease: "power2.inOut"
+          });
+        }
       }
     });
   }
@@ -1034,6 +1174,8 @@ export class KiroSceneManager {
     if (this.rightEye) this.rightEye.visible = !isSleeping;
     if (this.leftHl) this.leftHl.visible = !isSleeping;
     if (this.rightHl) this.rightHl.visible = !isSleeping;
+    if (this.leftHl2) this.leftHl2.visible = !isSleeping;
+    if (this.rightHl2) this.rightHl2.visible = !isSleeping;
     if (this.leftSleepEye) this.leftSleepEye.visible = isSleeping;
     if (this.rightSleepEye) this.rightSleepEye.visible = isSleeping;
   }
@@ -1333,7 +1475,8 @@ export class KiroSceneManager {
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;
     this.gyro.y += (this.gyro.targetY - this.gyro.y) * 0.08;
     this.camera.position.x = this.gyro.x;
-    this.camera.position.y = 0.15 + this.gyro.y;
+    this.camera.position.y = this.baseCameraY + this.gyro.y;
+    this.camera.position.z = this.baseCameraZ;
 
     // 2. Space Shuttle Steering & Unified Rigid-Body Celestial Parallax (Phase 5.2)
     const isTelescope = KiroState.get('telescopeActive');
@@ -1346,7 +1489,7 @@ export class KiroSceneManager {
       this.backgroundCelestialGroup.position.y += (targetGroupY - this.backgroundCelestialGroup.position.y) * 0.08;
 
       const lookX = (steering.yaw || 0) * 0.02;
-      const lookY = 0.15 + (steering.pitch || 0) * 0.02;
+      const lookY = this.baseCameraY + (steering.pitch || 0) * 0.02;
       this.camera.lookAt(lookX, lookY, 0);
     } else {
       this.backgroundCelestialGroup.position.x += (0 - this.backgroundCelestialGroup.position.x) * 0.05;
@@ -1374,6 +1517,10 @@ export class KiroSceneManager {
       this.neonRing.material.opacity = 0.75 + audioLevel * 0.25;
     }
 
+    if (this.pedestalSparkles) {
+      this.pedestalSparkles.rotation.y += 0.006;
+    }
+
     if (this.goldenAura && this.goldenAura.visible) {
       const auraScale = 1.35 + audioLevel * 0.25;
       this.goldenAura.scale.set(auraScale, auraScale, auraScale);
@@ -1394,8 +1541,15 @@ export class KiroSceneManager {
     const width = window.innerWidth || document.documentElement.clientWidth || (this.container ? this.container.clientWidth : 360);
     const height = window.innerHeight || document.documentElement.clientHeight || (this.container ? this.container.clientHeight : 640);
     if (width <= 0 || height <= 0) return;
-    this.camera.aspect = width / height;
+    const aspect = width / height;
+
+    this.baseCameraZ = aspect < 0.8
+      ? Math.max(5.6, 2.7 / (2 * Math.tan((45 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
+      : 5.4;
+
+    this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
+    this.camera.position.set(this.gyro.x, this.baseCameraY + this.gyro.y, this.baseCameraZ);
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   }

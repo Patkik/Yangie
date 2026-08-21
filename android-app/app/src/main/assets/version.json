@@ -1,5 +1,5 @@
 {
-  "version": "1.8.9",
-  "updatedAt": "2026-08-21T18:02:00+08:00",
-  "releaseNotes": "Release V5.8: Cleaned SVG path syntax for navigation and settings gear icons in index.html to prevent Chromium XML parser warnings. Re-verified robust render loop and Android WebView asset serving."
+  "version": "1.9.0",
+  "updatedAt": "2026-08-21T21:35:00+08:00",
+  "releaseNotes": "Release V5.9: Redesigned Kiro's 3D companion procedural model with soulful obsidian eyes, dual starlight catchlights, rosy blush cheeks, sweet smile, smooth creamy belly patch, and responsive mobile portrait camera framing."
 }
