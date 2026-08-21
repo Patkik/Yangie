@@ -35,19 +35,30 @@ import { synthEngine } from './synth.js';
 // Helper: Generate procedural radial glow texture for 100% reliable mobile star rendering
 function createGlowStarTexture() {
   const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 64;
+  canvas.width = 128;
+  canvas.height = 128;
   const ctx = canvas.getContext('2d');
 
-  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  // Radial Gaussian Core & Glow
+  const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
   gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
-  gradient.addColorStop(0.2, 'rgba(240, 248, 255, 0.9)');
-  gradient.addColorStop(0.5, 'rgba(148, 226, 213, 0.4)');
-  gradient.addColorStop(0.8, 'rgba(203, 166, 247, 0.15)');
+  gradient.addColorStop(0.12, 'rgba(245, 250, 255, 0.95)');
+  gradient.addColorStop(0.35, 'rgba(148, 226, 213, 0.45)');
+  gradient.addColorStop(0.65, 'rgba(203, 166, 247, 0.15)');
   gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
 
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 64, 64);
+  ctx.fillRect(0, 0, 128, 128);
+
+  // Subtle 4-Point Optical Telescope Diffraction Spikes
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.70)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(64, 18);
+  ctx.lineTo(64, 110);
+  ctx.moveTo(18, 64);
+  ctx.lineTo(110, 64);
+  ctx.stroke();
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
@@ -402,7 +413,7 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(this.distantStars);
   }
 
-  // 2.1 Volumetric Procedural Cosmic Nebula Shader (Z = -18.0)
+  // 2.1 Volumetric Photorealistic Astronomical Nebula Shader (Z = -18.0)
   buildVolumetricNebula() {
     const vertexShader = `
       varying vec2 vUv;
@@ -444,37 +455,52 @@ export class KiroSceneManager {
         return 130.0 * dot(m, g);
       }
 
+      // 4-Octave Fractional Brownian Motion for Organic Interstellar Clouds
+      float fbm(vec2 p) {
+        float f = 0.0;
+        float w = 0.5;
+        for (int i = 0; i < 4; i++) {
+          f += w * snoise(p);
+          p *= 2.02;
+          w *= 0.5;
+        }
+        return f;
+      }
+
       void main() {
         vec2 uv = vUv * 2.0 - 1.0;
-        float t = u_time * 0.04;
+        float t = u_time * 0.025;
 
-        float n1 = snoise(uv * 1.2 + vec2(t * 0.3, t * 0.15));
-        float n2 = snoise(uv * 2.4 - vec2(t * 0.15, t * 0.35));
-        float cloud = (n1 * 0.6 + n2 * 0.4) * 0.5 + 0.5;
+        // Domain warping for fluid organic cosmic gas filaments
+        vec2 q = vec2(fbm(uv + vec2(t * 0.2, t * 0.1)), fbm(uv + vec2(t * -0.15, t * 0.25)));
+        vec2 r = vec2(fbm(uv + 2.5 * q + vec2(1.7, 9.2)), fbm(uv + 2.5 * q + vec2(8.3, 2.8)));
+        float f = fbm(uv + 3.2 * r);
 
-        vec3 deepSpace = vec3(0.055, 0.055, 0.090); // Deep Midnight Space
-        vec3 lavender  = vec3(0.42, 0.28, 0.72);    // #CBA6F7 Lavender Cosmic Dust
-        vec3 mint      = vec3(0.24, 0.68, 0.58);    // #4EC9B0 Mint Teal (Patrick)
-        vec3 pink      = vec3(0.92, 0.58, 0.68);    // #FFB6C1 Pastel Pink (Yangiee)
-        vec3 gold      = vec3(0.95, 0.82, 0.58);    // #F9E2AF Warm Gold Core
+        // Deep Astronomical Colors (James Webb Deep Field Palette)
+        vec3 cosmicVoid = vec3(0.045, 0.042, 0.075);   // #0C0B14 Deep Vacuum
+        vec3 hydrogenAlpha = vec3(0.48, 0.18, 0.42); // Luminous H-Alpha Magenta/Violet
+        vec3 oxygenGlow = vec3(0.18, 0.58, 0.52);    // [O III] Stardust Cyan
+        vec3 warmDust = vec3(0.68, 0.48, 0.26);      // Warm Interstellar Dust
+        vec3 stellarBulge = vec3(0.95, 0.88, 0.65);  // Radiant Core Starlight
 
-        // Organic billowing interstellar gas
-        vec3 col = mix(deepSpace, lavender, smoothstep(0.32, 0.78, cloud) * 0.75);
+        // Layer gas density
+        float density = smoothstep(-0.25, 0.75, f);
+        float coreBulge = smoothstep(1.2, 0.0, length(uv));
 
-        if (uv.x < 0.0) {
-          col = mix(col, mint, smoothstep(0.35, 0.85, cloud) * abs(uv.x) * 0.70);
-        } else {
-          col = mix(col, pink, smoothstep(0.35, 0.85, cloud) * uv.x * 0.70);
-        }
+        vec3 col = mix(cosmicVoid, hydrogenAlpha, density * 0.70);
+        col = mix(col, oxygenGlow, smoothstep(0.1, 0.8, r.x) * 0.55);
+        col = mix(col, warmDust, smoothstep(0.2, 0.9, q.y) * 0.45);
+        col += stellarBulge * (coreBulge * 0.22 * (1.0 + u_audio * 0.6));
 
-        float centerDist = length(uv);
-        col = mix(col, gold, smoothstep(0.70, 0.0, centerDist) * 0.18 * (1.0 + u_audio * 0.5));
+        // Subtle dark interstellar absorption dust lanes
+        float dustLane = smoothstep(0.42, 0.48, abs(fbm(uv * 1.8 - t * 0.1)));
+        col *= mix(0.55, 1.0, dustLane);
 
         gl_FragColor = vec4(col, 1.0);
       }
     `;
 
-    const nebulaGeo = new THREE.PlaneGeometry(85, 55);
+    const nebulaGeo = new THREE.PlaneGeometry(90, 60);
     this.nebulaMaterial = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -1166,22 +1192,40 @@ export class KiroSceneManager {
     this.rightBlush.rotation.set(0.1, 0.2, -0.15);
     this.kiroGroup.add(this.rightBlush);
 
-    // 8. Sweet Wide Smile with Tiny Cute Tooth
-    const mouthGeo = new THREE.TorusGeometry(0.050, 0.014, 8, 16, Math.PI);
+    // 8. Sweet Wide Open Smile with Rosy Cavity and Cute Dinosaur Tooth (Z = 0.915)
+    this.mouthGroup = new THREE.Group();
+    this.mouthGroup.position.set(0, 0.04, 0.915);
+
+    // Inner rosy pink mouth opening cavity
+    const mouthCavityGeo = new THREE.SphereGeometry(0.048, 16, 16);
+    const mouthCavityMat = new THREE.MeshBasicMaterial({ color: 0xF58282 });
+    this.mouthInside = new THREE.Mesh(mouthCavityGeo, mouthCavityMat);
+    this.mouthInside.scale.set(1.0, 0.60, 0.25);
+    this.mouthInside.position.set(0, -0.012, 0);
+    this.mouthGroup.add(this.mouthInside);
+
+    // Outer dark lip smile curve
+    const mouthGeo = new THREE.TorusGeometry(0.062, 0.016, 10, 24, Math.PI);
     const mouthMat = new THREE.MeshBasicMaterial({ color: 0x162432 });
     this.mouth = new THREE.Mesh(mouthGeo, mouthMat);
     this.mouth.rotation.set(0, 0, Math.PI);
-    this.mouth.position.set(0, 0.02, 0.865);
-    this.kiroGroup.add(this.mouth);
-    this.registerDisposable(mouthGeo);
-    this.registerDisposable(mouthMat);
+    this.mouth.position.set(0, 0, 0.005);
+    this.mouthGroup.add(this.mouth);
 
-    const toothGeo = new THREE.ConeGeometry(0.022, 0.035, 10);
+    // Cute tiny white dinosaur front tooth pointing down
+    const toothGeo = new THREE.ConeGeometry(0.022, 0.038, 12);
     const toothMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
     this.tooth = new THREE.Mesh(toothGeo, toothMat);
-    this.tooth.position.set(0.02, 0.00, 0.87);
+    this.tooth.position.set(0.022, 0.018, 0.012);
     this.tooth.rotation.set(Math.PI, 0, 0);
-    this.kiroGroup.add(this.tooth);
+    this.mouthGroup.add(this.tooth);
+
+    this.kiroGroup.add(this.mouthGroup);
+
+    this.registerDisposable(mouthCavityGeo);
+    this.registerDisposable(mouthCavityMat);
+    this.registerDisposable(mouthGeo);
+    this.registerDisposable(mouthMat);
     this.registerDisposable(toothGeo);
     this.registerDisposable(toothMat);
 
@@ -1274,47 +1318,184 @@ export class KiroSceneManager {
     this.cockpitGroup.visible = false;
     this.scene.add(this.cockpitGroup);
 
-    // Pilot Reticle (Centered in screen at Z = -3.0)
-    const crossGeo = new THREE.RingGeometry(0.45, 0.48, 32);
-    const crossMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.9 });
-    this.crosshairMesh = new THREE.Mesh(crossGeo, crossMat);
-    this.crosshairMesh.position.set(0, 0.15, -3.0);
-    this.cockpitGroup.add(this.crosshairMesh);
+    // 1. Cockpit Arch Canopy Struts (Sleek Space Shuttle Glass Window Frame at Z = -1.8)
+    const canopyMat = new THREE.MeshBasicMaterial({
+      color: 0x181825,
+      transparent: true,
+      opacity: 0.85
+    });
+
+    // Top canopy arch
+    const archGeo = new THREE.TorusGeometry(2.8, 0.07, 12, 48, Math.PI);
+    const archMesh = new THREE.Mesh(archGeo, canopyMat);
+    archMesh.position.set(0, 0.25, -1.8);
+    this.cockpitGroup.add(archMesh);
+
+    // Side struts
+    const strutGeo = new THREE.CylinderGeometry(0.04, 0.04, 3.5, 12);
+    const leftStrut = new THREE.Mesh(strutGeo, canopyMat);
+    leftStrut.position.set(-2.2, -0.2, -1.8);
+    leftStrut.rotation.z = 0.25;
+    this.cockpitGroup.add(leftStrut);
+
+    const rightStrut = new THREE.Mesh(strutGeo, canopyMat);
+    rightStrut.position.set(2.2, -0.2, -1.8);
+    rightStrut.rotation.z = -0.25;
+    this.cockpitGroup.add(rightStrut);
+
+    // 2. Holographic Flight Reticle (Centered in screen at Z = -2.5)
+    this.hudReticleGroup = new THREE.Group();
+    this.hudReticleGroup.position.set(0, 0.15, -2.5);
+
+    // Central pip dot
+    const pipGeo = new THREE.SphereGeometry(0.035, 12, 12);
+    const pipMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0 });
+    this.hudPip = new THREE.Mesh(pipGeo, pipMat);
+    this.hudReticleGroup.add(this.hudPip);
+
+    // Inner targeting ring
+    const innerRingGeo = new THREE.RingGeometry(0.32, 0.35, 32);
+    const innerRingMat = new THREE.MeshBasicMaterial({
+      color: 0x4EC9B0,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide
+    });
+    this.crosshairMesh = new THREE.Mesh(innerRingGeo, innerRingMat);
+    this.hudReticleGroup.add(this.crosshairMesh);
+
+    // Outer compass ring
+    const outerRingGeo = new THREE.RingGeometry(0.68, 0.70, 48);
+    const outerRingMat = new THREE.MeshBasicMaterial({
+      color: 0x94E2D5,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide
+    });
+    const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+    this.hudReticleGroup.add(outerRing);
+
+    // Pitch ladder horizontal attitude lines
+    [-0.55, -0.28, 0.28, 0.55].forEach((ladderY) => {
+      const lineGeo = new THREE.BufferGeometry();
+      const verts = new Float32Array([
+        -0.22, ladderY, 0,
+         0.22, ladderY, 0
+      ]);
+      lineGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.55 });
+      this.hudReticleGroup.add(new THREE.Line(lineGeo, lineMat));
+      this.registerDisposable(lineGeo);
+      this.registerDisposable(lineMat);
+    });
+
+    // Horizon line
+    const horizonGeo = new THREE.BufferGeometry();
+    const hVerts = new Float32Array([
+      -1.4, 0, 0,
+       1.4, 0, 0
+    ]);
+    horizonGeo.setAttribute('position', new THREE.BufferAttribute(hVerts, 3));
+    const horizonMat = new THREE.LineBasicMaterial({ color: 0x94E2D5, transparent: true, opacity: 0.65 });
+    this.hudReticleGroup.add(new THREE.Line(horizonGeo, horizonMat));
+
+    this.cockpitGroup.add(this.hudReticleGroup);
+
+    this.registerDisposable(archGeo);
+    this.registerDisposable(strutGeo);
+    this.registerDisposable(canopyMat);
+    this.registerDisposable(pipGeo);
+    this.registerDisposable(pipMat);
+    this.registerDisposable(innerRingGeo);
+    this.registerDisposable(innerRingMat);
+    this.registerDisposable(outerRingGeo);
+    this.registerDisposable(outerRingMat);
+    this.registerDisposable(horizonGeo);
+    this.registerDisposable(horizonMat);
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
      Phase 3 & 4: Interactions, Parallax & State Synchronization
      ───────────────────────────────────────────────────────────────────────── */
   bindEvents() {
+    let isDraggingFlight = false;
+    let flightStartX = 0;
+    let flightStartY = 0;
+    let startPitch = 0;
+    let startYaw = 0;
+
+    const onFlightStart = (clientX, clientY) => {
+      if (KiroState.get('telescopeActive')) {
+        isDraggingFlight = true;
+        flightStartX = clientX;
+        flightStartY = clientY;
+        const current = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
+        startPitch = current.pitch || 0;
+        startYaw = current.yaw || 0;
+      }
+    };
+
+    const onFlightMove = (clientX, clientY) => {
+      if (isDraggingFlight && KiroState.get('telescopeActive')) {
+        const deltaX = clientX - flightStartX;
+        const deltaY = clientY - flightStartY;
+        const pitch = Math.max(-50, Math.min(50, startPitch - deltaY * 0.18));
+        const yaw = Math.max(-50, Math.min(50, startYaw + deltaX * 0.18));
+        KiroState.set('cockpitSteering', { pitch, yaw });
+        const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 50);
+        synthEngine.updateThrusterSpeed(speed);
+      }
+    };
+
+    const onFlightEnd = () => {
+      isDraggingFlight = false;
+    };
+
     const onPointerMove = (clientX, clientY) => {
       this.mouse.x = (clientX / window.innerWidth) * 2 - 1;
       this.mouse.y = -(clientY / window.innerHeight) * 2 + 1;
       this.pointerInCanvas = true;
 
-      // Stardust Sparkles at Z = 0
-      const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
-      const mouseDir = mouseProj.sub(this.camera.position).normalize();
-      const dist = (0 - this.camera.position.z) / mouseDir.z;
-      const worldPos = this.camera.position.clone().add(mouseDir.multiplyScalar(dist));
-      this.spawnStardustParticle(worldPos.x, worldPos.y, worldPos.z);
+      if (KiroState.get('telescopeActive')) {
+        onFlightMove(clientX, clientY);
+      } else {
+        // Stardust Sparkles at Z = 0
+        const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
+        const mouseDir = mouseProj.sub(this.camera.position).normalize();
+        const dist = (0 - this.camera.position.z) / mouseDir.z;
+        const worldPos = this.camera.position.clone().add(mouseDir.multiplyScalar(dist));
+        this.spawnStardustParticle(worldPos.x, worldPos.y, worldPos.z);
+      }
     };
 
+    window.addEventListener('pointerdown', (e) => {
+      onFlightStart(e.clientX, e.clientY);
+      onPointerMove(e.clientX, e.clientY);
+    });
     window.addEventListener('pointermove', (e) => onPointerMove(e.clientX, e.clientY));
-    window.addEventListener('pointerdown', (e) => onPointerMove(e.clientX, e.clientY));
+    window.addEventListener('pointerup', onFlightEnd);
+    window.addEventListener('pointercancel', onFlightEnd);
     window.addEventListener('pointerenter', () => { this.pointerInCanvas = true; });
-    window.addEventListener('pointerleave', () => { this.pointerInCanvas = false; });
+    window.addEventListener('pointerleave', () => {
+      this.pointerInCanvas = false;
+      onFlightEnd();
+    });
 
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        onFlightStart(e.touches[0].clientX, e.touches[0].clientY);
+        onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
     window.addEventListener('touchmove', (e) => {
       if (e.touches && e.touches[0]) {
         onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     }, { passive: true });
-    window.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches[0]) {
-        onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
-      }
+    window.addEventListener('touchend', () => {
+      this.pointerInCanvas = false;
+      onFlightEnd();
     }, { passive: true });
-    window.addEventListener('touchend', () => { this.pointerInCanvas = false; }, { passive: true });
 
     // Interactive Kiro Petting Raycast
     window.addEventListener('click', (e) => {
@@ -1723,8 +1904,9 @@ export class KiroSceneManager {
       const tl = gsap.timeline({
         onComplete: () => {
           this.isChewing = false;
+          if (this.mouthGroup) this.mouthGroup.scale.set(1, 1, 1);
           if (this.mouth) this.mouth.scale.set(1, 1, 1);
-          if (this.tooth) this.tooth.position.set(0.02, 0.00, 0.87);
+          if (this.tooth) this.tooth.position.set(0.022, 0.018, 0.012);
           if (this.leftEye) this.leftEye.scale.set(1, 1, 1);
           if (this.rightEye) this.rightEye.scale.set(1, 1, 1);
           if (this.leftArm) this.leftArm.rotation.set(0.25, -0.45, 0.50);
@@ -1733,16 +1915,15 @@ export class KiroSceneManager {
       });
 
       // 1. Anticipation: mouth opens wide to catch the treat
-      if (this.mouth && this.tooth) {
-        tl.to(this.mouth.scale, { x: 1.5, y: 2.6, z: 1.4, duration: 0.12, ease: 'power1.out' })
-          .to(this.tooth.position, { y: -0.04, duration: 0.12 }, 0);
+      if (this.mouthGroup) {
+        tl.to(this.mouthGroup.scale, { x: 1.45, y: 2.4, z: 1.35, duration: 0.12, ease: 'power1.out' });
 
         // 2. Dynamic Chomping / Munching Chewing cycles (4 quick delicious munches)
         for (let m = 0; m < 4; m++) {
-          tl.to(this.mouth.scale, { y: 0.35, duration: 0.08, ease: 'power2.in' })
-            .to(this.tooth.position, { y: 0.02, duration: 0.08 }, '<')
-            .to(this.mouth.scale, { y: 1.8, duration: 0.08, ease: 'power2.out' })
-            .to(this.tooth.position, { y: -0.03, duration: 0.08 }, '<');
+          tl.to(this.mouthGroup.scale, { y: 0.45, duration: 0.08, ease: 'power2.in' })
+            .to(this.tooth.position, { y: 0.035, duration: 0.08 }, '<')
+            .to(this.mouthGroup.scale, { y: 1.75, duration: 0.08, ease: 'power2.out' })
+            .to(this.tooth.position, { y: 0.012, duration: 0.08 }, '<');
         }
       }
 
@@ -1840,17 +2021,26 @@ export class KiroSceneManager {
     const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
 
     if (isTelescope) {
-      const targetGroupX = (steering.yaw || 0) * 0.08;
-      const targetGroupY = (steering.pitch || 0) * 0.08;
-      this.backgroundCelestialGroup.position.x += (targetGroupX - this.backgroundCelestialGroup.position.x) * 0.08;
-      this.backgroundCelestialGroup.position.y += (targetGroupY - this.backgroundCelestialGroup.position.y) * 0.08;
+      const targetGroupX = -(steering.yaw || 0) * 0.12;
+      const targetGroupY = -(steering.pitch || 0) * 0.12;
+      this.backgroundCelestialGroup.position.x += (targetGroupX - this.backgroundCelestialGroup.position.x) * 0.10;
+      this.backgroundCelestialGroup.position.y += (targetGroupY - this.backgroundCelestialGroup.position.y) * 0.10;
+      this.backgroundCelestialGroup.rotation.y += ((steering.yaw || 0) * 0.005 - this.backgroundCelestialGroup.rotation.y) * 0.10;
+      this.backgroundCelestialGroup.rotation.x += (-(steering.pitch || 0) * 0.005 - this.backgroundCelestialGroup.rotation.x) * 0.10;
 
-      const lookX = (steering.yaw || 0) * 0.02;
-      const lookY = this.baseCameraY + (steering.pitch || 0) * 0.02;
-      this.camera.lookAt(lookX, lookY, 0);
+      // Animate reticle ring and dynamic target alignment color
+      if (this.crosshairMesh) {
+        this.crosshairMesh.rotation.z += 0.015;
+        const isAligned = KiroState.get('cockpitSteering.aligned');
+        this.crosshairMesh.material.color.setHex(isAligned ? 0x94E2D5 : 0x4EC9B0);
+      }
+
+      this.camera.lookAt(0, 0, -10);
     } else {
       this.backgroundCelestialGroup.position.x += (0 - this.backgroundCelestialGroup.position.x) * 0.05;
       this.backgroundCelestialGroup.position.y += (0 - this.backgroundCelestialGroup.position.y) * 0.05;
+      this.backgroundCelestialGroup.rotation.x += (0 - this.backgroundCelestialGroup.rotation.x) * 0.05;
+      this.backgroundCelestialGroup.rotation.y += (0 - this.backgroundCelestialGroup.rotation.y) * 0.05;
       this.camera.lookAt(0, 0, 0);
 
       // Organic Soft-Body Breathing & Living Creature Kinematics
