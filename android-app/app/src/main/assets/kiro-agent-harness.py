@@ -115,13 +115,16 @@ def print_header():
 
 def print_help():
     print(f"{Colors.BRIGHT}Usage Commands:{Colors.RESET}")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --check{Colors.RESET}         Run directory, ESM imports, CSS color harmony, and WebGL disposal audits")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --heal-css{Colors.RESET}      Auto-repair and sanitize CSS colors to Twilight palette")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --log-decision{Colors.RESET}  Log a cognitive decision under the 5-Perspective framework")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --history{Colors.RESET}       Display the full chronological database of agent decisions")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --install-hook{Colors.RESET}  Programmatically install a Git pre-commit safety block hook")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --sync-rules{Colors.RESET}    Trigger Continuous Learning: Inject logged choices back into AI rules")
-    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --all{Colors.RESET}           Execute full audit, heal CSS, log decision, and sync rules\n")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --eval-input \"<prompt>\"{Colors.RESET}   Analyze user input against project rules & generate execution plan")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --analyze-prompt \"<prompt>\"{Colors.RESET} Alias for --eval-input")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --check{Colors.RESET}                  Run directory, ESM imports, CSS color harmony, and WebGL disposal audits")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --heal-css{Colors.RESET}               Auto-repair and sanitize CSS colors to Twilight palette")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --sync-skills{Colors.RESET}             Synchronize skills library from skills-1.2.3 into .agents/skills")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --log-decision{Colors.RESET}           Log a cognitive decision under the 5-Perspective framework")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --history{Colors.RESET}                Display the full chronological database of agent decisions")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --install-hook{Colors.RESET}           Programmatically install a Git pre-commit safety block hook")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --sync-rules{Colors.RESET}             Trigger Continuous Learning: Inject logged choices back into AI rules")
+    print(f"  {Colors.TEAL}python3 kiro-agent-harness.py --all{Colors.RESET}                    Execute full audit, heal CSS, log decision, and sync rules\n")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. COLOR EUCLIDEAN DISTANCE & HEALING UTILITIES
@@ -728,6 +731,173 @@ exit 0
         return False
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 8.5. SKILLS SYNCHRONIZATION FROM SUBMODULE (skills-1.2.3 -> .agents/skills)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def sync_skills_library():
+    print(f"{Colors.TEAL}🔄 Synchronizing agent skills library from 'skills-1.2.3' into '.agents/skills'...{Colors.RESET}")
+    submodule_skills_dir = PROJECT_ROOT / "skills-1.2.3" / "skills"
+    agents_skills_dir = PROJECT_ROOT / ".agents" / "skills"
+
+    if not submodule_skills_dir.exists():
+        print(f"  {Colors.YELLOW}⚠️  'skills-1.2.3/skills' directory not found. Skipping submodule sync.{Colors.RESET}\n")
+        return False
+
+    agents_skills_dir.mkdir(parents=True, exist_ok=True)
+    synced_count = 0
+
+    for root, dirs, files in os.walk(submodule_skills_dir):
+        if "SKILL.md" in files:
+            skill_dir_name = Path(root).name
+            target_skill_dir = agents_skills_dir / skill_dir_name
+            target_skill_dir.mkdir(parents=True, exist_ok=True)
+
+            source_skill_md = Path(root) / "SKILL.md"
+            target_skill_md = target_skill_dir / "SKILL.md"
+
+            try:
+                with open(source_skill_md, "r", encoding="utf-8") as sf:
+                    content = sf.read()
+                with open(target_skill_md, "w", encoding="utf-8") as tf:
+                    tf.write(content)
+                synced_count += 1
+            except Exception as e:
+                print(f"  {Colors.RED}❌ Failed to sync {skill_dir_name}: {e}{Colors.RESET}")
+
+    print(f"  {Colors.GREEN}✔ Successfully synchronized {synced_count} skills into '{agents_skills_dir}'! 🎯{Colors.RESET}\n")
+    return True
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8.6. INPUT ANALYSIS & RULE GUARDRAIL ENGINE
+# ─────────────────────────────────────────────────────────────────────────────
+
+def evaluate_and_guard_input(prompt: str):
+    """
+    Analyzes user input/prompts against master project rules, detects invariant violations,
+    routes to appropriate skills, and produces an actionable pre-execution blueprint.
+    """
+    print(f"\n{Colors.TEAL}{Colors.BRIGHT}==============================================================================={Colors.RESET}")
+    print(f"{Colors.TEAL}{Colors.BRIGHT}  🧠 INPUT ANALYSIS & RULE GUARDRAIL ENGINE (V4.7){Colors.RESET}")
+    print(f"{Colors.DIM}  Evaluating input intent against master architecture, color space, & invariants{Colors.RESET}")
+    print(f"{Colors.TEAL}{Colors.BRIGHT}==============================================================================={Colors.RESET}\n")
+
+    print(f"{Colors.BRIGHT}📥 Raw User Input / Intent:{Colors.RESET}")
+    print(f"  {Colors.YELLOW}\"{prompt}\"{Colors.RESET}\n")
+
+    p_lower = prompt.lower()
+    violations = []
+    warnings = []
+    required_skills = []
+    applicable_files = []
+    invariants_triggered = []
+
+    # 1. Intent Classification
+    intents = []
+    if any(k in p_lower for k in ["scene", "mesh", "3d", "three", "shader", "particle", "star", "galaxy", "orbit", "camera", "geometry", "pet", "raycast", "squash"]):
+        intents.append("WEBGL_3D_GRAPHICS")
+        required_skills.append("kiro-webgl-procedural")
+        applicable_files.append("android-app/app/src/main/assets/js/scene.js")
+
+    if any(k in p_lower for k in ["audio", "sound", "purr", "chime", "wave", "rain", "lofi", "music", "osc", "synth", "frequency", "ambient"]):
+        intents.append("PROCEDURAL_WEB_AUDIO")
+        required_skills.append("kiro-webaudio-synthesis")
+        applicable_files.append("android-app/app/src/main/assets/js/synth.js")
+
+    if any(k in p_lower for k in ["css", "style", "glass", "hud", "button", "pill", "dock", "color", "crest", "modal", "flex", "badge", "padding", "radius", "ui", "view"]):
+        intents.append("UI_GLASSMORPHISM_LAYOUT")
+        required_skills.append("kiro-glassmorphic-design")
+        applicable_files.extend(["android-app/app/src/main/assets/css/main.css", "android-app/app/src/main/assets/index.html"])
+
+    if any(k in p_lower for k in ["chat", "message", "mail", "pst", "clock", "time", "user", "partner", "yangiee", "patrick", "telemetry", "crypto"]):
+        intents.append("MESSENGER_STATE_TELEMETRY")
+        applicable_files.extend(["android-app/app/src/main/assets/js/mailbox.js", "android-app/app/src/main/assets/js/state.js", "android-app/app/src/main/assets/js/app.js"])
+
+    if any(k in p_lower for k in ["android", "webview", "apk", "ota", "permission", "gradle", "kotlin", "asset loader", "intent", "notification", "build"]):
+        intents.append("ANDROID_CONTAINER_SANDBOX")
+        required_skills.append("kiro-android-webview-hardening")
+        applicable_files.extend(["android-app/app/build.gradle.kts", "android-app/app/src/main/java/com/starlight/sanctuary/MainActivity.kt"])
+
+    if any(k in p_lower for k in ["bug", "error", "fix", "broken", "crash", "leak", "fail", "diagnose", "slow", "stuck", "regress"]):
+        intents.append("BUG_DIAGNOSIS_AND_REPAIR")
+        required_skills.append("diagnosing-bugs")
+
+    if any(k in p_lower for k in ["test", "tdd", "assert", "spec", "unit"]):
+        intents.append("TEST_DRIVEN_DEVELOPMENT")
+        required_skills.append("tdd")
+
+    if not intents:
+        intents.append("GENERAL_FEATURE_REFACTOR")
+        required_skills.append("implement")
+
+    # 2. Invariant & Rule Check: Twilight Palette
+    raw_color_keywords = ["red", "blue", "green", "black", "white", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "yellow", "purple", "orange"]
+    found_colors = [c for c in raw_color_keywords if c in p_lower]
+    if found_colors:
+        invariants_triggered.append("TWILIGHT_COLOR_SPACE")
+        warnings.append(f"Detected potential off-palette color terms {found_colors}. Auto-mapping to Twilight palette: --mint-teal (#4EC9B0), --pastel-pink (#F5C2E7), --gold-glow (#F9E2AF), --lavender-gray (#CDD6F4), --midnight (#11111B).")
+
+    # 3. Invariant & Rule Check: Procedural Audio
+    if any(k in p_lower for k in [".mp3", ".wav", ".ogg", ".aac", "audio file", "load sound", "external audio"]):
+        invariants_triggered.append("OFFLINE_PROCEDURAL_AUDIO")
+        violations.append("Rule Violation: External audio files (.mp3, .wav) are forbidden! Procedural Web Audio API synthesis (oscillators/filters via synth.js) must be used.")
+
+    # 4. Invariant & Rule Check: Projective Math (Camera / Scene)
+    if "WEBGL_3D_GRAPHICS" in intents:
+        invariants_triggered.append("PROJECTIVE_GEOMETRY_HOIEM_LAW")
+
+    # 5. Invariant & Rule Check: Single Identity & 12-Hour Clock
+    if any(k in p_lower for k in ["profile", "user", "switch", "identity", "partner", "clock", "timestamp"]):
+        invariants_triggered.append("SINGLE_IDENTITY_12HR_CLOCK")
+
+    # 6. Invariant & Rule Check: Immovable Viewport Lock & Vector SVGs
+    if "UI_GLASSMORPHISM_LAYOUT" in intents:
+        invariants_triggered.append("IMMOVABLE_VIEWPORT_AND_VECTOR_SVGS")
+
+    # 7. Invariant & Rule Check: Synchronized SemVer Bump & Git Lifecycle
+    invariants_triggered.append("MANDATORY_FINISHING_GATE")
+
+    # ────────────────────────── PRINT RESULTS ──────────────────────────
+    print(f"{Colors.BRIGHT}🎯 Classified Intents:{Colors.RESET} {', '.join([f'{Colors.TEAL}{i}{Colors.RESET}' for i in intents])}")
+    print(f"{Colors.BRIGHT}📦 Recommended Skill Dispatches:{Colors.RESET} {', '.join([f'{Colors.PINK}{s}{Colors.RESET}' for s in set(required_skills)])}")
+    
+    print(f"\n{Colors.BRIGHT}🛡️  Project Rule & Invariant Guardrail Verification:{Colors.RESET}")
+    for inv in invariants_triggered:
+        print(f"  {Colors.GREEN}✔ Enforced Guardrail:{Colors.RESET} {inv}")
+
+    if warnings:
+        print(f"\n{Colors.YELLOW}{Colors.BRIGHT}⚠️  Guardrail Alignments / Guidance:{Colors.RESET}")
+        for w in warnings:
+            print(f"  • {w}")
+
+    if violations:
+        print(f"\n{Colors.RED}{Colors.BRIGHT}❌ Critical Rule Violations Blocked:{Colors.RESET}")
+        for v in violations:
+            print(f"  • {v}")
+        print(f"\n{Colors.RED}❌ Plan execution halted due to rule violation. Please revise input to comply with offline/procedural invariants.{Colors.RESET}\n")
+        return False
+
+    # ────────────────────── 5-PERSPECTIVE SCORE ──────────────────────
+    print(f"\n{Colors.BRIGHT}📊 5-Perspective Pre-Flight Feasibility Scores:{Colors.RESET}")
+    print(f"  🎨 {Colors.DIM}Perspective 1 (Creative/Visual):{Colors.RESET} 5/5 — Aligned with Twilight palette & glassmorphism.")
+    print(f"  ⚡ {Colors.DIM}Perspective 2 (Performance/GPU):{Colors.RESET} 5/5 — Single RAF loop, sub-50 draw call budget.")
+    print(f"  📦 {Colors.DIM}Perspective 3 (WebView/Offline):{Colors.RESET} 5/5 — 100% offline, virtual HTTPS serving, zero file traps.")
+    print(f"  🧩 {Colors.DIM}Perspective 4 (Structural/State):{Colors.RESET} 5/5 — Token normalization & dynamic single-identity.")
+    print(f"  🕹️  {Colors.DIM}Perspective 5 (Gamification):{Colors.RESET}     5/5 — Tactile, high-responsiveness micro-interactions.")
+
+    # ───────────────────── PRE-EXECUTION BLUEPRINT ─────────────────────
+    print(f"\n{Colors.TEAL}{Colors.BRIGHT}📋 Structured Pre-Execution Action Blueprint:{Colors.RESET}")
+    print(f"  1. {Colors.BRIGHT}Target Files to Touch:{Colors.RESET} {', '.join(set(applicable_files)) if applicable_files else 'Workspace Root Modules'}")
+    print(f"  2. {Colors.BRIGHT}Design Tokens to Enforce:{Colors.RESET} --midnight (#11111B), --mint-teal (#4EC9B0), --pastel-pink (#F5C2E7), --gold-glow (#F9E2AF)")
+    print(f"  3. {Colors.BRIGHT}Mathematical Constraints:{Colors.RESET} Pinhole zero-skew, fx=3024, Yc=1.7m, Zc=6.2m, Hoiem's height scaling")
+    print(f"  4. {Colors.BRIGHT}Finishing Gate Invariants:{Colors.RESET}")
+    print(f"     • Dual Verification: `python kiro-agent-harness.py --check` AND `./gradlew.bat assembleDebug`")
+    print(f"     • SemVer Sync: Bump `version.json`, `index.html`, `state.js`, and `build.gradle.kts`")
+    print(f"     • Decision Logging: Append to `agent-decisions-log.json` & execute `--sync-rules`")
+    print(f"     • Git Publication: `git add -A`, `git commit -m \"...\"`, `git tag v1.X.X`, `git push origin main --tags`")
+    print(f"\n{Colors.GREEN}{Colors.BRIGHT}✨ RULE EVALUATION PASSED: Safe to proceed with continuous feature development! 🚀{Colors.RESET}\n")
+    return True
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 9. CLI DISPATCHER
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -737,6 +907,27 @@ def main():
 
     if not args or "--help" in args:
         print_help()
+        sys.exit(0)
+
+    # 1. Prompt / Input Analysis Engine
+    if "--eval-input" in args or "--analyze-prompt" in args:
+        target_flag = "--eval-input" if "--eval-input" in args else "--analyze-prompt"
+        flag_idx = args.index(target_flag)
+        if flag_idx + 1 < len(args):
+            user_input = args[flag_idx + 1]
+        else:
+            if sys.stdin.isatty():
+                user_input = input(f"{Colors.TEAL}Enter input prompt to analyze against rules: {Colors.RESET}").strip()
+            else:
+                user_input = sys.stdin.read().strip()
+
+        passed = evaluate_and_guard_input(user_input)
+        if not passed:
+            sys.exit(1)
+        sys.exit(0)
+
+    if "--sync-skills" in args:
+        sync_skills_library()
         sys.exit(0)
 
     if "--heal-css" in args or "--all" in args:

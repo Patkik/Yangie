@@ -104,3 +104,4 @@ To ensure safe, non-breaking developer iterations, you must strictly follow this
 - **[DEC-210450]** GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX
 - **[DEC-221800]** Celestial Sanctuary Transformation, Unobstructed 90% WebGL Viewport, Floating Starlight Dock & Tactile Petting Engine
 - **[DEC-231900]** Continuous Unblocked Development Protocol & Skills-1.2.3 Harness Architecture Integration
+- **[DEC-241900]** Input Analysis & Rule Guardrail Engine V4.7, Intent Triage & Submodule Skill Synchronization
