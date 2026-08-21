@@ -1,5 +1,5 @@
 {
-  "version": "1.7.1",
-  "updatedAt": "2026-08-21T14:15:00+08:00",
-  "releaseNotes": "Enforced strict Antigravity Skill Dispatch Matrix across all master rulebooks (AGENTS.md, GEMINI.md, .cursorrules) and added automated skill registry audit (Test 7) in kiro-agent-harness.py for 34 active agent skills."
+  "version": "1.7.2",
+  "updatedAt": "2026-08-21T14:25:00+08:00",
+  "releaseNotes": "Resolved WebGL 3D background rendering and viewport occlusion: Restructured cockpit HUD into top header group and bottom deck group to provide an open central 3D viewing stage, added robust window resize calibration with DPR clamping in scene.js, and enhanced celestial lighting with soft rim backlighting."
 }

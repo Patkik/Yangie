@@ -45,10 +45,13 @@ export class KiroIntroManager {
   init() {
     if (!this.overlay) return;
 
-    // Check if persona already selected and not in replay
-    if (this.selectedPersona && KiroState.get('hasCompletedIntro')) {
+    // Check if persona already selected or intro completed
+    if (KiroState.get('hasCompletedIntro')) {
+      const persona = this.selectedPersona || KiroState.getPersona() || 'pat';
       this.overlay.classList.add('hidden');
-      if (this.onComplete) this.onComplete(this.selectedPersona);
+      this.overlay.style.display = 'none';
+      this.overlay.style.pointerEvents = 'none';
+      if (this.onComplete) this.onComplete(persona);
       return;
     }
 

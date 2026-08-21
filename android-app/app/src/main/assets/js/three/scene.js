@@ -92,31 +92,44 @@ export class KiroSceneManager {
   init() {
     // 1. Scene & Camera Setup
     this.scene = new THREE.Scene();
-    const width = this.container.clientWidth || window.innerWidth;
-    const height = this.container.clientHeight || window.innerHeight;
+    const width = window.innerWidth || this.container.clientWidth || 360;
+    const height = window.innerHeight || this.container.clientHeight || 640;
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
-    this.camera.position.set(0, 1.6, 8.0);
+    this.camera.position.set(0, 0.6, 7.2);
 
-    // 2. WebGL Renderer with GPU Clamping
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // 2. WebGL Renderer with GPU Clamping & Canvas Setup
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    
+    // Style canvas element
+    this.renderer.domElement.style.position = 'absolute';
+    this.renderer.domElement.style.inset = '0';
+    this.renderer.domElement.style.width = '100%';
+    this.renderer.domElement.style.height = '100%';
+    this.renderer.domElement.style.display = 'block';
     this.container.appendChild(this.renderer.domElement);
 
-    // 3. Lighting
-    const ambient = new THREE.AmbientLight(0xFFFFFF, 0.7);
+    // 3. High-Contrast Celestial Lighting
+    const ambient = new THREE.AmbientLight(0xFFFFFF, 1.0);
     this.scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.85);
+    const dirLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
     dirLight.position.set(5, 10, 7);
     dirLight.castShadow = true;
     this.scene.add(dirLight);
 
-    const bottomPoint = new THREE.PointLight(0x4EC9B0, 1.4, 12);
-    bottomPoint.position.set(0, -1.5, 0.5);
+    // Patrick's Mint-Teal Upward Pedestal Glow
+    const bottomPoint = new THREE.PointLight(0x4EC9B0, 2.2, 16);
+    bottomPoint.position.set(0, -1.4, 0.8);
     this.scene.add(bottomPoint);
+
+    // Yangiee's Pastel-Pink Soft Rim Backlight
+    const backLight = new THREE.PointLight(0xF5B7C0, 1.5, 14);
+    backLight.position.set(0, 2.5, -2.5);
+    this.scene.add(backLight);
 
     // 4. Build Components
     this.buildDynamicSpiralGalaxy();
@@ -128,7 +141,13 @@ export class KiroSceneManager {
     this.bindEvents();
     this.subscribeState();
 
-    // 6. Animation Loop
+    // 6. Multi-stage Layout Resize Calibration (guarantees proper aspect on mobile WebView)
+    this.resize();
+    requestAnimationFrame(() => this.resize());
+    setTimeout(() => this.resize(), 100);
+    setTimeout(() => this.resize(), 500);
+
+    // 7. Animation Loop
     this.animate();
   }
 
@@ -184,10 +203,10 @@ export class KiroSceneManager {
     starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const starMat = new THREE.PointsMaterial({
-      size: 0.14,
+      size: 0.22,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.95,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -440,6 +459,11 @@ export class KiroSceneManager {
         this.gyro.targetY = (e.beta || 0) * 0.015;
       }
     });
+
+    // Window Resize & Device Orientation Changes
+    this.boundResize = () => this.resize();
+    window.addEventListener('resize', this.boundResize);
+    window.addEventListener('orientationchange', this.boundResize);
   }
 
   subscribeState() {
@@ -895,16 +919,23 @@ export class KiroSceneManager {
 
   resize() {
     if (!this.container || !this.camera || !this.renderer) return;
-    const width = this.container.clientWidth || window.innerWidth;
-    const height = this.container.clientHeight || window.innerHeight;
+    const width = window.innerWidth || document.documentElement.clientWidth || this.container.clientWidth || 360;
+    const height = window.innerHeight || document.documentElement.clientHeight || this.container.clientHeight || 640;
+    if (width <= 0 || height <= 0) return;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   }
 
   dispose() {
     this.isDisposed = true;
     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+
+    if (this.boundResize) {
+      window.removeEventListener('resize', this.boundResize);
+      window.removeEventListener('orientationchange', this.boundResize);
+    }
 
     // Clean up touch particles
     this.touchParticles.forEach(p => {
