@@ -232,8 +232,8 @@ export class StarlightMessenger {
         <div class="mailbox-feed" id="mailbox-feed"></div>
 
         <!-- Custom Discord-style Emojis Quick Bar -->
-        <div class="emoji-quick-bar" style="display:flex; gap:6px; overflow-x:auto; padding:6px 0; border-top:1px solid rgba(255,255,255,0.06);">
-          ${DISCORD_EMOJIS.map(emoji => `<span class="emoji-tap-btn" data-emoji="${emoji}" style="cursor:pointer; font-size:18px; padding:3px 6px; border-radius:8px; background:rgba(255,255,255,0.05); transition:all 0.15s ease;">${emoji}</span>`).join('')}
+        <div class="emoji-quick-bar">
+          ${DISCORD_EMOJIS.map(emoji => `<span class="emoji-tap-btn" data-emoji="${emoji}">${emoji}</span>`).join('')}
         </div>
 
         <div class="mailbox-footer">
@@ -245,24 +245,24 @@ export class StarlightMessenger {
             </div>
           </div>
 
-          <div class="input-row" style="display:flex; gap:8px; align-items:center;">
+          <div class="input-row">
             <!-- Image Picker Button -->
-            <button id="attach-img-btn" class="chat-action-btn" title="Send Picture" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <button id="attach-img-btn" class="chat-action-btn" title="Send Picture">
               ${SVGS.image}
               <input type="file" id="attach-img-file" accept="image/*" style="display:none;">
             </button>
 
             <!-- Voice Message Button -->
-            <button id="attach-voice-btn" class="chat-action-btn" title="Hold to record voice note" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <button id="attach-voice-btn" class="chat-action-btn" title="Hold to record voice note">
               ${SVGS.mic}
             </button>
 
             <!-- Start Call Button -->
-            <button id="mailbox-call-btn" class="chat-action-btn" title="Start Video Call" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(148,226,213,0.4); background:rgba(148,226,213,0.12); color:#4EC9B0; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <button id="mailbox-call-btn" class="chat-action-btn call-action-btn" title="Start Video Call">
               ${SVGS.phoneCall}
             </button>
 
-            <input type="text" id="mailbox-input" class="chat-input" placeholder="Type a message..." autocomplete="off" style="flex:1;">
+            <input type="text" id="mailbox-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
             
             <button id="mailbox-send-btn" class="send-button" title="Send">
               ${SVGS.send}
@@ -555,6 +555,7 @@ export class StarlightMessenger {
     if (!feed) return;
 
     const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
+    const isOutgoing = (normSender === this.localUser);
     const now = new Date();
     const h12 = now.getHours() % 12 || 12;
     const mStr = String(now.getMinutes()).padStart(2, '0');

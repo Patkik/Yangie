@@ -113,9 +113,21 @@
   flex-direction: row;
 }
 
+.avatar-wrapper {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .avatar-wrapper svg {
   width: 32px;
   height: 32px;
+  flex-shrink: 0;
   border-radius: 50%;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
 }
@@ -213,6 +225,36 @@
   height: 20px;
 }
 
+.emoji-quick-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.emoji-quick-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.emoji-tap-btn {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.emoji-tap-btn:active {
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .mailbox-footer {
   display: flex;
   flex-direction: column;
@@ -252,15 +294,54 @@
 
 .input-row {
   display: flex;
+  align-items: center;
   gap: 8px;
+  width: 100%;
+}
+
+.chat-action-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.chat-action-btn:active {
+  transform: scale(0.92);
+}
+
+.chat-action-btn.call-action-btn {
+  border: 1px solid rgba(148, 226, 213, 0.4);
+  background: rgba(148, 226, 213, 0.12);
+  color: #4EC9B0;
+}
+
+.chat-action-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .chat-input {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 38px;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   color: var(--color-cream, #f5c2e7);
   font-family: var(--font-body, sans-serif);
   font-size: 13px;
@@ -272,15 +353,19 @@
 }
 
 .send-button {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
   background: linear-gradient(135deg, var(--color-mint, #4EC9B0) 0%, #4ec9b0 100%);
   border: none;
-  border-radius: 14px;
-  width: 42px;
-  height: 42px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  padding: 0;
   color: #11111B;
   box-shadow: 0 4px 14px var(--color-mint-glow, rgba(78, 201, 176, 0.4));
   transition: all 0.2s ease;
@@ -293,4 +378,5 @@
 .send-button svg {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }

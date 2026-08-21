@@ -1,5 +1,5 @@
 {
-  "version": "1.6.1",
-  "updatedAt": "2026-08-21T13:28:00+08:00",
-  "releaseNotes": "Enforced universal 12-hour clock format with AM/PM across live telemetry cockpit and Starlight Messenger, and added standard CSS background-clip support."
+  "version": "1.6.2",
+  "updatedAt": "2026-08-21T13:38:00+08:00",
+  "releaseNotes": "Fixed flexbox button compression and avatar distortion in Starlight Messenger via locked dimensions (flex-shrink: 0, min-width: 0), restored outgoing message routing state, and enforced crisp circular touch targets."
 }
