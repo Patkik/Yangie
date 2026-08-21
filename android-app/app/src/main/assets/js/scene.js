@@ -39,25 +39,43 @@ function createGlowStarTexture() {
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
 
-  // Radial Gaussian Core & Glow
-  const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
-  gradient.addColorStop(0.12, 'rgba(245, 250, 255, 0.95)');
-  gradient.addColorStop(0.35, 'rgba(148, 226, 213, 0.45)');
-  gradient.addColorStop(0.65, 'rgba(203, 166, 247, 0.15)');
-  gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
-
-  ctx.fillStyle = gradient;
+  // 1. Soft Outer Starlight Halo
+  const outerGrad = ctx.createRadialGradient(64, 64, 0, 64, 64, 60);
+  outerGrad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+  outerGrad.addColorStop(0.15, 'rgba(230, 245, 255, 0.95)');
+  outerGrad.addColorStop(0.38, 'rgba(148, 226, 213, 0.50)');
+  outerGrad.addColorStop(0.65, 'rgba(203, 166, 247, 0.18)');
+  outerGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+  ctx.fillStyle = outerGrad;
   ctx.fillRect(0, 0, 128, 128);
 
-  // Subtle 4-Point Optical Telescope Diffraction Spikes
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.70)';
-  ctx.lineWidth = 1.4;
+  // 2. Crisp Diamond Twinkle Core
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
   ctx.beginPath();
-  ctx.moveTo(64, 18);
-  ctx.lineTo(64, 110);
-  ctx.moveTo(18, 64);
-  ctx.lineTo(110, 64);
+  ctx.ellipse(64, 64, 3.5, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(64, 64, 18, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Subtle 4-Point Optical Diffraction Spikes
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(64, 8);
+  ctx.lineTo(64, 120);
+  ctx.moveTo(8, 64);
+  ctx.lineTo(120, 64);
+  ctx.stroke();
+
+  // 4. Delicate diagonal micro rays
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(34, 34);
+  ctx.lineTo(94, 94);
+  ctx.moveTo(94, 34);
+  ctx.lineTo(34, 94);
   ctx.stroke();
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -85,6 +103,12 @@ export class KiroSceneManager {
     this.isDisposed = false;
     this.isPetting = false;
     this.isTelescopeTransitioning = false;
+
+    // Dynamic 5-Phase Idle Animation Engine
+    this.isPlayingIdle = false;
+    this.idleTimer = 0;
+    this.nextIdleTrigger = 4.5;
+    this.lastIdleIndex = -1;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 1: Foundation & Disposal Registry
@@ -413,101 +437,30 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(this.distantStars);
   }
 
-  // 2.1 Volumetric Photorealistic Astronomical Nebula Shader (Z = -18.0)
+  // 2.1 Simple & Performant Cosmic Space Backdrop (Z = -18.0)
   buildVolumetricNebula() {
-    const vertexShader = `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `;
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
 
-    const fragmentShader = `
-      uniform float u_time;
-      uniform float u_audio;
-      varying vec2 vUv;
+    // Deep Midnight Space Radial Vignette (#0B0B14 to #18162E)
+    const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 256);
+    grad.addColorStop(0.0, '#1A1832'); // Subtle warm celestial glow center
+    grad.addColorStop(0.45, '#131224'); // Cozy midnight twilight
+    grad.addColorStop(0.80, '#0E0D1B'); // Deep space indigo
+    grad.addColorStop(1.0, '#080811'); // Pure infinite cosmic vacuum
 
-      vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-      vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-      vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
 
-      float snoise(vec2 v) {
-        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-        vec2 i  = floor(v + dot(v, C.yy));
-        vec2 x0 = v -   i + dot(i, C.xx);
-        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-        vec4 x12 = x0.xyxy + C.xxzz;
-        x12.xy -= i1;
-        i = mod289(i);
-        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
-        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-        m = m*m;
-        m = m*m;
-        vec3 x = 2.0 * fract(p * C.www) - 1.0;
-        vec3 h = abs(x) - 0.5;
-        vec3 ox = floor(x + 0.5);
-        vec3 a0 = x - ox;
-        m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
-        vec3 g;
-        g.x  = a0.x  * x0.x  + h.x  * x0.y;
-        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-        return 130.0 * dot(m, g);
-      }
-
-      // 4-Octave Fractional Brownian Motion for Organic Interstellar Clouds
-      float fbm(vec2 p) {
-        float f = 0.0;
-        float w = 0.5;
-        for (int i = 0; i < 4; i++) {
-          f += w * snoise(p);
-          p *= 2.02;
-          w *= 0.5;
-        }
-        return f;
-      }
-
-      void main() {
-        vec2 uv = vUv * 2.0 - 1.0;
-        float t = u_time * 0.025;
-
-        // Domain warping for fluid organic cosmic gas filaments
-        vec2 q = vec2(fbm(uv + vec2(t * 0.2, t * 0.1)), fbm(uv + vec2(t * -0.15, t * 0.25)));
-        vec2 r = vec2(fbm(uv + 2.5 * q + vec2(1.7, 9.2)), fbm(uv + 2.5 * q + vec2(8.3, 2.8)));
-        float f = fbm(uv + 3.2 * r);
-
-        // Deep Astronomical Colors (James Webb Deep Field Palette)
-        vec3 cosmicVoid = vec3(0.045, 0.042, 0.075);   // #0C0B14 Deep Vacuum
-        vec3 hydrogenAlpha = vec3(0.48, 0.18, 0.42); // Luminous H-Alpha Magenta/Violet
-        vec3 oxygenGlow = vec3(0.18, 0.58, 0.52);    // [O III] Stardust Cyan
-        vec3 warmDust = vec3(0.68, 0.48, 0.26);      // Warm Interstellar Dust
-        vec3 stellarBulge = vec3(0.95, 0.88, 0.65);  // Radiant Core Starlight
-
-        // Layer gas density
-        float density = smoothstep(-0.25, 0.75, f);
-        float coreBulge = smoothstep(1.2, 0.0, length(uv));
-
-        vec3 col = mix(cosmicVoid, hydrogenAlpha, density * 0.70);
-        col = mix(col, oxygenGlow, smoothstep(0.1, 0.8, r.x) * 0.55);
-        col = mix(col, warmDust, smoothstep(0.2, 0.9, q.y) * 0.45);
-        col += stellarBulge * (coreBulge * 0.22 * (1.0 + u_audio * 0.6));
-
-        // Subtle dark interstellar absorption dust lanes
-        float dustLane = smoothstep(0.42, 0.48, abs(fbm(uv * 1.8 - t * 0.1)));
-        col *= mix(0.55, 1.0, dustLane);
-
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `;
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    this.registerDisposable(texture);
 
     const nebulaGeo = new THREE.PlaneGeometry(90, 60);
-    this.nebulaMaterial = new THREE.ShaderMaterial({
-      vertexShader,
-      fragmentShader,
-      uniforms: {
-        u_time: { value: 0.0 },
-        u_audio: { value: 0.0 }
-      },
+    this.nebulaMaterial = new THREE.MeshBasicMaterial({
+      map: texture,
       depthWrite: false
     });
 
@@ -788,8 +741,8 @@ export class KiroSceneManager {
     const audioLevel = synthEngine.getAudioReactiveLevel();
     const isSleeping = KiroState.get('isSleeping');
 
-    // 1. Update Nebula Shader Uniforms
-    if (this.nebulaMaterial) {
+    // 1. Update Nebula Shader Uniforms (if shader-based)
+    if (this.nebulaMaterial && this.nebulaMaterial.uniforms) {
       this.nebulaMaterial.uniforms.u_time.value = time;
       this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
     }
@@ -1122,53 +1075,71 @@ export class KiroSceneManager {
     this.kiroGroup.add(this.rightFoot);
     this.registerDisposable(footGeo);
 
-    // 6. Soulful Obsidian Eyes & Starlight Catchlights
-    const eyeGeo = new THREE.SphereGeometry(0.125, 24, 24);
+    // 6. Soulful Sparkling Anime/Chibi Starlight Eyes
+    const eyeGeo = new THREE.SphereGeometry(0.138, 24, 24);
     const eyeMat = new THREE.MeshPhongMaterial({
-      color: 0x11111B,
+      color: 0x141B26,
       specular: 0x557788,
-      shininess: 70
+      shininess: 85
     });
     this.registerDisposable(eyeGeo);
     this.registerDisposable(eyeMat);
 
     // Left Eye
     this.leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.leftEye.position.set(-0.28, 0.16, 0.76);
+    this.leftEye.scale.set(1.0, 1.14, 0.55);
+    this.leftEye.position.set(-0.28, 0.16, 0.80);
     this.kiroGroup.add(this.leftEye);
 
     // Right Eye
     this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.rightEye.position.set(0.28, 0.16, 0.76);
+    this.rightEye.scale.set(1.0, 1.14, 0.55);
+    this.rightEye.position.set(0.28, 0.16, 0.80);
     this.kiroGroup.add(this.rightEye);
 
-    // Primary Starlight Specular Highlights (Catchlights)
-    const hlGeo = new THREE.SphereGeometry(0.042, 16, 16);
+    // Primary Bright Glossy Reflection Catchlights (Large Pure White)
+    const hlGeo = new THREE.SphereGeometry(0.048, 16, 16);
     const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
     this.registerDisposable(hlGeo);
     this.registerDisposable(hlMat);
 
     this.leftHl = new THREE.Mesh(hlGeo, hlMat);
-    this.leftHl.position.set(-0.24, 0.20, 0.87);
+    this.leftHl.scale.set(1.0, 1.25, 0.4);
+    this.leftHl.position.set(-0.24, 0.21, 0.89);
     this.kiroGroup.add(this.leftHl);
 
     this.rightHl = new THREE.Mesh(hlGeo, hlMat);
-    this.rightHl.position.set(0.24, 0.20, 0.87);
+    this.rightHl.scale.set(1.0, 1.25, 0.4);
+    this.rightHl.position.set(0.24, 0.21, 0.89);
     this.kiroGroup.add(this.rightHl);
 
-    // Secondary Mini Kawaii Sparkles (#F9E2AF Starlight Gold)
-    const hl2Geo = new THREE.SphereGeometry(0.020, 12, 12);
+    // Secondary Golden Starlight Diamond Twinkle (#F9E2AF)
+    const hl2Geo = new THREE.SphereGeometry(0.026, 14, 14);
     const hl2Mat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
     this.registerDisposable(hl2Geo);
     this.registerDisposable(hl2Mat);
 
     this.leftHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
-    this.leftHl2.position.set(-0.31, 0.11, 0.86);
+    this.leftHl2.position.set(-0.31, 0.11, 0.88);
     this.kiroGroup.add(this.leftHl2);
 
     this.rightHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
-    this.rightHl2.position.set(0.31, 0.11, 0.86);
+    this.rightHl2.position.set(0.31, 0.11, 0.88);
     this.kiroGroup.add(this.rightHl2);
+
+    // Tertiary Cyan Starlight Micro Glint (#94E2D5)
+    const hl3Geo = new THREE.SphereGeometry(0.016, 12, 12);
+    const hl3Mat = new THREE.MeshBasicMaterial({ color: 0x94E2D5 });
+    this.registerDisposable(hl3Geo);
+    this.registerDisposable(hl3Mat);
+
+    this.leftHl3 = new THREE.Mesh(hl3Geo, hl3Mat);
+    this.leftHl3.position.set(-0.23, 0.10, 0.88);
+    this.kiroGroup.add(this.leftHl3);
+
+    this.rightHl3 = new THREE.Mesh(hl3Geo, hl3Mat);
+    this.rightHl3.position.set(0.23, 0.10, 0.88);
+    this.kiroGroup.add(this.rightHl3);
 
     // 7. Sweet Rosy Peach/Pink Blush Cheeks (#FFB6C1)
     const blushGeo = new THREE.SphereGeometry(0.12, 20, 20);
@@ -1697,6 +1668,206 @@ export class KiroSceneManager {
     this.spawnHeartParticles();
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     5 Distinct Living Idle Animations & Posture Recovery Engine
+     ───────────────────────────────────────────────────────────────────────── */
+  resetPose() {
+    if (!this.kiroGroup) return;
+    if (this.leftArm) {
+      this.leftArm.position.set(-0.46, -0.15, 0.62);
+      this.leftArm.rotation.set(0.25, -0.45, 0.50);
+    }
+    if (this.rightArm) {
+      this.rightArm.position.set(0.46, -0.15, 0.62);
+      this.rightArm.rotation.set(0.25, 0.45, -0.50);
+    }
+    if (this.leftFoot) {
+      this.leftFoot.position.set(-0.36, -0.78, 0.30);
+      this.leftFoot.rotation.set(0, 0, 0);
+    }
+    if (this.rightFoot) {
+      this.rightFoot.position.set(0.36, -0.78, 0.30);
+      this.rightFoot.rotation.set(0, 0, 0);
+    }
+    if (this.mouthGroup) this.mouthGroup.scale.set(1, 1, 1);
+    if (this.leftEye) this.leftEye.scale.set(1, 1, 1);
+    if (this.rightEye) this.rightEye.scale.set(1, 1, 1);
+    if (this.tailMesh) this.tailMesh.rotation.set(-Math.PI / 2.6, 0, 0);
+    if (this.blushMat) this.blushMat.opacity = 0.70;
+  }
+
+  triggerRandomIdleAnimation() {
+    if (this.isPlayingIdle || this.isPetting || this.isChewing) return;
+    const isSleeping = KiroState.get('isSleeping');
+    if (isSleeping || KiroState.get('telescopeActive')) return;
+
+    // Pick 1 of 5 animations, avoiding immediate repeats
+    let nextIdx;
+    do {
+      nextIdx = Math.floor(Math.random() * 5);
+    } while (nextIdx === this.lastIdleIndex && Math.random() > 0.15);
+
+    this.lastIdleIndex = nextIdx;
+
+    switch (nextIdx) {
+      case 0:
+        this.playIdleHopAndWiggle();
+        break;
+      case 1:
+        this.playIdleCuriousLook();
+        break;
+      case 2:
+        this.playIdleTailWagAndTap();
+        break;
+      case 3:
+        this.playIdleYawnAndStretch();
+        break;
+      case 4:
+      default:
+        this.playIdleSpinAndStardust();
+        break;
+    }
+  }
+
+  // Idle 1: Happy Spring Hop & Mid-Air Foot Wiggle (User Signature Request)
+  playIdleHopAndWiggle() {
+    if (!window.gsap || !this.kiroGroup) return;
+    this.isPlayingIdle = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.isPlayingIdle = false;
+        this.resetPose();
+      }
+    });
+
+    // 1. Anticipation crouch down
+    tl.to(this.kiroGroup.scale, { y: 0.82, x: 1.14, z: 1.12, duration: 0.16, ease: 'power2.in' })
+      .to(this.kiroGroup.position, { y: -0.06, duration: 0.16 }, 0)
+      // 2. Joyful Spring Hop high into the air
+      .to(this.kiroGroup.position, { y: 0.32, duration: 0.26, ease: 'power2.out' })
+      .to(this.kiroGroup.scale, { y: 1.12, x: 0.92, z: 0.92, duration: 0.18 }, '<')
+      // 3. Mid-Air Excited Stubby Feet Wiggle & Happy Arm Flaps!
+      .to(this.leftFoot.rotation, { z: -0.45, yoyo: true, repeat: 5, duration: 0.07, ease: 'sine.inOut' }, 0.22)
+      .to(this.rightFoot.rotation, { z: 0.45, yoyo: true, repeat: 5, duration: 0.07, ease: 'sine.inOut' }, 0.22)
+      .to(this.leftArm.rotation, { z: -0.85, yoyo: true, repeat: 3, duration: 0.10, ease: 'power1.inOut' }, 0.22)
+      .to(this.rightArm.rotation, { z: 0.85, yoyo: true, repeat: 3, duration: 0.10, ease: 'power1.inOut' }, 0.22)
+      .to(this.tailMesh.rotation, { y: 0.50, yoyo: true, repeat: 4, duration: 0.08, ease: 'sine.inOut' }, 0.22)
+      // 4. Squishy Bounce Landing on Pedestal
+      .to(this.kiroGroup.position, { y: 0, duration: 0.22, ease: 'power2.in' }, 0.62)
+      .to(this.kiroGroup.scale, { y: 0.84, x: 1.14, z: 1.10, duration: 0.14, ease: 'power2.out' }, 0.84)
+      .to(this.kiroGroup.scale, { y: 1.0, x: 1.0, z: 1.0, duration: 0.35, ease: 'elastic.out(1, 0.3)' }, 0.98);
+  }
+
+  // Idle 2: Curious Looking Around & Inquisitive Head Tilt
+  playIdleCuriousLook() {
+    if (!window.gsap || !this.kiroGroup) return;
+    this.isPlayingIdle = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.isPlayingIdle = false;
+        this.resetPose();
+      }
+    });
+
+    // Tilt head curiously to the left, glance up at passing stars
+    tl.to(this.kiroGroup.rotation, { z: 0.18, y: -0.32, duration: 0.42, ease: 'power2.out' })
+      .to([this.leftEye.position, this.rightEye.position], { y: '+=0.025', x: '-=0.018', duration: 0.32 }, 0.1)
+      // Curious pause
+      .to({}, { duration: 0.45 })
+      // Gentle inquisitive tilt to the right with eye sparkle wink
+      .to(this.kiroGroup.rotation, { z: -0.16, y: 0.28, duration: 0.48, ease: 'power2.inOut' })
+      .to([this.leftEye.position, this.rightEye.position], { x: '+=0.035', duration: 0.35 }, '<')
+      .to(this.rightEye.scale, { y: 0.2, duration: 0.12, yoyo: true, repeat: 1 }, '+=0.1')
+      // Settle back to center
+      .to(this.kiroGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.38, ease: 'power2.out' }, '+=0.2')
+      .to([this.leftEye.position, this.rightEye.position], { x: (i) => (i === 0 ? -0.28 : 0.28), y: 0.16, duration: 0.3 }, '<');
+  }
+
+  // Idle 3: Playful Dino Tail Waggle & Stubby Foot Tap
+  playIdleTailWagAndTap() {
+    if (!window.gsap || !this.kiroGroup) return;
+    this.isPlayingIdle = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.isPlayingIdle = false;
+        this.resetPose();
+      }
+    });
+
+    // Rhythmic body sway with fast tail wags & rhythmic foot taps
+    tl.to(this.kiroGroup.rotation, { z: -0.06, yoyo: true, repeat: 5, duration: 0.12, ease: 'sine.inOut' })
+      .to(this.tailMesh.rotation, { y: 0.55, yoyo: true, repeat: 7, duration: 0.09, ease: 'sine.inOut' }, 0)
+      .to(this.leftFoot.position, { y: -0.70, yoyo: true, repeat: 5, duration: 0.12, ease: 'power1.out' }, 0.08)
+      .to(this.blushMat, { opacity: 0.95, yoyo: true, repeat: 1, duration: 0.35 }, 0.15);
+  }
+
+  // Idle 4: Cute Little Yawn & Big Body Stretch
+  playIdleYawnAndStretch() {
+    if (!window.gsap || !this.kiroGroup) return;
+    this.isPlayingIdle = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.isPlayingIdle = false;
+        this.resetPose();
+      }
+    });
+
+    // 1. Open mouth in sweet round "O" yawn
+    tl.to(this.mouthGroup.scale, { x: 1.35, y: 1.85, z: 1.35, duration: 0.38, ease: 'power1.out' })
+      // 2. Stretch tall on toes
+      .to(this.kiroGroup.position, { y: 0.14, duration: 0.42, ease: 'power2.out' }, 0)
+      .to(this.kiroGroup.scale, { y: 1.15, x: 0.90, z: 0.90, duration: 0.42 }, 0)
+      .to([this.leftArm.rotation, this.rightArm.rotation], { x: -0.65, duration: 0.38 }, 0)
+      .to([this.leftEye.scale, this.rightEye.scale], { y: 0.25, duration: 0.28 }, 0.15)
+      // 3. Hold cozy stretch
+      .to({}, { duration: 0.35 })
+      // 4. Relax back down with cute satisfied belly wobble
+      .to(this.mouthGroup.scale, { x: 1.0, y: 1.0, z: 1.0, duration: 0.28, ease: 'power2.inOut' })
+      .to(this.kiroGroup.position, { y: 0, duration: 0.32, ease: 'bounce.out' }, '<')
+      .to(this.kiroGroup.scale, { x: 1.0, y: 1.0, z: 1.0, duration: 0.35, ease: 'elastic.out(1, 0.3)' }, '<')
+      .to([this.leftArm.rotation, this.rightArm.rotation], { x: 0.25, duration: 0.3 }, '<')
+      .to([this.leftEye.scale, this.rightEye.scale], { y: 1.0, duration: 0.22 }, '<');
+  }
+
+  // Idle 5: Joyful 360° Spin Hop & Stardust Burst
+  playIdleSpinAndStardust() {
+    if (!window.gsap || !this.kiroGroup) return;
+    this.isPlayingIdle = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.isPlayingIdle = false;
+        this.resetPose();
+      }
+    });
+
+    // 1. Crouch & spring
+    tl.to(this.kiroGroup.scale, { y: 0.84, x: 1.12, duration: 0.14, ease: 'power2.in' })
+      .to(this.kiroGroup.position, { y: 0.28, duration: 0.28, ease: 'power2.out' })
+      .to(this.kiroGroup.scale, { y: 1.08, x: 0.95, duration: 0.18 }, '<')
+      // 2. 360 Pirouette Spin in the air
+      .to(this.kiroGroup.rotation, { y: Math.PI * 2, duration: 0.48, ease: 'power1.inOut' }, 0.12)
+      .to([this.leftFoot.rotation, this.rightFoot.rotation], { z: (i) => (i === 0 ? -0.4 : 0.4), yoyo: true, repeat: 1, duration: 0.24 }, 0.12)
+      // 3. Stardust sparkles release
+      .call(() => {
+        for (let s = 0; s < 6; s++) {
+          this.spawnStardustParticle(
+            (Math.random() - 0.5) * 0.7,
+            0.1 + Math.random() * 0.35,
+            (Math.random() - 0.5) * 0.4
+          );
+        }
+      }, null, 0.30)
+      // 4. Elastic landing with happy smile
+      .to(this.kiroGroup.position, { y: 0, duration: 0.22, ease: 'power2.in' }, 0.52)
+      .to(this.kiroGroup.scale, { y: 0.86, x: 1.12, duration: 0.12 }, 0.72)
+      .to(this.kiroGroup.scale, { x: 1.0, y: 1.0, z: 1.0, duration: 0.35, ease: 'elastic.out(1, 0.3)' }, 0.84);
+  }
+
   spawnHeartParticles() {
     if (!window.gsap) return;
     for (let i = 0; i < 8; i++) {
@@ -2048,7 +2219,7 @@ export class KiroSceneManager {
       const freq = isSleeping ? 0.8 : 2.2;
       const amp = isSleeping ? 0.02 : 0.045;
 
-      if (this.kiroGroup && !this.isPetting && !this.isChewing && !this.isTelescopeTransitioning) {
+      if (this.kiroGroup && !this.isPetting && !this.isChewing && !this.isPlayingIdle && !this.isTelescopeTransitioning) {
         // Natural squish-and-stretch breathing (Volume-conserving organic chest & belly expansion)
         const breathY = 1.0 + Math.sin(t * freq) * (isSleeping ? 0.022 : 0.038);
         const breathXZ = 1.0 - Math.sin(t * freq) * (isSleeping ? 0.011 : 0.019);
@@ -2075,13 +2246,28 @@ export class KiroSceneManager {
           });
         }
 
-        // Natural Organic Eye Blinking
+        // Natural Organic Eye Blinking & Idle Timer
         if (!isSleeping) {
           this.blinkTimer += delta;
           if (this.blinkTimer >= this.nextBlinkTime) {
             this.blinkTimer = 0;
             this.nextBlinkTime = 2.8 + Math.random() * 3.5;
             this.performBlink();
+          }
+
+          // Trigger one of the 5 distinct living idle animations periodically
+          this.idleTimer += delta;
+          if (this.idleTimer >= this.nextIdleTrigger) {
+            this.idleTimer = 0;
+            this.nextIdleTrigger = 4.5 + Math.random() * 4.0;
+            this.triggerRandomIdleAnimation();
+          }
+
+          // Subtle alive eye catchlight pulse (pupil breathing)
+          if (this.leftHl && this.rightHl) {
+            const hlScale = 1.0 + Math.sin(t * 3.2) * 0.08;
+            this.leftHl.scale.set(hlScale, hlScale * 1.25, 0.4);
+            this.rightHl.scale.set(hlScale, hlScale * 1.25, 0.4);
           }
         }
 
@@ -2100,7 +2286,7 @@ export class KiroSceneManager {
             this.rightEye.position.x = 0.28 + eyeShiftX;
             this.rightEye.position.y = 0.16 + eyeShiftY;
           }
-        } else {
+        } else if (!isSleeping) {
           this.kiroGroup.rotation.y += (0 - this.kiroGroup.rotation.y) * 0.06;
           this.kiroGroup.rotation.x += (0 - this.kiroGroup.rotation.x) * 0.06;
           if (this.leftEye && this.rightEye) {

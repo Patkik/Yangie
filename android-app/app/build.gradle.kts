@@ -7,11 +7,11 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.starlight.sanctuary"
-        minSdk = 24
+        applicationId = "com.patkik.yangie"
+        minSdk = 26
         targetSdk = 34
-        versionCode = 49
-        versionName = "2.0.1"
+        versionCode = 50
+        versionName = "2.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
