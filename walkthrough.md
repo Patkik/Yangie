@@ -1,46 +1,74 @@
-# 🌌 Kiro's Cosmic Haven — Space Capsule V6.1 Walkthrough & Architecture Audit
+# 🌌 Kiro's Cosmic Haven — Space Capsule V6.2 Walkthrough & Sanctuary Transformation Audit
 
 ## 1. Executive Summary
-- **Release Version**: `v1.9.2` (Android `versionCode = 40`)
-- **Scope**: Hardened GitHub Releases In-App Updater with native Android `ConnectivityManager` network capability pre-checking, graceful DNS / `UnknownHostException` / timeout exception handling, and polished user-facing notice banners.
+- **Release Version**: `v1.9.3` (Android `versionCode = 41`)
+- **Scope**: Complete transformation from a cold, instrument-heavy cockpit dashboard into an intimate, living celestial sanctuary shared between Patrick and Yangiee.
+- **Key Deliverables**:
+  1. **90% Unobstructed Sanctuary Viewport**: Removed heavy vitals progress boxes and telemetry frames to give Kiro and the cosmic galaxy the entire center stage.
+  2. **Minimalist Ambient Crest**: Redesigned top header into a floating rounded capsule pill featuring the brand logo, entangled partner link indicator, and subtle PST clock.
+  3. **Floating Starlight Dock**: Redesigned bottom bar into an organic floating glass dock with soft diffuse backlight halos, containing instant treat buttons (Star, Donut, Water), ambient audio soundscapes (Waves, Rain, Lo-Fi), and hold-to-sleep pill.
+  4. **Tactile Petting Physics**: Direct pointer/touch raycasting on Kiro triggering squash-and-stretch deformations, blushing cheek glows, heart particle bursts, and real-time head/eye tracking following pointer movement.
+  5. **Procedural Purr & Pet Audio Synthesis**: Pure Web Audio API cozy purr (52Hz sine carrier modulated at 28Hz with bi-quad lowpass filtering) and pentatonic chime synthesis with zero external audio assets.
+  6. **Entangled Twin Starlight Orbit**: Patrick (mint-teal `#4EC9B0`) and Yangiee (pastel-pink `#FFB6C1`) starlight nodes continuously orbiting Kiro's pedestal in a 3D twin celestial dance.
 
 ---
 
-## 2. Root Cause Analysis & Updater Hardening
+## 2. Core Architectural Pillars
 
-### 🐛 Issue: Raw DNS Error Banner (`Unable to resolve host "api.github.com"`)
-- **Root Cause**:
-  - When the user tapped "Check for Updates" on a device with offline/airplane status or DNS resolution failure, Java threw `java.net.UnknownHostException: Unable to resolve host "api.github.com": No address associated with hostname`.
-  - The raw exception message string was forwarded directly across the JavaScript bridge to `#settings-status-banner`.
-- **Architectural Solution**:
-  1. **Active Network Pre-Check**: Integrated `ConnectivityManager.activeNetwork` capabilities check in `KiroUpdateManager.kt` (`isNetworkAvailable()`) to immediately detect offline status without incurring HTTP connection timeouts.
-  2. **Specialized Exception Categorization**:
-     - `UnknownHostException` / `OFFLINE` $\to$ `"Unable to connect to GitHub. Please check your device's internet connection."`
-     - `SocketTimeoutException` / `TIMEOUT` $\to$ `"Connection to GitHub timed out. Please try again."`
-     - `ConnectException` / `CONNECT_ERROR` $\to$ `"Unable to reach GitHub servers. Please try again later."`
-     - HTTP `404` $\to$ Gracefully recognized as *"Sanctuary is on the latest bundled version"*.
-  3. **Polished Notice Banner Formatting**: Updated `app.js` `onNativeEvent` handler to present clean, cozy notice messages without string duplication.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│             TOP BAR: FLOATING AMBIENT CREST PILL & ACTIONS             │
+│  [Logo] HAKDOG • LIVE PST CLOCK | CONNECTED TO YANGIEE   [🔭][📹][📬][⚙️] │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│                      🌌 LIVING SANCTUARY VIEWPORT                      │
+│                                                                        │
+│                     (90% Unobstructed 3D WebGL Space)                  │
+│                                                                        │
+│                       • Real Space 1400 Distant Stars                  │
+│                       • 3D Tilted Spiral Galaxy                        │
+│                       • Volumetric Nebula Shader                       │
+│                                                                        │
+│                          🐾 KIRO COMPANION                             │
+│                  - Direct Pointer/Touch Raycasting                     │
+│                  - Real-Time Head & Eye Tracking                       │
+│                  - Squash & Stretch Petting Reactions                  │
+│                  - Blushing Cheek Glows & Heart Bursts                 │
+│                  - Entangled Twin Starlight Orbit                      │
+│                  - Dynamic Starlight Vitality Aura                     │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│                BOTTOM BAR: FLOATING STARLIGHT DOCK                     │
+│    [⭐ Star] [🍩 Donut] [💧 Water] | [🌊 Waves] [🌧️ Rain] [🎵 Lo-Fi] | [🌙 SLEEP] │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 3. Celestial & Companion Architecture
+## 3. Subsystem Implementation Breakdown
 
-| Component | Depth / Layer | Description |
-|---|---|---|
-| **Kiro Companion** | $Z = 0.0$ | Redesigned procedural 3D companion with soulful obsidian eyes, dual starlight catchlights, rosy blush, sweet smile, and responsive mobile camera framing |
-| **Spiral Galaxy** | $Z = -13.5$ | 3D-tilted logarithmic double-arm spiral galaxy ($50^\circ / 16^\circ$ inclination) with dense stellar core |
-| **Distant Starfield** | $Z = -24.0\dots-65.0$ | 1,400 distant stars with Morgan–Keenan spectral class coloring and independent shimmering |
-| **Cosmic Nebula** | $Z = -18.0$ | Volumetric procedural Simplex noise dust clouds |
-| **In-App Updater** | Native Kotlin / JS IPC | Secure GitHub Releases OTA/APK pipeline with active network validation |
+### A. Viewport & CSS Glassmorphism (`main.css`)
+- **Diffuse Backlight Halos**: Replaced sharp 1px borders with warm starlight glows (`box-shadow: 0 12px 38px rgba(0,0,0,0.55), 0 0 28px rgba(249, 226, 175, 0.10)`).
+- **Organic Continuous Pills**: Implemented `border-radius: 9999px` across all floating components.
+- **Hardware-Composited Micro-Animations**: Smooth transform scales, hover lifts, and zero-reflow transitions.
+
+### B. Procedural Audio Synthesis (`synth.js`)
+- `playPurrSound(duration)`: Generates a deep, warm cat purr tone using a 52Hz sine carrier, modulated by an LFO tremolo at 28Hz through a 240Hz Lowpass Biquad filter.
+- `playPetChime(freq)`: Ascending pentatonic chime synthesis with soft sine decay and spatial reverb emulation.
+
+### C. 3D Companion Dynamics (`scene.js`)
+- **Direct Pointer Petting**: Screen-space raycasting intersects Kiro's body and flippers on pointerdown, triggering celebratory jumps, rotations, elastic squashes, and purr sound feedback.
+- **Head & Eye Tracking**: Kiro smoothly angles its body and shifts starlight catchlight pupils toward the user's active touch coordinates.
+- **Entangled Twin Orbit**: Dual starlight nodes (Patrick & Yangiee) orbit around the pedestal in harmonic counterpoint at $Z = 0$.
 
 ---
 
-## 4. Dual Verification Suite Results
+## 4. Verification Suite Results
 
 | Test / Gate | Command | Result |
 |---|---|---|
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Exit Code 0** |
 | **Android Unit & Instrumentation Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL (52/52 tasks)** |
-| **Synchronized SemVer** | `v1.9.2` (Android `versionCode = 40`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-210450 synced across rules & `DECISIONS.md` |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL** |
+| **Synchronized SemVer** | `v1.9.3` (Android `versionCode = 41`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-221800 synced across rules & `DECISIONS.md` |

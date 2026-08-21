@@ -162,91 +162,135 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   3. Brand Header & SVG Insignia Logo
+   3. Pure Sanctuary Floating Top Bar & Starlight Crest
    ══════════════════════════════════════════════════════════════════════════ */
-.main-header {
+.sanctuary-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  pointer-events: none;
 }
 
-.brand-crest {
+.sanctuary-top-bar > * {
+  pointer-events: auto;
+}
+
+/* Ambient Crest Pill with Twin Starlight Status & Clock */
+.sanctuary-crest-pill {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  background: rgba(17, 17, 27, 0.76);
+  border: 1px solid rgba(148, 226, 213, 0.22);
+  border-radius: 9999px;
+  padding: 5px 14px 5px 6px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 
+    0 8px 28px rgba(0, 0, 0, 0.42),
+    0 0 20px rgba(78, 201, 176, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: default;
+}
+
+.sanctuary-crest-pill:hover {
+  border-color: var(--color-mint);
+  box-shadow: 
+    0 10px 32px rgba(0, 0, 0, 0.5),
+    0 0 25px var(--color-mint-glow);
+  transform: translateY(-1px);
 }
 
 .brand-logo-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: rgba(15, 25, 38, 0.65);
-  border: 1px solid rgba(148, 226, 213, 0.25);
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.35),
-    0 0 15px rgba(78, 201, 176, 0.15);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(15, 25, 38, 0.85);
+  border: 1px solid rgba(148, 226, 213, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.brand-logo-wrap:hover {
-  border-color: var(--color-mint);
-  box-shadow: 
-    0 6px 25px rgba(0, 0, 0, 0.45),
-    0 0 25px var(--color-mint-glow);
-  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(78, 201, 176, 0.25);
+  flex-shrink: 0;
 }
 
 .brand-logo-svg {
-  width: 32px;
-  height: 32px;
-  filter: drop-shadow(0 0 6px rgba(78, 201, 176, 0.4));
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 0 5px rgba(78, 201, 176, 0.5));
 }
 
-.brand-typography {
+.sanctuary-meta-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
-.brand-title {
+.sanctuary-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sanctuary-brand-text {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 2.5px;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F5B7C0 55%, #4EC9B0 100%);
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5B7C0 60%, #4EC9B0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 24px rgba(245, 183, 192, 0.35);
+  text-shadow: 0 0 16px rgba(245, 183, 192, 0.3);
   line-height: 1;
 }
 
-.brand-badge {
+.live-clock-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-mint);
+  box-shadow: 0 0 6px var(--color-mint);
+  animation: clockDotBlink 1.8s ease-in-out infinite;
+}
+
+@keyframes clockDotBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+.sanctuary-live-clock {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-mint);
+  letter-spacing: 0.6px;
+}
+
+.sanctuary-partner-sub {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-family: var(--font-heading);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  color: var(--color-mint);
+  letter-spacing: 1px;
+  color: var(--color-pink-blush);
   text-transform: uppercase;
 }
 
-.badge-star-icon {
-  width: 9px;
-  height: 9px;
-  color: var(--color-mint);
+.partner-star-svg {
+  width: 8px;
+  height: 8px;
+  color: var(--color-pink-blush);
 }
 
-/* Header Action Buttons */
+/* Floating Starlight Action Navigation Buttons */
 .header-actions {
   display: flex;
   align-items: center;
@@ -254,37 +298,35 @@ html, body {
 }
 
 .nav-btn {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: var(--color-panel-glass);
-  border: 1px solid var(--color-border-glass);
+  background: rgba(17, 17, 27, 0.76);
+  border: 1px solid rgba(148, 226, 213, 0.2);
   color: var(--color-cream);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.38),
+    0 0 15px rgba(0, 0, 0, 0.2);
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .nav-btn svg {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   transition: transform 0.2s ease, stroke 0.2s ease;
 }
 
 .nav-btn:hover {
   border-color: var(--color-mint);
   color: var(--color-mint);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--color-mint-glow);
-}
-
-.nav-btn:hover svg {
-  transform: scale(1.08);
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 8px 24px var(--color-mint-glow);
 }
 
 .nav-btn:active {
@@ -292,256 +334,18 @@ html, body {
 }
 
 .nav-btn.active {
-  background: rgba(78, 201, 176, 0.2);
+  background: rgba(78, 201, 176, 0.22);
   border-color: var(--color-mint);
   color: var(--color-mint);
-  box-shadow: 0 0 16px var(--color-mint-glow);
+  box-shadow: 0 0 18px var(--color-mint-glow);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   4. Center Hero & Telemetry Greeting Hub
-   ══════════════════════════════════════════════════════════════════════════ */
-.hero-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-  margin: auto 0;
-  width: 100%;
-}
-
-.time-greeting-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.time-greeting {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  color: #FFFFFF;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.greeting-svg-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: var(--color-mint);
-  vertical-align: middle;
-}
-
-.live-clock-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(15, 25, 38, 0.6);
-  border: 1px solid rgba(148, 226, 213, 0.16);
-  border-radius: 20px;
-  padding: 4px 14px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.live-clock-pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-mint);
-  box-shadow: 0 0 8px var(--color-mint);
-  animation: clockDotBlink 1.8s ease-in-out infinite;
-}
-
-@keyframes clockDotBlink {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(0.7); }
-}
-
-.live-clock {
-  font-family: var(--font-heading);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-mint);
-  letter-spacing: 1px;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   5. Kiro Pou-Style Vitals Progress HUD Card
-   ══════════════════════════════════════════════════════════════════════════ */
-.vitals-hud-card {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 400px;
-  background: var(--color-panel-glass);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 20px;
-  padding: 12px 16px;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  gap: 14px;
-}
-
-.vital-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-}
-
-.vital-label-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.vital-svg {
-  width: 13px;
-  height: 13px;
-}
-
-.vital-name {
-  font-family: var(--font-heading);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  color: #CDD6F4;
-}
-
-.vital-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.vital-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.vital-fill.food-fill {
-  background: linear-gradient(90deg, #F5B7C0, #ffb6c1);
-  box-shadow: 0 0 8px rgba(245, 183, 192, 0.6);
-}
-
-.vital-fill.water-fill {
-  background: linear-gradient(90deg, #4EC9B0, #4ec9b0);
-  box-shadow: 0 0 8px rgba(78, 201, 176, 0.6);
-}
-
-.vital-fill.energy-fill {
-  background: linear-gradient(90deg, #CBA6F7, #cba6f7);
-  box-shadow: 0 0 8px rgba(203, 166, 247, 0.6);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   6. Unified Telemetry Card
-   ══════════════════════════════════════════════════════════════════════════ */
-.unified-card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--color-panel-glass);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 22px;
-  padding: 14px 18px;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 
-    0 12px 36px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.connection-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.connection-pill {
-  background: rgba(245, 183, 192, 0.12);
-  border: 1px solid rgba(245, 183, 192, 0.3);
-  color: var(--color-pink-blush);
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 10.5px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.distance-pill {
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: 600;
-  color: #cdd6f4;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.weather-sync-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.weather-telemetry-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #CDD6F4;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 5px 10px;
-  border-radius: 12px;
-  flex: 1;
-  justify-content: center;
-  transition: all 0.25s ease;
-}
-
-.weather-telemetry-item.local-station {
-  background: rgba(78, 201, 176, 0.1);
-  border-color: rgba(78, 201, 176, 0.3);
-  color: #FFFFFF;
-}
-
-.weather-telemetry-item.partner-station {
-  background: rgba(245, 183, 192, 0.08);
-  border-color: rgba(245, 183, 192, 0.25);
-  color: #CDD6F4;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   7. Pilot D-Pad Joystick HUD (Telescope Mode)
+   4. Pilot D-Pad Joystick HUD (Telescope Mode)
    ══════════════════════════════════════════════════════════════════════════ */
 .cockpit-joystick-wrap {
   position: absolute;
-  bottom: 124px;
+  bottom: 110px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -603,101 +407,167 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   8. Bottom Action Deck & Sleep Slider Switch
+   5. Floating Starlight Dock (Treats, Ambient Soundscapes & Sleep Pill)
    ══════════════════════════════════════════════════════════════════════════ */
-.bottom-deck {
+.starlight-floating-dock {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-}
-
-.quick-action-row {
-  display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
+  width: auto;
+  max-width: calc(100vw - 24px);
+  margin: 0 auto;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  background: rgba(17, 17, 27, 0.82);
+  border: 1px solid rgba(148, 226, 213, 0.22);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 12px 38px rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(249, 226, 175, 0.10),
+    0 0 16px rgba(78, 201, 176, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.action-pill-btn {
-  flex: 1;
-  background: var(--color-panel-glass);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 18px;
-  padding: 9px 4px;
+.starlight-floating-dock:hover {
+  border-color: rgba(148, 226, 213, 0.35);
+  box-shadow: 
+    0 16px 44px rgba(0, 0, 0, 0.65),
+    0 0 32px rgba(249, 226, 175, 0.16);
+}
+
+.dock-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 2px;
+}
+
+.starlight-pill-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  color: var(--color-cream);
+  justify-content: center;
+  gap: 2px;
+  min-width: 42px;
+  height: 40px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: rgba(30, 30, 46, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #CDD6F4;
   font-family: var(--font-heading);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.action-pill-btn .btn-svg {
-  width: 18px;
-  height: 18px;
+.starlight-pill-btn .pill-svg {
+  width: 17px;
+  height: 17px;
   display: block;
-  margin: 0 auto;
-  color: var(--color-cream);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.action-pill-btn:hover {
-  background: rgba(78, 201, 176, 0.15);
-  border-color: var(--color-mint);
-  transform: translateY(-2px);
+.starlight-pill-btn:hover {
+  background: rgba(78, 201, 176, 0.18);
+  border-color: rgba(78, 201, 176, 0.4);
+  color: #FFFFFF;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 14px rgba(78, 201, 176, 0.35);
 }
 
-.action-pill-btn:hover .btn-svg,
-.action-pill-btn.active .btn-svg {
-  color: var(--color-mint);
+.starlight-pill-btn:hover .pill-svg {
   transform: scale(1.18);
 }
 
-.action-pill-btn.active {
-  background: rgba(78, 201, 176, 0.2);
-  border-color: var(--color-mint);
-  color: var(--color-mint);
+.starlight-pill-btn:active {
+  transform: scale(0.92);
 }
 
-.action-pill-btn:active {
-  transform: scale(0.93);
+.starlight-pill-btn.active {
+  background: rgba(78, 201, 176, 0.25);
+  border-color: var(--color-mint);
+  color: var(--color-mint);
+  box-shadow: 0 0 16px var(--color-mint-glow);
+}
+
+/* Treat Button Custom Glows */
+.starlight-pill-btn.treat-btn:hover {
+  background: rgba(249, 226, 175, 0.16);
+  border-color: rgba(249, 226, 175, 0.5);
+  box-shadow: 0 4px 16px rgba(249, 226, 175, 0.35);
 }
 
 /* Sleep / Wake Pill Button (Hold to Toggle) */
-.sleep-pill,
-.sleep-switch-btn {
-  width: 100%;
+.sleep-pill {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(203, 166, 247, 0.16) 0%, rgba(78, 201, 176, 0.12) 100%);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 20px;
-  padding: 11px 16px;
+  min-width: 76px;
+  height: 40px;
+  background: linear-gradient(135deg, rgba(203, 166, 247, 0.2) 0%, rgba(78, 201, 176, 0.15) 100%);
+  border: 1px solid rgba(203, 166, 247, 0.35);
+  border-radius: 9999px;
+  padding: 0 12px;
   cursor: pointer;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(203, 166, 247, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.25s ease;
-  pointer-events: auto;
+  flex-shrink: 0;
 }
 
-.sleep-pill:hover,
-.sleep-switch-btn:hover {
+.sleep-pill:hover {
   border-color: var(--color-lavender);
-  background: linear-gradient(135deg, rgba(203, 166, 247, 0.26) 0%, rgba(78, 201, 176, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(203, 166, 247, 0.3) 0%, rgba(78, 201, 176, 0.25) 100%);
   transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(203, 166, 247, 0.35);
+}
+
+.sleep-pill:active {
+  transform: scale(0.95);
+}
+
+.sleep-pill-progress {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(203, 166, 247, 0.6) 0%, rgba(78, 201, 176, 0.6) 100%);
+  width: 0%;
+  height: 100%;
+  pointer-events: none;
+  transition: width 0.05s linear;
+  border-radius: 9999px;
+}
+
+.sleep-pill-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #FFFFFF;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.sleep-pill-svg {
+  width: 14px;
+  height: 14px;
+}
 }
 
 .sleep-pill:active,

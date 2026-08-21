@@ -118,13 +118,15 @@ export class KiroSceneManager {
     this.cometHead = null;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Phase 3: Interaction & Touch Trails
+    // Phase 3: Interaction, Touch Trails & Tactile Raycasting
     // ─────────────────────────────────────────────────────────────────────────
     this.mouse = new THREE.Vector2(0, 0);
     this.pointerInCanvas = false;
     this.gyro = { x: 0, y: 0, targetX: 0, targetY: 0 };
     this.touchParticles = [];
     this.maxTouchParticles = 80;
+    this.raycaster = new THREE.Raycaster();
+    this.lastPetTime = 0;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 4: Cockpit Space Shuttle & Holographic Targets
@@ -143,6 +145,13 @@ export class KiroSceneManager {
     this.warpZStretch = 1.0;
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Entangled Twin Starlight Orbit (Patrick & Yangiee Link)
+    // ─────────────────────────────────────────────────────────────────────────
+    this.entangledStarlightGroup = null;
+    this.patStarlightOrb = null;
+    this.yangStarlightOrb = null;
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Kiro Sanctuary Companion (Z = 0.0)
     // ─────────────────────────────────────────────────────────────────────────
     this.kiroGroup = null;
@@ -150,6 +159,7 @@ export class KiroSceneManager {
     this.neonRing = null;
     this.pedestalSparkles = null;
     this.goldenAura = null;
+    this.auraMaterial = null;
     this.nightcap = null;
     this.leftEye = null;
     this.rightEye = null;
@@ -214,23 +224,23 @@ export class KiroSceneManager {
       this.container.appendChild(this.renderer.domElement);
     }
 
-    // High-Contrast Balanced Celestial Lighting
-    const ambient = new THREE.AmbientLight(0xDBE7F5, 0.75);
+    // High-Contrast Balanced Warm Celestial Lighting (Elevated Gold & Cozy Twilight Radiance)
+    const ambient = new THREE.AmbientLight(0x2D1F38, 0.90);
     this.scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0xFFFFFF, 0.90);
+    const keyLight = new THREE.DirectionalLight(0xF9E2AF, 1.35);
     keyLight.position.set(3.5, 6.0, 5.0);
     this.scene.add(keyLight);
 
-    const mintFill = new THREE.PointLight(0x4EC9B0, 1.3, 10);
+    const mintFill = new THREE.PointLight(0x4EC9B0, 1.4, 10);
     mintFill.position.set(0, -1.2, 1.8);
     this.scene.add(mintFill);
 
-    const pinkRim = new THREE.DirectionalLight(0xFFB6C1, 0.70);
+    const pinkRim = new THREE.DirectionalLight(0xFFB6C1, 0.85);
     pinkRim.position.set(-3.5, 3.0, -3.0);
     this.scene.add(pinkRim);
 
-    const warmGlow = new THREE.PointLight(0xF9E2AF, 0.50, 8);
+    const warmGlow = new THREE.PointLight(0xF9E2AF, 0.80, 8);
     warmGlow.position.set(0, 2.4, 1.5);
     this.scene.add(warmGlow);
 
@@ -954,6 +964,27 @@ export class KiroSceneManager {
     this.registerDisposable(sparkleGeo);
     this.scene.add(this.pedestalSparkles);
 
+    // 4. Entangled Twin Starlight Orbit (Patrick & Yangiee Celestial Link)
+    this.entangledStarlightGroup = new THREE.Group();
+    this.scene.add(this.entangledStarlightGroup);
+
+    // Patrick's Mint-Teal Starlight Node (#4EC9B0)
+    const patOrbGeo = new THREE.SphereGeometry(0.075, 16, 16);
+    const patOrbMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0 });
+    this.patStarlightOrb = new THREE.Mesh(patOrbGeo, patOrbMat);
+    this.entangledStarlightGroup.add(this.patStarlightOrb);
+
+    // Yangiee's Pastel-Pink Starlight Node (#FFB6C1)
+    const yangOrbGeo = new THREE.SphereGeometry(0.075, 16, 16);
+    const yangOrbMat = new THREE.MeshBasicMaterial({ color: 0xFFB6C1 });
+    this.yangStarlightOrb = new THREE.Mesh(yangOrbGeo, yangOrbMat);
+    this.entangledStarlightGroup.add(this.yangStarlightOrb);
+
+    this.registerDisposable(patOrbGeo);
+    this.registerDisposable(patOrbMat);
+    this.registerDisposable(yangOrbGeo);
+    this.registerDisposable(yangOrbMat);
+
     this.registerDisposable(pedestalGeo);
     this.registerDisposable(pedestalMat);
     this.registerDisposable(ringGeo);
@@ -1140,21 +1171,21 @@ export class KiroSceneManager {
     this.registerDisposable(pomGeo);
     this.registerDisposable(pomMat);
 
-    // 9. Well-Rested Golden Aura
-    const auraGeo = new THREE.SphereGeometry(1.35, 32, 32);
-    const auraMat = new THREE.MeshBasicMaterial({
+    // 9. Living Starlight Vitality Aura (Atmospheric Wellbeing & Warm Sanctuary Glow)
+    const auraGeo = new THREE.SphereGeometry(1.32, 32, 32);
+    this.auraMaterial = new THREE.MeshBasicMaterial({
       color: 0xF9E2AF,
       transparent: true,
-      opacity: 0.20,
+      opacity: 0.24,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide
     });
-    this.goldenAura = new THREE.Mesh(auraGeo, auraMat);
-    this.goldenAura.visible = false;
+    this.goldenAura = new THREE.Mesh(auraGeo, this.auraMaterial);
+    this.goldenAura.visible = true;
     this.kiroGroup.add(this.goldenAura);
 
     this.registerDisposable(auraGeo);
-    this.registerDisposable(auraMat);
+    this.registerDisposable(this.auraMaterial);
   }
 
   buildCockpitHUD() {
@@ -1316,17 +1347,34 @@ export class KiroSceneManager {
     if (!this.kiroGroup) return;
     this.isPetting = true;
 
+    // Synthesize cozy procedural purr & sweet pentatonic pet chime
+    synthEngine.playPurrSound(1.2);
+    synthEngine.playPetChime(660);
+
+    // Warm blushing cheek glow reaction
+    if (window.gsap && this.leftBlush && this.rightBlush) {
+      gsap.to([this.leftBlush.scale, this.rightBlush.scale], {
+        x: 1.3,
+        y: 1.1,
+        z: 0.4,
+        duration: 0.25,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power2.out'
+      });
+    }
+
     if (window.gsap) {
       const tl = gsap.timeline({
         onComplete: () => {
           this.isPetting = false;
         }
       });
-      tl.to(this.kiroGroup.position, { y: 0.6, duration: 0.25, ease: 'power1.out' })
+      tl.to(this.kiroGroup.position, { y: 0.5, duration: 0.22, ease: 'power1.out' })
         .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.55, ease: 'sine.inOut' }, 0)
-        .to(this.kiroGroup.position, { y: 0, duration: 0.25, ease: 'power1.in' })
-        .to(this.kiroGroup.scale, { y: 0.88, x: 1.12, duration: 0.1, ease: 'power2.out' })
-        .to(this.kiroGroup.scale, { y: 1, x: 1, duration: 0.2, ease: 'elastic.out(1, 0.3)' });
+        .to(this.kiroGroup.position, { y: 0, duration: 0.22, ease: 'power1.in' })
+        .to(this.kiroGroup.scale, { y: 0.85, x: 1.15, duration: 0.12, ease: 'power2.out' })
+        .to(this.kiroGroup.scale, { y: 1, x: 1, duration: 0.25, ease: 'elastic.out(1, 0.3)' });
     } else {
       this.isPetting = false;
     }
@@ -1621,13 +1669,60 @@ export class KiroSceneManager {
       const amp = isSleeping ? 0.02 : 0.05;
       if (this.kiroGroup && !this.isPetting && !this.isTelescopeTransitioning) {
         this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+
+        // Head & Eye Tracking towards User Touch / Pointer
+        if (!isSleeping && this.pointerInCanvas) {
+          const targetRotY = this.mouse.x * 0.35;
+          const targetRotX = -this.mouse.y * 0.22;
+          this.kiroGroup.rotation.y += (targetRotY - this.kiroGroup.rotation.y) * 0.08;
+          this.kiroGroup.rotation.x += (targetRotX - this.kiroGroup.rotation.x) * 0.08;
+
+          if (this.leftEye && this.rightEye) {
+            const eyeShiftX = this.mouse.x * 0.025;
+            const eyeShiftY = this.mouse.y * 0.025;
+            this.leftEye.position.x = -0.28 + eyeShiftX;
+            this.leftEye.position.y = 0.16 + eyeShiftY;
+            this.rightEye.position.x = 0.28 + eyeShiftX;
+            this.rightEye.position.y = 0.16 + eyeShiftY;
+          }
+        } else {
+          this.kiroGroup.rotation.y += (0 - this.kiroGroup.rotation.y) * 0.06;
+          this.kiroGroup.rotation.x += (0 - this.kiroGroup.rotation.x) * 0.06;
+          if (this.leftEye && this.rightEye) {
+            this.leftEye.position.x += (-0.28 - this.leftEye.position.x) * 0.06;
+            this.leftEye.position.y += (0.16 - this.leftEye.position.y) * 0.06;
+            this.rightEye.position.x += (0.28 - this.rightEye.position.x) * 0.06;
+            this.rightEye.position.y += (0.16 - this.rightEye.position.y) * 0.06;
+          }
+        }
       }
     }
 
     // 3. Update Living Celestial Subsystems
     this.updateCelestialLayer(t, delta);
 
-    // 4. Audio-Visual Synesthesia
+    // 4. Entangled Twin Starlight Orbit (Patrick mint-teal & Yangiee pastel-pink)
+    if (this.entangledStarlightGroup && this.patStarlightOrb && this.yangStarlightOrb) {
+      const orbitSpeed = 0.75;
+      const orbitRadiusX = 1.55;
+      const orbitRadiusZ = 0.58;
+      const anglePat = t * orbitSpeed;
+      const angleYang = anglePat + Math.PI;
+
+      this.patStarlightOrb.position.set(
+        Math.cos(anglePat) * orbitRadiusX,
+        -0.88 + Math.sin(anglePat * 2) * 0.08,
+        Math.sin(anglePat) * orbitRadiusZ
+      );
+
+      this.yangStarlightOrb.position.set(
+        Math.cos(angleYang) * orbitRadiusX,
+        -0.88 + Math.sin(angleYang * 2) * 0.08,
+        Math.sin(angleYang) * orbitRadiusZ
+      );
+    }
+
+    // 5. Audio-Visual Synesthesia & Vitality Aura
     const audioLevel = synthEngine.getAudioReactiveLevel();
     if (this.neonRing) {
       this.neonRing.rotation.z += 0.008;
@@ -1641,12 +1736,12 @@ export class KiroSceneManager {
     }
 
     if (this.goldenAura && this.goldenAura.visible) {
-      const auraScale = 1.35 + audioLevel * 0.25;
-      this.goldenAura.scale.set(auraScale, auraScale, auraScale);
-      this.goldenAura.material.opacity = 0.15 + audioLevel * 0.2;
+      const auraBreath = 1.0 + Math.sin(t * 1.5) * 0.06 + audioLevel * 0.2;
+      this.goldenAura.scale.set(auraBreath, auraBreath, auraBreath);
+      this.goldenAura.material.opacity = 0.20 + audioLevel * 0.18;
     }
 
-    // 5. Update Local Particle Systems & Physics
+    // 6. Update Local Particle Systems & Physics
     this.updateTouchParticles();
     this.updatePhysics();
     this.updateWaterPhysics();

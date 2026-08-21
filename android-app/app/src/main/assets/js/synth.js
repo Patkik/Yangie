@@ -567,6 +567,77 @@ export class CosmicSynthEngine {
     noise.stop(now + 0.22);
   }
 
+  playPurrSound(duration = 1.2) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // Carrier Oscillator (Cozy deep purr tone ~52Hz)
+    const carrier = this.ctx.createOscillator();
+    carrier.type = 'triangle';
+    carrier.frequency.setValueAtTime(52, now);
+    carrier.frequency.linearRampToValueAtTime(58, now + duration * 0.5);
+    carrier.frequency.linearRampToValueAtTime(48, now + duration);
+
+    // Tremolo LFO for purr pulse (~22Hz)
+    const lfo = this.ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(22, now);
+
+    const lfoGain = this.ctx.createGain();
+    lfoGain.gain.setValueAtTime(0.35, now);
+
+    // Warm Lowpass Filter (Eliminates harsh highs, preserves rich purr warmth)
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(220, now);
+    filter.Q.value = 1.5;
+
+    const mainGain = this.ctx.createGain();
+    mainGain.gain.setValueAtTime(0.001, now);
+    mainGain.gain.linearRampToValueAtTime(0.28, now + 0.15);
+    mainGain.gain.linearRampToValueAtTime(0.22, now + duration * 0.7);
+    mainGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    lfo.connect(lfoGain.gain);
+    carrier.connect(filter);
+    filter.connect(mainGain);
+    mainGain.connect(this.masterGain);
+
+    carrier.start(now);
+    lfo.start(now);
+    carrier.stop(now + duration + 0.05);
+    lfo.stop(now + duration + 0.05);
+  }
+
+  playPetChime() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const petFreqs = [659.25, 783.99, 987.77, 1318.51]; // E5, G5, B5, E6 Major Pentatonic
+
+    petFreqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startTime = now + idx * 0.06;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.05, startTime + 0.35);
+
+      gain.gain.setValueAtTime(0.09, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.5);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(startTime);
+      osc.stop(startTime + 0.55);
+    });
+  }
+
   playChimeSound(frequency = 880) {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
