@@ -26,12 +26,17 @@ class KiroAssetValidatorTest {
             "css/main.css",
             "css/intro.css",
             "css/messenger.css",
+            "css/call.css",
             "js/app.js",
             "js/state.js",
-            "js/audio/synth.js",
-            "js/three/intro.js",
-            "js/three/scene.js",
-            "js/ui/mailbox.js"
+            "js/synth.js",
+            "js/intro.js",
+            "js/scene.js",
+            "js/mailbox.js",
+            "js/call-engine.js",
+            "js/crypto-engine.js",
+            "js/three.min.js",
+            "js/gsap.min.js"
         )
 
         requiredAssets.forEach { relativePath ->

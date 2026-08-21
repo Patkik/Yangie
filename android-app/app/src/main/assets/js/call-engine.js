@@ -14,7 +14,7 @@
  * Complies with Master Walkthrough Audit v1.2.1 (token normalization via KiroState).
  */
 
-import { KiroState } from '../state.js';
+import { KiroState } from './state.js';
 
 // ─── ICE Server Configuration ──────────────────────────────────────────────
 const ICE_SERVERS = [

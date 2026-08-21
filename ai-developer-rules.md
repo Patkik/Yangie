@@ -90,3 +90,4 @@ To ensure safe, non-breaking developer iterations, you must strictly follow this
 - **[DEC-982310]** Strict Antigravity Skill Dispatch Matrix & 34-Skill Operational Registry
 - **[DEC-994180]** 3D WebGL Viewport Re-Architecture & Android WebView Display Resolution
 - **[DEC-103840]** Externalized Decision Registry & Uncongested Rule Synchronization Architecture
+- **[DEC-114920]** Space Capsule V5.0 Full Architectural Refactoring & Procedural Audio Modernization

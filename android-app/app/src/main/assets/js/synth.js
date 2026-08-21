@@ -1,10 +1,18 @@
 /**
- * synth.js
- * Pure Web Audio API Sound Synthesizer Engine (ES6 Module)
- * Procedural ambient generators, live frequency analyser for 3D synesthesia, and clean disposal.
+ * synth.js (Space Capsule V5.0 — Procedural Web Audio Engine)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * 100% Offline-First Procedural Sound Synthesis Engine with Zero External Audio Files.
+ * 
+ * Features:
+ * 1. Continuous Engine Thruster Synthesizer (Sawtooth 55Hz + Triangle 110Hz + BiquadFilter Q=6.0 + LFO)
+ * 2. Real-Time Dynamic Cockpit Steering Speed Vector Pitch/Filter/Gain Modulation
+ * 3. Audio-Reactive Analyser Bridge for 3D WebGL Aura & Pedestal Synesthesia
+ * 4. Cozy Atmospheric Generators: Rain, Ocean Waves (0.12Hz LFO), Thunder, Forest Birds, Lo-Fi Beat
+ * 5. Procedural Sound FX: Cartoon Chewing, Glass Water Droplets, Warp Swoosh, Portal Chords
+ * 6. WebRTC Voice Recording Interface & Leak-Proof Node Disposal Lifecycle
  */
 
-import { KiroState } from '../state.js';
+import { KiroState } from './state.js';
 
 export class CosmicSynthEngine {
   constructor() {
@@ -13,7 +21,9 @@ export class CosmicSynthEngine {
     this.analyser = null;
     this.analyserData = null;
     this.isPlaying = false;
+    this.atmosphereActive = false;
 
+    // Ambient Channels
     this.channels = {
       rain: { volume: 0, node: null, gainNode: null },
       thunder: { volume: 0, node: null, gainNode: null },
@@ -22,13 +32,46 @@ export class CosmicSynthEngine {
       lofi: { volume: 0, node: null, gainNode: null }
     };
 
+    // Thruster Synthesizer State (V5.0)
+    this.thruster = {
+      active: false,
+      sawOsc: null,
+      triOsc: null,
+      lfoOsc: null,
+      lfoGain: null,
+      filterNode: null,
+      gainNode: null,
+      currentSpeed: 0.0 // 0.0 (idle hum) to 1.0 (full burn)
+    };
+
+    // Scheduled Timers
     this.thunderTimer = null;
     this.birdTimer = null;
     this.lofiInterval = null;
 
-    // Listen to KiroState volume events
+    // Media Recording Stream
+    this.activeStream = null;
+    this.mediaRecorder = null;
+    this.recordedChunks = [];
+
+    // State Subscriptions
     KiroState.on('sound:volume', ({ channel, volume }) => {
       this.setVolume(channel, volume);
+    });
+
+    KiroState.on('cockpitSteering:change', (steering) => {
+      if (steering) {
+        const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
+        this.updateThrusterSpeed(speed);
+      }
+    });
+
+    KiroState.on('change:telescopeActive', ({ newValue }) => {
+      if (newValue) {
+        this.startThruster();
+      } else {
+        this.stopThruster();
+      }
     });
   }
 
@@ -40,11 +83,11 @@ export class CosmicSynthEngine {
 
     this.ctx = new AudioContextClass();
 
-    // Master Gain
+    // Master Gain Node
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+    this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
 
-    // Audio-Reactive Analyser Node for 3D Synesthesia
+    // Audio-Reactive Analyser Node for 3D Synesthesia (Aura & Ring Pulsing)
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 64;
     this.analyserData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -52,7 +95,7 @@ export class CosmicSynthEngine {
     this.masterGain.connect(this.analyser);
     this.analyser.connect(this.ctx.destination);
 
-    // Initialize procedural generators
+    // Initialize Procedural Generators
     this.initRain();
     this.initOcean();
     this.initThunder();
@@ -81,12 +124,15 @@ export class CosmicSynthEngine {
     for (let i = 0; i < this.analyserData.length; i++) {
       sum += this.analyserData[i];
     }
-    return sum / (this.analyserData.length * 255); // 0.0 to 1.0
+    return sum / (this.analyserData.length * 255); // Normalized 0.0 to 1.0
   }
 
-  // Pink Noise generator for organic wave and thunder swells
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Procedural Noise Buffer Generators
+  // ─────────────────────────────────────────────────────────────────────────────
+
   createPinkNoiseBuffer() {
-    const bufferSize = 2 * this.ctx.sampleRate;
+    const bufferSize = 2 * (this.ctx ? this.ctx.sampleRate : 44100);
     const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const output = noiseBuffer.getChannelData(0);
     let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
@@ -104,9 +150,8 @@ export class CosmicSynthEngine {
     return noiseBuffer;
   }
 
-  // White Noise generator
   createWhiteNoiseBuffer() {
-    const bufferSize = 2 * this.ctx.sampleRate;
+    const bufferSize = 2 * (this.ctx ? this.ctx.sampleRate : 44100);
     const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const output = noiseBuffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -115,7 +160,115 @@ export class CosmicSynthEngine {
     return noiseBuffer;
   }
 
-  /* 1. Rain Synthesizer */
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 1. Procedural Engine Thruster Synthesizer (V5.0 Master Pipeline)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  startThruster() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.thruster.active) return;
+
+    this.thruster.active = true;
+    const now = this.ctx.currentTime;
+
+    // 1. Sawtooth Oscillator (55Hz / A1 Base)
+    this.thruster.sawOsc = this.ctx.createOscillator();
+    this.thruster.sawOsc.type = 'sawtooth';
+    this.thruster.sawOsc.frequency.setValueAtTime(55, now);
+
+    // 2. Triangle Oscillator (110Hz / A2 Harmonic)
+    this.thruster.triOsc = this.ctx.createOscillator();
+    this.thruster.triOsc.type = 'triangle';
+    this.thruster.triOsc.frequency.setValueAtTime(110, now);
+
+    // 3. Subtle LFO Pitch-Drift (0.15Hz rate, ±3Hz swing)
+    this.thruster.lfoOsc = this.ctx.createOscillator();
+    this.thruster.lfoGain = this.ctx.createGain();
+    this.thruster.lfoOsc.type = 'sine';
+    this.thruster.lfoOsc.frequency.setValueAtTime(0.15, now);
+    this.thruster.lfoGain.gain.setValueAtTime(3.5, now);
+    this.thruster.lfoOsc.connect(this.thruster.lfoGain);
+    this.thruster.lfoGain.connect(this.thruster.sawOsc.frequency);
+    this.thruster.lfoGain.connect(this.thruster.triOsc.frequency);
+
+    // 4. Resonant Lowpass Filter (Q = 6.0, Initial Cutoff = 120Hz)
+    this.thruster.filterNode = this.ctx.createBiquadFilter();
+    this.thruster.filterNode.type = 'lowpass';
+    this.thruster.filterNode.Q.setValueAtTime(6.0, now);
+    this.thruster.filterNode.frequency.setValueAtTime(120, now);
+
+    // 5. Thruster Gain (Idle Volume = 0.08)
+    this.thruster.gainNode = this.ctx.createGain();
+    this.thruster.gainNode.gain.setValueAtTime(0.001, now);
+    this.thruster.gainNode.gain.linearRampToValueAtTime(0.08, now + 0.8);
+
+    // Route audio into master analyser for visual synesthesia
+    this.thruster.sawOsc.connect(this.thruster.filterNode);
+    this.thruster.triOsc.connect(this.thruster.filterNode);
+    this.thruster.filterNode.connect(this.thruster.gainNode);
+    this.thruster.gainNode.connect(this.masterGain);
+
+    this.thruster.sawOsc.start(now);
+    this.thruster.triOsc.start(now);
+    this.thruster.lfoOsc.start(now);
+  }
+
+  updateThrusterSpeed(speedRatio) {
+    if (!this.thruster.active || !this.ctx) return;
+    const ratio = Math.max(0, Math.min(1.0, speedRatio));
+    this.thruster.currentSpeed = ratio;
+
+    const now = this.ctx.currentTime;
+
+    // Dynamic Speed Mapping:
+    // Base Hum:  55Hz pitch,  120Hz cutoff, 0.08 gain
+    // Full Burn: 180Hz pitch, 850Hz cutoff, 0.45 gain
+    const targetPitch = 55 + ratio * (180 - 55);
+    const targetCutoff = 120 + ratio * (850 - 120);
+    const targetGain = 0.08 + ratio * (0.45 - 0.08);
+
+    if (this.thruster.sawOsc) {
+      this.thruster.sawOsc.frequency.setTargetAtTime(targetPitch, now, 0.08);
+    }
+    if (this.thruster.triOsc) {
+      this.thruster.triOsc.frequency.setTargetAtTime(targetPitch * 2.0, now, 0.08);
+    }
+    if (this.thruster.filterNode) {
+      this.thruster.filterNode.frequency.setTargetAtTime(targetCutoff, now, 0.08);
+    }
+    if (this.thruster.gainNode) {
+      this.thruster.gainNode.gain.setTargetAtTime(targetGain, now, 0.08);
+    }
+  }
+
+  stopThruster(fadeDuration = 0.8) {
+    if (!this.thruster.active || !this.ctx) return;
+    this.thruster.active = false;
+
+    const now = this.ctx.currentTime;
+    if (this.thruster.gainNode) {
+      this.thruster.gainNode.gain.linearRampToValueAtTime(0.0001, now + fadeDuration);
+    }
+
+    setTimeout(() => {
+      try {
+        if (this.thruster.sawOsc) { this.thruster.sawOsc.stop(); this.thruster.sawOsc.disconnect(); }
+        if (this.thruster.triOsc) { this.thruster.triOsc.stop(); this.thruster.triOsc.disconnect(); }
+        if (this.thruster.lfoOsc) { this.thruster.lfoOsc.stop(); this.thruster.lfoOsc.disconnect(); }
+        if (this.thruster.lfoGain) { this.thruster.lfoGain.disconnect(); }
+        if (this.thruster.filterNode) { this.thruster.filterNode.disconnect(); }
+        if (this.thruster.gainNode) { this.thruster.gainNode.disconnect(); }
+      } catch (e) {
+        // Safe disposal
+      }
+    }, fadeDuration * 1000 + 50);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 2. Atmospheric Generators (Rain, Ocean, Thunder, Forest, Lo-Fi)
+  // ─────────────────────────────────────────────────────────────────────────────
+
   initRain() {
     const source = this.ctx.createBufferSource();
     source.buffer = this.createWhiteNoiseBuffer();
@@ -138,7 +291,6 @@ export class CosmicSynthEngine {
     this.channels.rain.gainNode = gain;
   }
 
-  /* 2. Ocean Waves Synthesizer: 0.12Hz LFO Modulation */
   initOcean() {
     const source = this.ctx.createBufferSource();
     source.buffer = this.createPinkNoiseBuffer();
@@ -150,7 +302,7 @@ export class CosmicSynthEngine {
 
     const lfo = this.ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.value = 0.12; // ~8 second wave swells
+    lfo.frequency.value = 0.12; // ~8 second rolling wave swells
 
     const lfoGain = this.ctx.createGain();
     lfoGain.gain.value = 160;
@@ -172,7 +324,6 @@ export class CosmicSynthEngine {
     this.channels.ocean.gainNode = gain;
   }
 
-  /* 3. Thunder Synthesizer */
   initThunder() {
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, this.ctx.currentTime);
@@ -213,7 +364,6 @@ export class CosmicSynthEngine {
     source.stop(this.ctx.currentTime + 4.5);
   }
 
-  /* 4. Forest Synthesizer */
   initForest() {
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, this.ctx.currentTime);
@@ -251,7 +401,6 @@ export class CosmicSynthEngine {
     osc.stop(now + 0.18);
   }
 
-  /* 5. Lo-Fi Hip-Hop Sequencer */
   initLofi() {
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, this.ctx.currentTime);
@@ -278,7 +427,7 @@ export class CosmicSynthEngine {
       const now = this.ctx.currentTime;
       const vol = this.channels.lofi.volume;
 
-      // Kick on 0, 4
+      // Kick on step 0, 4
       if (step % 8 === 0 || step % 8 === 4) {
         const osc = this.ctx.createOscillator();
         const g = this.ctx.createGain();
@@ -292,7 +441,7 @@ export class CosmicSynthEngine {
         osc.stop(now + 0.2);
       }
 
-      // Snare on 2, 6
+      // Snare on step 2, 6
       if (step % 8 === 2 || step % 8 === 6) {
         const noise = this.ctx.createBufferSource();
         noise.buffer = this.createPinkNoiseBuffer();
@@ -335,30 +484,44 @@ export class CosmicSynthEngine {
     }, stepTime * 1000);
   }
 
-  // Cartoon Chewing Sound FX
+  setVolume(channel, volume) {
+    if (!this.ctx) this.init();
+    const vol = Math.max(0, Math.min(1, volume));
+    if (this.channels[channel]) {
+      this.channels[channel].volume = vol;
+      if (this.channels[channel].gainNode) {
+        this.channels[channel].gainNode.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.2);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. Tactile Sound FX (Chewing, Water, Chimes, Cinematic Chords)
+  // ─────────────────────────────────────────────────────────────────────────────
+
   playChewSound() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
-    const g = this.ctx.createGain();
+    const gainNode = this.ctx.createGain();
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.linearRampToValueAtTime(320, now + 0.12);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
 
-    g.gain.setValueAtTime(0.12, now);
-    g.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    gainNode.gain.setValueAtTime(0.35, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
 
-    osc.connect(g);
-    g.connect(this.ctx.destination);
+    osc.connect(gainNode);
+    gainNode.connect(this.masterGain);
 
-    osc.start(now);
-    osc.stop(now + 0.15);
+    osc.start();
+    osc.stop(now + 0.26);
   }
 
-  // Crisp Glass-like Water Splash & Chime Sound FX
   playWaterSound() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -383,7 +546,7 @@ export class CosmicSynthEngine {
       osc.stop(now + idx * 0.04 + 0.65);
     });
 
-    // Soft Water Droplet Plop
+    // Soft Water Droplet Bandpass Plop
     const noise = this.ctx.createBufferSource();
     noise.buffer = this.createPinkNoiseBuffer();
     const filter = this.ctx.createBiquadFilter();
@@ -404,11 +567,28 @@ export class CosmicSynthEngine {
     noise.stop(now + 0.22);
   }
 
-  // ============================================================================
-  // Cinematic Intro Sequence Procedural Audio Synthesizers
-  // ============================================================================
+  playChimeSound(frequency = 880) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
 
-  // Act I: Warm spaceship engine boot-up drone
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gainNode = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(frequency, now);
+    osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, now + 0.2);
+
+    gainNode.gain.setValueAtTime(0.12, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+
+    osc.connect(gainNode);
+    gainNode.connect(this.masterGain);
+
+    osc.start();
+    osc.stop(now + 0.81);
+  }
+
   playEngineDrone(duration = 2.5) {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -447,7 +627,6 @@ export class CosmicSynthEngine {
     osc2.stop(now + duration + 0.1);
   }
 
-  // Ultra-Fast Non-Blocking White Noise Sweep (Native C++ Audio Thread Biquad Sweep, 0% Main Thread CPU)
   playCinematicSwoosh(duration = 2.2) {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -457,7 +636,6 @@ export class CosmicSynthEngine {
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
 
-    // Instant flat random noise (< 1ms generation)
     for (let i = 0; i < bufferSize; i++) {
       data[i] = Math.random() * 2 - 1;
     }
@@ -465,7 +643,6 @@ export class CosmicSynthEngine {
     const noiseSource = this.ctx.createBufferSource();
     noiseSource.buffer = buffer;
 
-    // Native C++ Biquad Filter sweep (Hardware accelerated)
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
     filter.Q.value = 2.5;
@@ -486,13 +663,11 @@ export class CosmicSynthEngine {
     noiseSource.stop(now + duration + 0.05);
   }
 
-  // Act II: Lightspeed warp white-noise swoosh & sub rumble
   playWarpSwoosh(duration = 3.0) {
     this.playCinematicSwoosh(duration);
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
 
-    // Sub-bass rumble
     const subOsc = this.ctx.createOscillator();
     const subGain = this.ctx.createGain();
     subOsc.type = 'sine';
@@ -511,7 +686,6 @@ export class CosmicSynthEngine {
     subOsc.stop(now + duration + 0.1);
   }
 
-  // Act III: Cosmic orbit arrival chime chord
   playArrivalChime() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -539,7 +713,6 @@ export class CosmicSynthEngine {
     });
   }
 
-  // Act IV: Patrick's Portal Warm E Major Chord (329.63Hz)
   playPatrickChord() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -572,7 +745,6 @@ export class CosmicSynthEngine {
     });
   }
 
-  // Act IV: Yangiee's Portal Sweet Airy A Major Chord (440Hz)
   playYangieeChord() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -599,14 +771,12 @@ export class CosmicSynthEngine {
     });
   }
 
-  // Act IV: Mini-Supernova Burst on selection
   playSupernovaSound() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
     const now = this.ctx.currentTime;
 
-    // Burst sparkle
     const burstFreqs = [587.33, 880.00, 1174.66, 1760.00];
     burstFreqs.forEach((freq) => {
       const osc = this.ctx.createOscillator();
@@ -625,7 +795,6 @@ export class CosmicSynthEngine {
       osc.stop(now + 0.85);
     });
 
-    // Dispersion noise whoosh
     const noise = this.ctx.createBufferSource();
     noise.buffer = this.createPinkNoiseBuffer();
     const filter = this.ctx.createBiquadFilter();
@@ -645,10 +814,6 @@ export class CosmicSynthEngine {
     noise.stop(now + 0.95);
   }
 
-  // ============================================================================
-  // Deep-Space Hum & Solar Wind Atmosphere Generator
-  // ============================================================================
-
   startCosmicAtmosphere() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -657,17 +822,16 @@ export class CosmicSynthEngine {
     this.atmosphereActive = true;
     const now = this.ctx.currentTime;
 
-    // 1. Deep-Space Orbital Hum (55Hz Sub-bass carrier + 0.05Hz LFO)
     this.humOsc = this.ctx.createOscillator();
     this.humGain = this.ctx.createGain();
     this.humLfo = this.ctx.createOscillator();
     this.humLfoGain = this.ctx.createGain();
 
     this.humOsc.type = 'sine';
-    this.humOsc.frequency.setValueAtTime(55, now); // A1 note
+    this.humOsc.frequency.setValueAtTime(55, now); // A1
 
     this.humLfo.type = 'sine';
-    this.humLfo.frequency.setValueAtTime(0.05, now); // 20-second gentle breathing cycle
+    this.humLfo.frequency.setValueAtTime(0.05, now);
     this.humLfoGain.gain.setValueAtTime(0.04, now);
 
     this.humGain.gain.setValueAtTime(0.001, now);
@@ -681,7 +845,6 @@ export class CosmicSynthEngine {
     this.humOsc.start(now);
     this.humLfo.start(now);
 
-    // 2. Solar Wind Sweep (Resonant Pink Noise + 0.03Hz Filter Sweeper)
     this.windSource = this.ctx.createBufferSource();
     this.windSource.buffer = this.createPinkNoiseBuffer();
     this.windSource.loop = true;
@@ -693,7 +856,7 @@ export class CosmicSynthEngine {
 
     this.windLfo = this.ctx.createOscillator();
     this.windLfo.type = 'sine';
-    this.windLfo.frequency.setValueAtTime(0.03, now); // ~33 second undulating breeze
+    this.windLfo.frequency.setValueAtTime(0.03, now);
 
     this.windLfoGain = this.ctx.createGain();
     this.windLfoGain.gain.setValueAtTime(450, now);
@@ -732,66 +895,14 @@ export class CosmicSynthEngine {
         if (this.windSource) { this.windSource.stop(); this.windSource.disconnect(); }
         if (this.windLfo) { this.windLfo.stop(); this.windLfo.disconnect(); }
       } catch (e) {
-        // Node already stopped
+        // Already stopped
       }
     }, fadeDuration * 1000 + 100);
   }
 
-  setVolume(channel, volume) {
-    if (!this.ctx) this.init();
-    const vol = Math.max(0, Math.min(1, volume));
-    if (this.channels[channel]) {
-      this.channels[channel].volume = vol;
-      if (this.channels[channel].gainNode) {
-        this.channels[channel].gainNode.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.2);
-      }
-    }
-  }
-
-  playChewSound() {
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-
-    const osc = this.ctx.createOscillator();
-    const gainNode = this.ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(140, this.ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(320, this.ctx.currentTime + 0.12);
-    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.25);
-
-    gainNode.gain.setValueAtTime(0.35, this.ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
-
-    osc.connect(gainNode);
-    gainNode.connect(this.masterGain);
-
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.26);
-  }
-
-  playChimeSound(frequency = 880) {
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-
-    const osc = this.ctx.createOscillator();
-    const gainNode = this.ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, this.ctx.currentTime + 0.2);
-
-    gainNode.gain.setValueAtTime(0.12, this.ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.8);
-
-    osc.connect(gainNode);
-    gainNode.connect(this.masterGain);
-
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.81);
-  }
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 4. Voice Recording Interface
+  // ─────────────────────────────────────────────────────────────────────────────
 
   async startRecordingVoice() {
     try {
@@ -831,11 +942,36 @@ export class CosmicSynthEngine {
     });
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 5. Explicit Teardown & Resource Disposal
+  // ─────────────────────────────────────────────────────────────────────────────
+
   dispose() {
+    this.stopThruster(0.1);
     this.stopCosmicAtmosphere(0.1);
     if (this.thunderTimer) clearTimeout(this.thunderTimer);
     if (this.birdTimer) clearTimeout(this.birdTimer);
     if (this.lofiInterval) clearInterval(this.lofiInterval);
+
+    Object.values(this.channels).forEach(channel => {
+      try {
+        if (channel.node) {
+          channel.node.stop();
+          channel.node.disconnect();
+        }
+        if (channel.gainNode) {
+          channel.gainNode.disconnect();
+        }
+      } catch (e) {}
+    });
+
+    if (this.masterGain) {
+      try { this.masterGain.disconnect(); } catch (e) {}
+    }
+    if (this.analyser) {
+      try { this.analyser.disconnect(); } catch (e) {}
+    }
+
     if (this.ctx) {
       this.ctx.close();
       this.ctx = null;

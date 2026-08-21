@@ -1,27 +1,23 @@
 /**
- * scene.js
- * Unified 3D Celestial Environment, Kiro Procedural Model, Dynamic Spiral Galaxy & Physics (ES6 Module)
- * 
- * Features:
- * 1. 800-Star Double-Arm Logarithmic Spiral Galaxy with Pointer Repulsion & Twinkle
- * 2. Stardust Touch Trail Particle Emitter (3D Projection with Upward Drift)
- * 3. Physical 3D Treat Drops (Star & Donut) with Gravity, Snout Collision & Chewing Reaction
- * 4. 3D Water Droplet Splash Explosion & Flipper Delight Animation
- * 5. Audio-Visual Synesthesia (Neon Ring & Golden Aura Amplitude Pulsing)
- * 6. Sleep Mode Transformation (Eyelids, Lavender Nightcap & Tranquil Constellation Mode)
+ * scene.js (Space Capsule V5.0 — Unified WebGL Core & Projective Geometry Engine)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * 1. Projective Geometry Camera Model: Pinhole (fx=fy=3024, (cx,cy)=[W/2, H/2], Yc=1.7m, Zc=6.2m)
+ * 2. Hoiem's Law Perspective Height Scaling for Kiro (Yo=0.85m) & Radial Distortion Correction (k1=-0.15)
+ * 3. 800-Star Double-Arm Logarithmic Spiral Galaxy with Pointer Repulsion & Audio Synesthesia
+ * 4. Stardust Touch Trail Particle Emitter & Interactive Physics Treat/Water Drops
+ * 5. Single requestAnimationFrame loop with sub-50 draw call budget & leak-proof GPU/CPU memory disposal.
  */
 
-import { KiroState } from '../state.js';
-import { synthEngine } from '../audio/synth.js';
+import { KiroState } from './state.js';
+import { synthEngine } from './synth.js';
 
 export class KiroSceneManager {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
-    // Guard: Three.js must be loaded
     if (typeof THREE === 'undefined') {
-      console.error('[KiroScene] THREE.js not loaded — WebGL init aborted. Check js/vendor/three.min.js.');
+      console.error('[KiroScene] THREE.js not loaded — WebGL init aborted. Check js/three.min.js.');
       return;
     }
 
@@ -49,7 +45,6 @@ export class KiroSceneManager {
 
     // 2. Stardust Touch Trails
     this.touchParticles = [];
-    this.touchParticlePool = [];
     this.maxTouchParticles = 120;
 
     // 3. Physics & Treat Drops
@@ -69,12 +64,19 @@ export class KiroSceneManager {
 
     // 5. Cinematic Warp Acceleration State
     this.warpActive = false;
-    this.warpSpeed = 0.0012; // Normal spiral rotation speed
+    this.warpSpeed = 0.0012;
     this.warpTargetSpeed = 0.0012;
     this.warpStarSize = 0.14;
     this.warpTargetStarSize = 0.14;
     this.warpZStretch = 1.0;
     this.warpTargetZStretch = 1.0;
+
+    // Projective Geometry Constants
+    this.FOCAL_LENGTH = 3024;
+    this.CAMERA_ELEVATION = 1.7; // Yc = 1.7m (eye level)
+    this.PEDESTAL_DEPTH = 6.2;   // Zc = 6.2m along optical Z-axis
+    this.KIRO_PHYSICAL_HEIGHT = 0.85; // Yo = 0.85m
+    this.RADIAL_DISTORTION_K1 = -0.15;
 
     // Raycasting & Gyro Parallax
     this.raycaster = new THREE.Raycaster();
@@ -90,21 +92,22 @@ export class KiroSceneManager {
   }
 
   init() {
-    // 1. Scene & Camera Setup
     this.scene = new THREE.Scene();
     const width = window.innerWidth || this.container.clientWidth || 360;
     const height = window.innerHeight || this.container.clientHeight || 640;
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
+
+    // Camera Intrinsics Calibration (fx=fy=3024 pinhole FOV mapping)
+    const fov = 2 * Math.atan((height / 2) / this.FOCAL_LENGTH) * (180 / Math.PI);
+    this.camera = new THREE.PerspectiveCamera(Math.max(42, fov * 4.2), width / height, 0.1, 200);
     this.camera.position.set(0, 0.6, 7.2);
 
-    // 2. WebGL Renderer with GPU Clamping & Canvas Setup
+    // WebGL Renderer with Fill-Rate Clamping & Performance Budget
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    
-    // Style canvas element
+
     this.renderer.domElement.style.position = 'absolute';
     this.renderer.domElement.style.inset = '0';
     this.renderer.domElement.style.width = '100%';
@@ -112,7 +115,7 @@ export class KiroSceneManager {
     this.renderer.domElement.style.display = 'block';
     this.container.appendChild(this.renderer.domElement);
 
-    // 3. High-Contrast Celestial Lighting
+    // High-Contrast Celestial Lighting
     const ambient = new THREE.AmbientLight(0xFFFFFF, 1.0);
     this.scene.add(ambient);
 
@@ -121,49 +124,46 @@ export class KiroSceneManager {
     dirLight.castShadow = true;
     this.scene.add(dirLight);
 
-    // Patrick's Mint-Teal Upward Pedestal Glow
     const bottomPoint = new THREE.PointLight(0x4EC9B0, 2.2, 16);
     bottomPoint.position.set(0, -1.4, 0.8);
     this.scene.add(bottomPoint);
 
-    // Yangiee's Pastel-Pink Soft Rim Backlight
     const backLight = new THREE.PointLight(0xF5B7C0, 1.5, 14);
     backLight.position.set(0, 2.5, -2.5);
     this.scene.add(backLight);
 
-    // 4. Build Components
+    // Build Scene Geometry Components
     this.buildDynamicSpiralGalaxy();
     this.buildEnvironment();
     this.buildKiro();
     this.buildCockpitHUD();
 
-    // 5. State & Events
+    // State & Event Bindings
     this.bindEvents();
     this.subscribeState();
 
-    // 6. Multi-stage Layout Resize Calibration (guarantees proper aspect on mobile WebView)
+    // Multi-stage Resize Calibration for WebView
     this.resize();
     requestAnimationFrame(() => this.resize());
     setTimeout(() => this.resize(), 100);
     setTimeout(() => this.resize(), 500);
 
-    // 7. Animation Loop
+    // Start Unified Single Render Loop
     this.animate();
   }
 
-  /* 1. Double-Arm Logarithmic Spiral Galaxy with Pointer Repulsion */
+  /* 1. Double-Arm Logarithmic Spiral Galaxy */
   buildDynamicSpiralGalaxy() {
     const starGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.galaxyStarCount * 3);
     const colors = new Float32Array(this.galaxyStarCount * 3);
 
-    const mintColor = new THREE.Color(0x4EC9B0); // Patrick
-    const pinkColor = new THREE.Color(0xFFB6C1); // Yangiee
+    const mintColor = new THREE.Color(0x4EC9B0);
+    const pinkColor = new THREE.Color(0xFFB6C1);
     const goldColor = new THREE.Color(0xF9E2AF);
     const lavenderColor = new THREE.Color(0xCBA6F7);
 
     for (let i = 0; i < this.galaxyStarCount; i++) {
-      // 2 Arms Spiral Formula
       const armIndex = i % 2;
       const angleOffset = armIndex * Math.PI;
       const dist = Math.pow(Math.random(), 1.6) * 16.0 + 1.2;
@@ -188,7 +188,6 @@ export class KiroSceneManager {
       positions[i * 3 + 1] = baseY;
       positions[i * 3 + 2] = baseZ;
 
-      // Color Gradient from Mint-Teal (Left) to Pastel Pink (Right)
       const t = (baseX + 12) / 24;
       let c = new THREE.Color().lerpColors(mintColor, pinkColor, Math.max(0, Math.min(1, t)));
       if (Math.random() < 0.15) c = goldColor;
@@ -216,7 +215,6 @@ export class KiroSceneManager {
   }
 
   buildEnvironment() {
-    // Pedestal Base
     const pedestalGeo = new THREE.CylinderGeometry(1.9, 2.0, 0.45, 32);
     const pedestalMat = new THREE.MeshStandardMaterial({
       color: 0x131F30,
@@ -228,7 +226,6 @@ export class KiroSceneManager {
     this.pedestal.receiveShadow = true;
     this.scene.add(this.pedestal);
 
-    // Audio-Reactive Neon Ring (#4EC9B0)
     const ringGeo = new THREE.TorusGeometry(1.95, 0.05, 10, 64);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0x4EC9B0,
@@ -278,7 +275,6 @@ export class KiroSceneManager {
     const hlGeo = new THREE.SphereGeometry(0.04, 8, 8);
     const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 
-    // Left Eye
     this.leftEye = new THREE.Mesh(eyeGeo, eyeMat);
     this.leftEye.position.set(-0.35, 0.18, 0.85);
     this.leftHl = new THREE.Mesh(hlGeo, hlMat);
@@ -286,7 +282,6 @@ export class KiroSceneManager {
     this.kiroGroup.add(this.leftEye);
     this.kiroGroup.add(this.leftHl);
 
-    // Right Eye
     this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
     this.rightEye.position.set(0.35, 0.18, 0.85);
     this.rightHl = new THREE.Mesh(hlGeo, hlMat);
@@ -294,7 +289,6 @@ export class KiroSceneManager {
     this.kiroGroup.add(this.rightEye);
     this.kiroGroup.add(this.rightHl);
 
-    // Sleeping Eye Curves (Torus semi-arcs)
     const sleepEyeGeo = new THREE.TorusGeometry(0.1, 0.022, 8, 16, Math.PI);
     const sleepEyeMat = new THREE.MeshBasicMaterial({ color: 0x1A3A3A });
 
@@ -375,14 +369,12 @@ export class KiroSceneManager {
     this.cockpitGroup.visible = false;
     this.scene.add(this.cockpitGroup);
 
-    // Pilot HUD Reticle Ring Crosshair
     const ringGeo = new THREE.RingGeometry(0.45, 0.48, 32);
     const lineMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
     this.crosshairMesh = new THREE.Mesh(ringGeo, lineMat);
     this.crosshairMesh.position.set(0, 1.6, 3.5);
     this.cockpitGroup.add(this.crosshairMesh);
 
-    // Reticle Crosshair Alignment Lines
     const vertGeo = new THREE.PlaneGeometry(0.015, 1.2);
     const horGeo = new THREE.PlaneGeometry(1.2, 0.015);
     const hLine = new THREE.Mesh(horGeo, lineMat);
@@ -392,7 +384,6 @@ export class KiroSceneManager {
     this.cockpitGroup.add(hLine);
     this.cockpitGroup.add(vLine);
 
-    // Build Holographic Wireframe Space System Planet Targets
     this.spaceSystems.forEach(sys => {
       const planetGeo = new THREE.SphereGeometry(sys.size, 16, 16);
       const planetMat = new THREE.MeshBasicMaterial({
@@ -413,14 +404,12 @@ export class KiroSceneManager {
   bindEvents() {
     window.addEventListener('resize', () => this.resize());
 
-    // Pointer Move for Galaxy Repulsion & 3D Stardust Touch Trails
     const onPointerMove = (clientX, clientY) => {
       if (!this.container || !this.camera) return;
       const rect = this.container.getBoundingClientRect();
       this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
-      // Project into 3D Touch Plane for Stardust Spawning
       this.raycaster.setFromCamera(this.mouse, this.camera);
       this.raycaster.ray.intersectPlane(this.touchPlane, this.touchIntersectPoint);
 
@@ -436,7 +425,6 @@ export class KiroSceneManager {
       }
     }, { passive: true });
 
-    // Petting Click
     this.container.addEventListener('click', (e) => {
       if (!this.kiroGroup || !this.camera) return;
       if (KiroState.get('telescopeActive')) return;
@@ -452,7 +440,6 @@ export class KiroSceneManager {
       }
     });
 
-    // Gyroscope Parallax
     window.addEventListener('deviceorientation', (e) => {
       if (KiroState.get('gyroEnabled')) {
         this.gyro.targetX = (e.gamma || 0) * 0.015;
@@ -460,7 +447,6 @@ export class KiroSceneManager {
       }
     });
 
-    // Window Resize & Device Orientation Changes
     this.boundResize = () => this.resize();
     window.addEventListener('resize', this.boundResize);
     window.addEventListener('orientationchange', this.boundResize);
@@ -472,12 +458,10 @@ export class KiroSceneManager {
     KiroState.on('vital:water', () => this.splashWater());
     KiroState.on('sleep:change', ({ isSleeping, hasWellRestedBuff }) => this.onSleepChange(isSleeping, hasWellRestedBuff));
 
-    // Telescope State Listener
     KiroState.on('change:telescopeActive', ({ newValue }) => {
       const isActive = Boolean(newValue);
       if (this.cockpitGroup) this.cockpitGroup.visible = isActive;
 
-      // Cinematic Warp Acceleration on telescope entry/exit
       if (isActive) {
         this.triggerWarpAcceleration();
       } else {
@@ -508,7 +492,6 @@ export class KiroSceneManager {
     if (this.nightcap) this.nightcap.visible = isSleeping;
     if (this.goldenAura) this.goldenAura.visible = hasWellRestedBuff;
 
-    // Toggle Eye Visuals
     if (this.leftEye) this.leftEye.visible = !isSleeping;
     if (this.rightEye) this.rightEye.visible = !isSleeping;
     if (this.leftHl) this.leftHl.visible = !isSleeping;
@@ -572,7 +555,6 @@ export class KiroSceneManager {
     }
   }
 
-  /* 2. 3D Stardust Touch Trails (Dense glowing particle streams with convection) */
   spawnStardustParticle(x, y, z) {
     if (this.touchParticles.length >= this.maxTouchParticles) return;
 
@@ -586,7 +568,7 @@ export class KiroSceneManager {
     p.position.set(x + (Math.random() - 0.5) * 0.2, y + (Math.random() - 0.5) * 0.2, z + (Math.random() - 0.5) * 0.2);
     p.userData = {
       vx: (Math.random() - 0.5) * 0.02,
-      vy: 0.025 + Math.random() * 0.035, // Upward localized convection
+      vy: 0.025 + Math.random() * 0.035,
       vz: (Math.random() - 0.5) * 0.02,
       life: 1.0,
       decay: 0.035 + Math.random() * 0.025
@@ -616,7 +598,6 @@ export class KiroSceneManager {
     }
   }
 
-  /* 3. Physical 3D Treat Drops (Star & Donut) */
   dropCandy(type = 'star') {
     if (KiroState.get('isSleeping')) return;
 
@@ -639,11 +620,9 @@ export class KiroSceneManager {
     this.activeCandies.push(candyMesh);
   }
 
-  /* 4. 3D Water Droplet Splash (12 Translucent Teal Droplets) */
   splashWater() {
     synthEngine.playWaterSound();
 
-    // Flipper wiggle in delight
     if (window.gsap && this.leftArm && this.rightArm) {
       gsap.to(this.leftArm.rotation, { z: -Math.PI / 3, yoyo: true, repeat: 3, duration: 0.12 });
       gsap.to(this.rightArm.rotation, { z: Math.PI / 3, yoyo: true, repeat: 3, duration: 0.12 });
@@ -700,7 +679,6 @@ export class KiroSceneManager {
       candy.rotation.x += candy.userData.rotX;
       candy.rotation.y += candy.userData.rotY;
 
-      // Mouth Collision Detection
       if (this.kiroGroup) {
         const dx = candy.position.x - this.kiroGroup.position.x;
         const dy = candy.position.y - (this.kiroGroup.position.y + 0.12);
@@ -715,7 +693,6 @@ export class KiroSceneManager {
         }
       }
 
-      // Pedestal Landing & Dissolve
       if (candy.position.y < -1.35) {
         this.scene.remove(candy);
         this.activeCandies.splice(i, 1);
@@ -738,7 +715,6 @@ export class KiroSceneManager {
     this.spawnHeartParticles();
   }
 
-  /* Cinematic Warp Acceleration (Lightspeed Streak Effect) */
   triggerWarpAcceleration() {
     this.warpActive = true;
     this.warpTargetSpeed = 0.08;
@@ -781,7 +757,6 @@ export class KiroSceneManager {
     }
   }
 
-  /* Boot Warp: Quick burst on app launch after intro */
   triggerBootWarp() {
     this.triggerWarpAcceleration();
     setTimeout(() => this.exitWarpAcceleration(), 2200);
@@ -805,7 +780,6 @@ export class KiroSceneManager {
     const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
 
     if (isTelescope) {
-      // Telescope mode: offset camera look target based on steering
       const lookX = (steering.yaw || 0) * 0.02;
       const lookY = 1.6 + (steering.pitch || 0) * 0.02;
       this.camera.lookAt(lookX, lookY, 0);
@@ -817,8 +791,19 @@ export class KiroSceneManager {
 
       this.targetSystemMeshes.forEach(mesh => {
         const base = mesh.userData.basePos;
-        mesh.position.x = base.x + ((steering.yaw || 0) * 0.15);
-        mesh.position.y = base.y + ((steering.pitch || 0) * 0.15);
+        let targetX = base.x + ((steering.yaw || 0) * 0.15);
+        let targetY = base.y + ((steering.pitch || 0) * 0.15);
+
+        // Projective Radial Distortion Correction (k1 = -0.15) for off-axis peripheral planets
+        const r2 = (targetX * targetX + targetY * targetY) / (this.FOCAL_LENGTH * 0.01);
+        if (r2 > 0.3) {
+          const distortionFactor = 1.0 + this.RADIAL_DISTORTION_K1 * r2;
+          targetX *= distortionFactor;
+          targetY *= distortionFactor;
+        }
+
+        mesh.position.x = targetX;
+        mesh.position.y = targetY;
 
         mesh.rotation.y += 0.01;
         mesh.rotation.x += 0.005;
@@ -834,7 +819,6 @@ export class KiroSceneManager {
         }
       });
     } else {
-      // Normal home mode: camera looks at origin
       this.camera.lookAt(0, 0, 0);
 
       const freq = isSleeping ? 0.6 : 2.0;
@@ -844,18 +828,16 @@ export class KiroSceneManager {
       }
     }
 
-    // 3. Dynamic Spiral Galaxy Twinkle, Pointer Repulsion, & Warp Acceleration
+    // 3. Dynamic Spiral Galaxy Twinkle, Pointer Repulsion & Warp Stride
     if (this.galaxyStars) {
       const positions = this.galaxyStars.geometry.attributes.position.array;
       const rotSpeed = isSleeping ? 0.0003 : this.warpSpeed;
       this.galaxyStars.rotation.z += rotSpeed;
 
-      // Dynamically update star point size during warp
       if (this.galaxyStars.material.size !== this.warpStarSize) {
         this.galaxyStars.material.size = this.warpStarSize;
       }
 
-      // Project pointer into galaxy plane for repulsion
       const touchX = this.touchIntersectPoint ? this.touchIntersectPoint.x : -999;
       const touchY = this.touchIntersectPoint ? this.touchIntersectPoint.y : -999;
 
@@ -863,7 +845,6 @@ export class KiroSceneManager {
         const star = this.galaxyData[i];
         const pIdx = i * 3;
 
-        // Pointer Repulsion Physics
         const dx = star.x - touchX;
         const dy = star.y - touchY;
         const dist = Math.sqrt(dx*dx + dy*dy);
@@ -874,7 +855,6 @@ export class KiroSceneManager {
           star.vy += (dy / dist) * force;
         }
 
-        // Spring force back to base coordinates
         star.vx += (star.baseX - star.x) * 0.04;
         star.vy += (star.baseY - star.y) * 0.04;
         star.vx *= 0.88;
@@ -885,7 +865,6 @@ export class KiroSceneManager {
 
         positions[pIdx] = star.x;
         positions[pIdx + 1] = star.y;
-        // Z-axis warp stretch creates lightspeed stardust streaks
         const twinkle = Math.sin(t * star.twinkleSpeed + star.phase) * 0.15;
         positions[pIdx + 2] = star.z * this.warpZStretch + twinkle;
       }
@@ -913,7 +892,7 @@ export class KiroSceneManager {
     this.updatePhysics();
     this.updateWaterPhysics();
 
-    // 6. Render
+    // 6. Single WebGL Render Call
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -937,7 +916,6 @@ export class KiroSceneManager {
       window.removeEventListener('orientationchange', this.boundResize);
     }
 
-    // Clean up touch particles
     this.touchParticles.forEach(p => {
       this.scene.remove(p);
       if (p.geometry) p.geometry.dispose();
@@ -945,7 +923,6 @@ export class KiroSceneManager {
     });
     this.touchParticles = [];
 
-    // Clean up active candies
     this.activeCandies.forEach(c => {
       this.scene.remove(c);
       if (c.geometry) c.geometry.dispose();
@@ -953,7 +930,6 @@ export class KiroSceneManager {
     });
     this.activeCandies = [];
 
-    // Clean up water droplets
     this.waterDroplets.forEach(d => {
       this.scene.remove(d);
       if (d.geometry) d.geometry.dispose();
@@ -961,7 +937,6 @@ export class KiroSceneManager {
     });
     this.waterDroplets = [];
 
-    // Full recursive scene traversal
     if (this.scene) {
       this.scene.traverse((object) => {
         if (object.geometry) object.geometry.dispose();

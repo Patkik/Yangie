@@ -1,19 +1,16 @@
 /**
- * mailbox.js (StarlightMessenger V3 + Starlight Call Engine v1.5.1)
- * ──────────────────────────────────────────────────────────────────────────
- * Full-featured Starlight Messenger and Discord-grade Video Call interface for Patrick & Yangiee.
- * 100% Vector SVG-driven UI & Dynamic Single-Identity Profile Architecture:
+ * mailbox.js (Space Capsule V5.0 — Starlight Messenger & Video Call Interface)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Vector SVG-driven UI & Dynamic Single-Identity Profile Architecture:
  * - When Persona is Patrick ('pat'): Local user is Patrick (You), Partner is Yangiee.
  * - When Persona is Yangiee ('yang'): Local user is Yangiee (You), Partner is Patrick.
- * - Single-Identity locked messaging, directional chat bubbles, and dynamic call labels.
- *
- * Complies with Master Walkthrough Audit v1.2.1 (token normalization via KiroState).
+ * - Flat sibling imports, 12-hour AM/PM timestamps, and WebRTC E2EE call integrations.
  */
 
-import { KiroState } from '../state.js';
-import { synthEngine } from '../audio/synth.js';
-import { kiroCallEngine, CallState } from '../rtc/call-engine.js';
-import { kiroCryptoEngine } from '../rtc/crypto-engine.js';
+import { KiroState } from './state.js';
+import { synthEngine } from './synth.js';
+import { kiroCallEngine, CallState } from './call-engine.js';
+import { kiroCryptoEngine } from './crypto-engine.js';
 
 const DISCORD_EMOJIS = ["✨", "💖", "🌙", "🛸", "🍬", "🐱", "👨‍🚀", "🍩", "🔋", "🪐"];
 
@@ -122,7 +119,6 @@ export class StarlightMessenger {
     this.recordStartTime = 0;
     this.localScreenStream = null;
 
-    /** @type {boolean} Call UI state trackers */
     this._isMuted     = false;
     this._isCamOff    = false;
     this._isSharing   = false;
@@ -130,7 +126,6 @@ export class StarlightMessenger {
     this.syncPersonaProfile();
     this.init();
 
-    // Listen to identity changes across the entire app
     KiroState.on('persona:change', () => this.syncPersonaProfile());
     KiroState.on('change:persona', () => this.syncPersonaProfile());
   }
@@ -173,14 +168,11 @@ export class StarlightMessenger {
           </button>
         </div>
 
-        <!-- Call Session Panel (full-chrome video call UI, hidden when no call) -->
+        <!-- Call Session Panel -->
         <div id="call-session-panel" style="display:none; position:relative; background:rgba(3,7,18,0.88); border-bottom:1px solid rgba(148,226,213,0.2); width:100%; border-radius:16px; margin:4px 0; overflow:hidden;">
-
-          <!-- Remote Video Full-Bleed -->
           <div style="position:relative; width:100%; height:200px; background:#060d18;">
             <video id="call-remote-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
 
-            <!-- Remote Placeholder (shown when no remote stream) -->
             <div id="call-remote-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
               <div class="call-awaiting-ring">
                 <div class="call-awaiting-ring-inner">
@@ -191,20 +183,17 @@ export class StarlightMessenger {
               <span id="call-remote-name-label" style="font-size:10px; color:#A6ADC8; font-weight:600; text-transform:uppercase;">Awaiting ${this.partnerName}…</span>
             </div>
 
-            <!-- Self-View PiP Bubble -->
             <div class="call-self-pip">
               <video id="call-self-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);"></video>
               <div class="call-self-label" id="call-self-label">${this.localName} (You)</div>
             </div>
 
-            <!-- E2EE Lock Badge -->
             <div id="call-e2ee-badge" class="e2ee-badge" style="position:absolute;top:10px;left:10px;">
               <span class="lock-icon">${SVGS.e2eeLock}</span>
               <span>E2EE Protected</span>
             </div>
           </div>
 
-          <!-- Call HUD Controls -->
           <div class="call-hud" style="padding:10px 16px 12px;background:rgba(6,13,24,0.92);display:flex;align-items:center;justify-content:center;gap:12px;">
             <div class="call-hud-label-group">
               <button id="call-btn-mute" class="call-hud-btn" title="Mute Microphone">${SVGS.mic}</button>
@@ -231,13 +220,12 @@ export class StarlightMessenger {
 
         <div class="mailbox-feed" id="mailbox-feed"></div>
 
-        <!-- Custom Discord-style Emojis Quick Bar -->
+        <!-- Custom Emojis Quick Bar -->
         <div class="emoji-quick-bar">
           ${DISCORD_EMOJIS.map(emoji => `<span class="emoji-tap-btn" data-emoji="${emoji}">${emoji}</span>`).join('')}
         </div>
 
         <div class="mailbox-footer">
-          <!-- Exclusive Single-Identity Badge -->
           <div class="single-identity-indicator">
             <div class="active-identity-badge ${this.currentPersona === 'pat' ? 'patrick' : 'yangiee'}" id="mailbox-identity-badge">
               ${this.currentPersona === 'pat' ? SVGS.patrick : SVGS.yangiee}
@@ -246,18 +234,15 @@ export class StarlightMessenger {
           </div>
 
           <div class="input-row">
-            <!-- Image Picker Button -->
             <button id="attach-img-btn" class="chat-action-btn" title="Send Picture">
               ${SVGS.image}
               <input type="file" id="attach-img-file" accept="image/*" style="display:none;">
             </button>
 
-            <!-- Voice Message Button -->
             <button id="attach-voice-btn" class="chat-action-btn" title="Hold to record voice note">
               ${SVGS.mic}
             </button>
 
-            <!-- Start Call Button -->
             <button id="mailbox-call-btn" class="chat-action-btn call-action-btn" title="Start Video Call">
               ${SVGS.phoneCall}
             </button>
@@ -322,7 +307,6 @@ export class StarlightMessenger {
       });
     }
 
-    // Discord Emojis Bar
     this.overlay.querySelectorAll('.emoji-tap-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const emoji = btn.getAttribute('data-emoji');
@@ -331,7 +315,6 @@ export class StarlightMessenger {
       });
     });
 
-    // Image Picker
     if (imgBtn && imgInput) {
       imgBtn.addEventListener('click', () => imgInput.click());
       imgInput.addEventListener('change', (e) => {
@@ -343,7 +326,6 @@ export class StarlightMessenger {
       });
     }
 
-    // Voice Note Recorder (press-and-hold)
     if (voiceBtn) {
       const startVoice = async (e) => {
         e.preventDefault();
@@ -369,7 +351,6 @@ export class StarlightMessenger {
       voiceBtn.addEventListener('touchend',   stopVoice,  { passive: true  });
     }
 
-    // Call Panel HUD buttons
     const bindHud = (id, fn) => {
       const el = this.overlay.querySelector(id);
       if (el) el.addEventListener('click', fn);
@@ -380,17 +361,12 @@ export class StarlightMessenger {
     bindHud('#call-btn-screen', () => this._onScreenShare());
     bindHud('#call-btn-answer', () => this._onAnswerCall());
 
-    // Start call button in messenger footer
     if (callBtn) callBtn.addEventListener('click', () => this._onStartCall());
 
     this.overlay.addEventListener('click', (e) => {
       if (e.target === this.overlay) this.close();
     });
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Call Engine Initialization
-  // ──────────────────────────────────────────────────────────────────────────
 
   _initCallEngine() {
     kiroCallEngine.setCallbacks({
@@ -403,10 +379,6 @@ export class StarlightMessenger {
       },
     });
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Call HUD Button Handlers
-  // ──────────────────────────────────────────────────────────────────────────
 
   async _onStartCall() {
     const panel = this.overlay.querySelector('#call-session-panel');
@@ -482,10 +454,6 @@ export class StarlightMessenger {
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // Call Engine Callbacks
-  // ──────────────────────────────────────────────────────────────────────────
-
   _onCallStateChange(state) {
     const badge       = this.overlay.querySelector('#call-status-badge');
     const placeholder = this.overlay.querySelector('#call-remote-placeholder');
@@ -508,7 +476,6 @@ export class StarlightMessenger {
       placeholder.style.display = (state === CallState.CONNECTED) ? 'none' : 'flex';
     }
 
-    // Show E2EE badge on connection if crypto is active
     if (state === CallState.CONNECTED && kiroCryptoEngine.isEncrypted) {
       const e2eeBadge = this.overlay.querySelector('#call-e2ee-badge');
       if (e2eeBadge) e2eeBadge.classList.add('visible');
@@ -607,5 +574,9 @@ export class StarlightMessenger {
   loadMockFeed() {
     this.addMessageNode('patrick', "Did you see Kiro floating across the nebula? He looks so happy today.", 'text');
     this.addMessageNode('yangiee', "I fed him a star treat earlier and his sparkles went into high gear!", 'text');
+  }
+
+  dispose() {
+    this._onEndCall();
   }
 }

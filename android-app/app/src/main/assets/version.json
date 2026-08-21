@@ -1,5 +1,5 @@
 {
-  "version": "1.7.3",
-  "updatedAt": "2026-08-21T14:38:00+08:00",
-  "releaseNotes": "Decongested AI rulebooks by externalizing detailed decision archives into DECISIONS.md while preserving a clean, linked index in master rulebooks (AGENTS.md, GEMINI.md, .cursorrules)."
+  "version": "1.8.0",
+  "updatedAt": "2026-08-21T14:48:00+08:00",
+  "releaseNotes": "V5.0 Architectural Refactoring: Flat-directory WebGL asset container, procedural engine thruster synthesizer with dynamic speed modulation, projective geometry math constraints, and single render loop optimization."
 }

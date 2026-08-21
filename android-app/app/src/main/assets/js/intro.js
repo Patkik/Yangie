@@ -1,15 +1,15 @@
 /**
- * intro.js
- * High-Fidelity 4-Act Lightspeed Warp Sequence & Cosmic Atmosphere Upgrades (ES6 Module)
- * 
+ * intro.js (Space Capsule V5.0 — Cinematic WebGL Starfield Warp & Identity Selector Portals)
+ * ─────────────────────────────────────────────────────────────────────────────
  * 1. Volumetric Cosmic Dust Clouds (Procedural Shader Nebula in Three.js)
  * 2. Chromatic Warp Transition (Mint-Teal on left, Pastel Pink on right, Gold in center)
  * 3. Stardust Touch Trails (Swirling interactive stardust sparkles on touch/cursor movement)
  * 4. Deep-Space Orbital Hum & Solar Wind Atmosphere (55Hz sub-bass + 0.05Hz LFO + pink noise bandpass sweep)
+ * 5. Flat-directory sibling imports and leak-proof WebGL memory disposal.
  */
 
-import { KiroState } from '../state.js';
-import { synthEngine } from '../audio/synth.js';
+import { KiroState } from './state.js';
+import { synthEngine } from './synth.js';
 
 export class KiroIntroManager {
   constructor(overlayId, onCompleteCallback) {
@@ -202,10 +202,6 @@ export class KiroIntroManager {
       positions[pIdx + 4] = y;
       positions[pIdx + 5] = z - this.streakLength;
 
-      // Chromatic Warp Color Mapping:
-      // Left side (x < -10) -> Mint-Teal
-      // Right side (x > 10) -> Pastel Pink
-      // Center -> Gold & Starlight Lavender
       let c = goldColor;
       if (x < -12) {
         c = mintColor;
@@ -252,7 +248,6 @@ export class KiroIntroManager {
       uniform float u_opacity;
       varying vec2 vUv;
 
-      // Fast simplex noise approximation
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
       vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
       vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -288,7 +283,6 @@ export class KiroIntroManager {
         float n2 = snoise(uv * 3.0 - vec2(t * 0.3, t * 0.6));
         float cloud = (n1 * 0.6 + n2 * 0.4) * 0.5 + 0.5;
 
-        // Colors: Cosmic Indigo, Starlight Lavender, Mint, and Pastel Pink
         vec3 deepSpace = vec3(0.05, 0.08, 0.14);
         vec3 lavender = vec3(0.55, 0.40, 0.85);
         vec3 mint = vec3(0.31, 0.79, 0.69);
@@ -296,7 +290,6 @@ export class KiroIntroManager {
 
         vec3 col = mix(deepSpace, lavender, smoothstep(0.35, 0.75, cloud));
         
-        // Chromatic split on left/right edges
         if (uv.x < 0.0) {
           col = mix(col, mint, smoothstep(0.4, 0.85, cloud) * abs(uv.x) * 0.65);
         } else {
@@ -339,7 +332,6 @@ export class KiroIntroManager {
     this.resizeSupernovaCanvas();
   }
 
-  /* Stardust Touch Trails (Sparkles that follow finger/cursor) */
   bindStardustTrails() {
     const handleMove = (clientX, clientY) => {
       if (this.isDisposed) return;
@@ -355,7 +347,7 @@ export class KiroIntroManager {
           x: clientX + (Math.random() - 0.5) * 14,
           y: clientY + (Math.random() - 0.5) * 14,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 0.5, // gentle upward drift
+          vy: Math.sin(angle) * speed - 0.5,
           size: 1.5 + Math.random() * 3.5,
           life: 1.0,
           decay: 0.035 + Math.random() * 0.03,
@@ -379,12 +371,10 @@ export class KiroIntroManager {
     const delta = this.clock ? this.clock.getDelta() : 0.016;
     const elapsedTime = this.clock ? this.clock.getElapsedTime() : 0;
 
-    // Update Volumetric Nebula Shader Time
     if (this.nebulaMaterial && this.nebulaMaterial.uniforms) {
       this.nebulaMaterial.uniforms.u_time.value = elapsedTime;
     }
 
-    // Update Star Lines Coordinates
     if (this.starLines) {
       const positions = this.starLines.geometry.attributes.position.array;
 
@@ -392,7 +382,6 @@ export class KiroIntroManager {
         const star = this.starData[i];
         const pIdx = i * 6;
 
-        // Advance along Z towards camera
         star.z += star.speed * this.warpSpeed;
 
         if (star.z > 250) {
@@ -403,12 +392,10 @@ export class KiroIntroManager {
         const curX = Math.cos(star.angle) * star.radius;
         const curY = Math.sin(star.angle) * star.radius;
 
-        // Start point
         positions[pIdx] = curX;
         positions[pIdx + 1] = curY;
         positions[pIdx + 2] = star.z;
 
-        // Stretched streak point
         positions[pIdx + 3] = curX;
         positions[pIdx + 4] = curY;
         positions[pIdx + 5] = star.z - this.streakLength;
@@ -425,7 +412,6 @@ export class KiroIntroManager {
       this.renderer.render(this.scene, this.camera);
     }
 
-    // Render Stardust Touch Trails on 2D Overlay Canvas
     this.renderStardustTrails();
   }
 
@@ -461,7 +447,6 @@ export class KiroIntroManager {
     }
   }
 
-  /* GSAP 4-Act Cinematic Director */
   runTimeline() {
     if (!window.gsap) {
       this.skipToPortals();
@@ -510,7 +495,6 @@ export class KiroIntroManager {
         if (letterboxTop) letterboxTop.classList.add('retracted');
         if (letterboxBottom) letterboxBottom.classList.add('retracted');
         synthEngine.playArrivalChime();
-        // Start Deep-Space 55Hz Hum & Solar Winds
         synthEngine.startCosmicAtmosphere();
       }, null, '-=1.2')
 
@@ -552,7 +536,6 @@ export class KiroIntroManager {
         this.selectPersona(persona, e);
       };
 
-      // Handle card clicks, touch releases, and pointer taps
       card.addEventListener('click', handleTrigger);
       card.addEventListener('touchend', handleTrigger);
       card.addEventListener('pointerup', handleTrigger);
@@ -569,25 +552,20 @@ export class KiroIntroManager {
     setupInteractivePortal(yangieeCard, '.portal-choose-btn', 'yang', () => synthEngine.playYangieeChord());
   }
 
-  /* Selection: State Transition & Dashboard Reveal */
   selectPersona(persona, event) {
     if (this.isSelecting) return;
     this.isSelecting = true;
 
-    // Clear and flush any 2D canvas stardust trails immediately
     this.stardustTrailParticles = [];
     if (this.supernovaCtx && this.supernovaCanvas) {
       this.supernovaCtx.clearRect(0, 0, this.supernovaCanvas.width, this.supernovaCanvas.height);
     }
 
-    // Normalize persona token ('pat' or 'yang')
     const normalized = (persona === 'yang' || persona === 'yangiee') ? 'yang' : 'pat';
 
-    // 1. Instantly update core state and persistence
     KiroState.setPersona(normalized);
     KiroState.set('hasCompletedIntro', true);
 
-    // 2. Play Audio Chord FX
     try {
       synthEngine.stopCosmicAtmosphere(0.3);
       synthEngine.playSupernovaSound();
@@ -595,7 +573,6 @@ export class KiroIntroManager {
       console.warn('Audio play error on selection:', e);
     }
 
-    // 3. Immediately reveal main Space Capsule HUD
     const appUi = document.getElementById('app-ui');
     if (appUi) {
       appUi.classList.add('visible');
@@ -603,7 +580,6 @@ export class KiroIntroManager {
       appUi.style.pointerEvents = 'auto';
     }
 
-    // 4. Hide intro overlay immediately with display none
     if (this.overlay) {
       this.overlay.classList.add('hidden');
       this.overlay.style.opacity = '0';
@@ -611,11 +587,9 @@ export class KiroIntroManager {
       this.overlay.style.display = 'none';
     }
 
-    // 5. Dispose intro scene cleanly without breaking main WebGL scene
     this.dispose();
     document.body.style.pointerEvents = 'auto';
 
-    // 6. Invoke onComplete callback to proceed to main scenario
     if (this.onComplete) {
       this.onComplete(normalized);
     }

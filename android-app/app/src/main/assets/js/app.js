@@ -5,10 +5,10 @@
  */
 
 import { KiroState } from './state.js';
-import { synthEngine } from './audio/synth.js';
-import { KiroSceneManager } from './three/scene.js';
-import { KiroIntroManager } from './three/intro.js';
-import { StarlightMessenger } from './ui/mailbox.js';
+import { synthEngine } from './synth.js';
+import { KiroSceneManager } from './scene.js';
+import { KiroIntroManager } from './intro.js';
+import { StarlightMessenger } from './mailbox.js';
 
 // ============================================================================
 // 1. Native Lifecycle & Notification Bridges
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => {
         const dir = btn.getAttribute('data-dir');
         let steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
-        const step = 6;
+        const step = 8;
 
         if (dir === 'up') steering.pitch = Math.min(50, (steering.pitch || 0) + step);
         if (dir === 'down') steering.pitch = Math.max(-50, (steering.pitch || 0) - step);
@@ -363,6 +363,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dir === 'right') steering.yaw = Math.min(50, (steering.yaw || 0) + step);
 
         KiroState.set('cockpitSteering', { ...steering });
+        const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
+        synthEngine.updateThrusterSpeed(speed);
       });
     });
   }
