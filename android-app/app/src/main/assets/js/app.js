@@ -569,28 +569,52 @@ document.addEventListener('DOMContentLoaded', () => {
   let sleepProgressVal = 0;
 
   if (sleepBtn && sleepHoldRing) {
-    const startSleepPress = () => {
+    const isSleepActive = () => KiroState.get('isSleeping') === true;
+
+    const updateSleepButtonUI = (sleeping) => {
+      sleepBtn.classList.toggle('sleeping', sleeping);
+      if (sleepLabel) {
+        sleepLabel.textContent = sleeping ? 'Wake' : 'Sleep';
+      }
+    };
+
+    // Initial state sync & SSOT listener
+    updateSleepButtonUI(isSleepActive());
+    KiroState.on('change:isSleeping', ({ newValue }) => updateSleepButtonUI(Boolean(newValue)));
+
+    const triggerSleepToggle = () => {
+      const nextSleep = !KiroState.get('isSleeping');
+      if (nextSleep) {
+        orchestrator.executeBedtimeSOP();
+      } else {
+        orchestrator.executeWakeupSOP();
+      }
+      flashSleepToast(nextSleep);
+    };
+
+    const startSleepPress = (e) => {
+      closeAllPetals();
       sleepProgressVal = 0;
+      if (sleepLabel) sleepLabel.textContent = isSleepActive() ? 'Waking...' : 'Sleeping...';
       sleepTimer = setInterval(() => {
-        sleepProgressVal += 8;
+        sleepProgressVal += 10;
         sleepHoldRing.style.width = `${sleepProgressVal}%`;
         if (sleepProgressVal >= 100) {
           clearInterval(sleepTimer);
+          sleepTimer = null;
           sleepHoldRing.style.width = '0%';
-          const isSleeping = !KiroState.get('isSleeping');
-          KiroState.setSleep(isSleeping);
-          sleepBtn.classList.toggle('sleeping', isSleeping);
-          if (sleepLabel) {
-            sleepLabel.textContent = isSleeping ? 'Wake' : 'Sleep';
-          }
-          flashSleepToast(isSleeping);
+          triggerSleepToggle();
         }
-      }, 45);
+      }, 50);
     };
 
     const cancelSleepPress = () => {
-      if (sleepTimer) clearInterval(sleepTimer);
+      if (sleepTimer) {
+        clearInterval(sleepTimer);
+        sleepTimer = null;
+      }
       sleepHoldRing.style.width = '0%';
+      updateSleepButtonUI(isSleepActive());
     };
 
     sleepBtn.addEventListener('pointerdown', startSleepPress);
