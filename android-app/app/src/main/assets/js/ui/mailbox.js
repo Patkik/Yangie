@@ -1,9 +1,11 @@
 /**
- * mailbox.js (StarlightMessenger V3 + Starlight Call Engine v1.5.0)
+ * mailbox.js (StarlightMessenger V3 + Starlight Call Engine v1.5.1)
  * ──────────────────────────────────────────────────────────────────────────
  * Full-featured Starlight Messenger and Discord-grade Video Call interface for Patrick & Yangiee.
- * 100% Vector SVG-driven UI: Discord-style emojis, inline base64 images, voice notes, WebRTC video calling,
- * screen sharing, DAVE-equivalent E2EE (ECDH P-256 + AES-GCM-128), and native Android audio bridge.
+ * 100% Vector SVG-driven UI & Dynamic Single-Identity Profile Architecture:
+ * - When Persona is Patrick ('pat'): Local user is Patrick (You), Partner is Yangiee.
+ * - When Persona is Yangiee ('yang'): Local user is Yangiee (You), Partner is Patrick.
+ * - Single-Identity locked messaging, directional chat bubbles, and dynamic call labels.
  *
  * Complies with Master Walkthrough Audit v1.2.1 (token normalization via KiroState).
  */
@@ -115,7 +117,6 @@ export class StarlightMessenger {
     this.overlay = document.getElementById(overlayId);
     if (!this.overlay) return;
 
-    this.currentSender = KiroState.get('persona') || 'patrick';
     this.messages = [];
     this.isRecording = false;
     this.recordStartTime = 0;
@@ -126,7 +127,24 @@ export class StarlightMessenger {
     this._isCamOff    = false;
     this._isSharing   = false;
 
+    this.syncPersonaProfile();
     this.init();
+
+    // Listen to identity changes across the entire app
+    KiroState.on('persona:change', () => this.syncPersonaProfile());
+    KiroState.on('change:persona', () => this.syncPersonaProfile());
+  }
+
+  syncPersonaProfile() {
+    const rawPersona = KiroState.get('persona') || 'pat';
+    this.currentPersona = (rawPersona === 'yang' || rawPersona === 'yangiee') ? 'yang' : 'pat';
+    this.localUser      = this.currentPersona === 'pat' ? 'patrick' : 'yangiee';
+    this.partnerUser    = this.currentPersona === 'pat' ? 'yangiee' : 'patrick';
+    this.localName      = this.currentPersona === 'pat' ? 'Patrick' : 'Yangiee';
+    this.partnerName    = this.currentPersona === 'pat' ? 'Yangiee' : 'Patrick';
+    this.currentSender  = this.localUser;
+
+    this.updateProfileUI();
   }
 
   init() {
@@ -145,9 +163,9 @@ export class StarlightMessenger {
               Starlight Mailbox
               <div class="connection-dot"></div>
             </div>
-            <div class="mailbox-sub">
+            <div class="mailbox-sub" id="mailbox-connection-sub">
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-              Celestial Telemetry • 938 km apart
+              Celestial Telemetry • Connected with ${this.partnerName} • 938 km apart
             </div>
           </div>
           <button class="settings-close-btn" id="mailbox-close-btn" aria-label="Close Mailbox">
@@ -170,12 +188,13 @@ export class StarlightMessenger {
                 </div>
               </div>
               <span id="call-status-badge" class="call-status-badge idle">IDLE</span>
+              <span id="call-remote-name-label" style="font-size:10px; color:#A6ADC8; font-weight:600; text-transform:uppercase;">Awaiting ${this.partnerName}…</span>
             </div>
 
             <!-- Self-View PiP Bubble -->
             <div class="call-self-pip">
               <video id="call-self-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);"></video>
-              <div class="call-self-label">YOU</div>
+              <div class="call-self-label" id="call-self-label">${this.localName} (You)</div>
             </div>
 
             <!-- E2EE Lock Badge -->
@@ -218,12 +237,11 @@ export class StarlightMessenger {
         </div>
 
         <div class="mailbox-footer">
-          <div class="sender-selector">
-            <div class="sender-pill patrick-pill ${this.currentSender === 'patrick' ? 'active' : ''}" data-sender="patrick">
-              ${SVGS.patrick} Patrick
-            </div>
-            <div class="sender-pill yangiee-pill ${this.currentSender === 'yangiee' ? 'active' : ''}" data-sender="yangiee">
-              ${SVGS.yangiee} Yangiee
+          <!-- Exclusive Locked Single-Identity Badge (No 2 Pats or 2 Yangs) -->
+          <div class="single-identity-indicator">
+            <div class="active-identity-badge ${this.currentPersona === 'pat' ? 'patrick' : 'yangiee'}" id="mailbox-identity-badge">
+              ${this.currentPersona === 'pat' ? SVGS.patrick : SVGS.yangiee}
+              <span id="mailbox-identity-label">You: ${this.localName}</span>
             </div>
           </div>
 
@@ -244,7 +262,7 @@ export class StarlightMessenger {
               ${SVGS.phoneCall}
             </button>
 
-            <input type="text" id="mailbox-input" class="chat-input" placeholder="Whisper something sweet to Yangiee..." autocomplete="off" style="flex:1;">
+            <input type="text" id="mailbox-input" class="chat-input" placeholder="${this.currentPersona === 'pat' ? 'Whisper something sweet to Yangiee...' : 'Send an adorable note to Patrick...'}" autocomplete="off" style="flex:1;">
             
             <button id="mailbox-send-btn" class="send-button" title="Send Note">
               ${SVGS.send}
@@ -255,11 +273,44 @@ export class StarlightMessenger {
     `;
   }
 
+  updateProfileUI() {
+    if (!this.overlay) return;
+
+    const subEl = this.overlay.querySelector('#mailbox-connection-sub');
+    if (subEl) {
+      subEl.innerHTML = `
+        <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+        Celestial Telemetry • Connected with ${this.partnerName} • 938 km apart
+      `;
+    }
+
+    const badgeEl = this.overlay.querySelector('#mailbox-identity-badge');
+    if (badgeEl) {
+      badgeEl.className = `active-identity-badge ${this.currentPersona === 'pat' ? 'patrick' : 'yangiee'}`;
+      badgeEl.innerHTML = `
+        ${this.currentPersona === 'pat' ? SVGS.patrick : SVGS.yangiee}
+        <span id="mailbox-identity-label">You: ${this.localName}</span>
+      `;
+    }
+
+    const inputEl = this.overlay.querySelector('#mailbox-input');
+    if (inputEl) {
+      inputEl.placeholder = this.currentPersona === 'pat'
+        ? 'Whisper something sweet to Yangiee...'
+        : 'Send an adorable note to Patrick...';
+    }
+
+    const selfLabel = this.overlay.querySelector('#call-self-label');
+    if (selfLabel) selfLabel.textContent = `${this.localName} (You)`;
+
+    const remoteLabel = this.overlay.querySelector('#call-remote-name-label');
+    if (remoteLabel) remoteLabel.textContent = `Awaiting ${this.partnerName}…`;
+  }
+
   bindEvents() {
     const input      = this.overlay.querySelector('#mailbox-input');
     const sendBtn    = this.overlay.querySelector('#mailbox-send-btn');
     const closeBtn   = this.overlay.querySelector('#mailbox-close-btn');
-    const pills      = this.overlay.querySelectorAll('.sender-pill');
     const imgBtn     = this.overlay.querySelector('#attach-img-btn');
     const imgInput   = this.overlay.querySelector('#attach-img-file');
     const voiceBtn   = this.overlay.querySelector('#attach-voice-btn');
@@ -277,21 +328,8 @@ export class StarlightMessenger {
     this.overlay.querySelectorAll('.emoji-tap-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const emoji = btn.getAttribute('data-emoji');
-        this.addMessageNode(this.currentSender, emoji, 'text');
+        this.addMessageNode(this.localUser, emoji, 'text');
         synthEngine.playChimeSound(880);
-      });
-    });
-
-    pills.forEach(pill => {
-      pill.addEventListener('click', () => {
-        pills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        this.currentSender = pill.getAttribute('data-sender');
-        if (input) {
-          input.placeholder = this.currentSender === 'patrick'
-            ? 'Whisper something sweet to Yangiee...'
-            : 'Send an adorable note to Patrick...';
-        }
       });
     });
 
@@ -302,7 +340,7 @@ export class StarlightMessenger {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (ev) => this.addMessageNode(this.currentSender, ev.target.result, 'image');
+        reader.onload = (ev) => this.addMessageNode(this.localUser, ev.target.result, 'image');
         reader.readAsDataURL(file);
       });
     }
@@ -324,7 +362,7 @@ export class StarlightMessenger {
         voiceBtn.style.background = 'rgba(255,255,255,0.06)';
         const audioUrl = await synthEngine.stopRecordingVoice();
         const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
-        if (audioUrl && duration >= 1) this.addMessageNode(this.currentSender, audioUrl, 'audio');
+        if (audioUrl && duration >= 1) this.addMessageNode(this.localUser, audioUrl, 'audio');
       };
       voiceBtn.addEventListener('mousedown',  startVoice);
       voiceBtn.addEventListener('mouseup',    stopVoice);
@@ -363,7 +401,7 @@ export class StarlightMessenger {
       onRemoteStream: (stream) => this._onRemoteStream(stream),
       onError: (msg, err) => {
         console.error('[Messenger] Call error:', msg, err);
-        this.addMessageNode(this.currentSender, `Call error: ${msg}`, 'text');
+        this.addMessageNode(this.localUser, `Call error: ${msg}`, 'text');
       },
     });
   }
@@ -376,13 +414,11 @@ export class StarlightMessenger {
     const panel = this.overlay.querySelector('#call-session-panel');
     if (panel) panel.style.display = 'block';
 
-    // Generate ECDH epoch keypair for this call
     await kiroCryptoEngine.generateEpochKeyPair();
-    // Wire crypto engine to call engine
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.startCall({ video: true, audio: true });
-    this.addMessageNode(this.currentSender, 'Initiating Starlight Video Call…', 'text');
+    this.addMessageNode(this.localUser, `Initiating Starlight Video Call with ${this.partnerName}…`, 'text');
     synthEngine.playChimeSound(660);
   }
 
@@ -394,7 +430,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.answerCall({ video: true, audio: true });
-    this.addMessageNode(this.currentSender, 'Answering incoming call…', 'text');
+    this.addMessageNode(this.localUser, `Answering incoming call from ${this.partnerName}…`, 'text');
     synthEngine.playChimeSound(770);
   }
 
@@ -408,7 +444,7 @@ export class StarlightMessenger {
     const panel = this.overlay.querySelector('#call-session-panel');
     if (panel) setTimeout(() => { panel.style.display = 'none'; }, 1200);
 
-    this.addMessageNode(this.currentSender, 'Call ended.', 'text');
+    this.addMessageNode(this.localUser, 'Call ended.', 'text');
     synthEngine.playChimeSound(330);
   }
 
@@ -436,14 +472,14 @@ export class StarlightMessenger {
       this._isSharing = false;
       const btn = this.overlay.querySelector('#call-btn-screen');
       if (btn) { btn.innerHTML = SVGS.screenShare; btn.classList.remove('active-red'); }
-      this.addMessageNode(this.currentSender, 'Screen sharing stopped.', 'text');
+      this.addMessageNode(this.localUser, 'Screen sharing stopped.', 'text');
     } else {
       const stream = await kiroCallEngine.startScreenShare();
       if (stream) {
         this._isSharing = true;
         const btn = this.overlay.querySelector('#call-btn-screen');
         if (btn) { btn.innerHTML = SVGS.screenShare; btn.classList.add('active-red'); }
-        this.addMessageNode(this.currentSender, 'Started screen broadcast.', 'text');
+        this.addMessageNode(this.localUser, 'Started screen broadcast.', 'text');
       }
     }
   }
@@ -460,7 +496,7 @@ export class StarlightMessenger {
 
     const labels = {
       [CallState.IDLE]:              'IDLE',
-      [CallState.AWAITING_ENDPOINT]: 'AWAITING ENDPOINT',
+      [CallState.AWAITING_ENDPOINT]: `AWAITING ${this.partnerName.toUpperCase()}`,
       [CallState.NEGOTIATING]:       'NEGOTIATING',
       [CallState.CONNECTED]:         'VOICE CONNECTED',
       [CallState.ENDED]:             'CALL ENDED',
@@ -498,6 +534,7 @@ export class StarlightMessenger {
   }
 
   open() {
+    this.syncPersonaProfile();
     this.overlay.classList.add('open');
   }
 
@@ -511,7 +548,7 @@ export class StarlightMessenger {
     const text = input.value.trim();
     if (!text) return;
 
-    this.addMessageNode(this.currentSender, text, 'text');
+    this.addMessageNode(this.localUser, text, 'text');
     input.value = '';
   }
 
@@ -519,11 +556,14 @@ export class StarlightMessenger {
     const feed = this.overlay.querySelector('#mailbox-feed');
     if (!feed) return;
 
+    const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
+    const isOutgoing = (normSender === this.localUser);
+
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const row = document.createElement('div');
-    row.className = `message-row ${sender}`;
+    row.className = `message-row ${isOutgoing ? 'outgoing' : 'incoming'} ${normSender}`;
 
-    const avatar = sender === 'patrick' ? SVGS.patrick : SVGS.yangiee;
+    const avatar = normSender === 'patrick' ? SVGS.patrick : SVGS.yangiee;
 
     let contentHTML = '';
     if (type === 'text') {
@@ -552,7 +592,7 @@ export class StarlightMessenger {
     this.scrollToBottom();
 
     if (window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
-      const senderName = sender === 'patrick' ? 'Patrick' : 'Yangiee';
+      const senderName = normSender === 'patrick' ? 'Patrick' : 'Yangiee';
       const preview = type === 'text' ? content : `[Sent a ${type}]`;
       window.AndroidHost.sendNotification(`Note from ${senderName}`, preview);
     }
@@ -565,7 +605,6 @@ export class StarlightMessenger {
 
   loadMockFeed() {
     this.addMessageNode('patrick', "Did you see Kiro floating across the nebula? He looks so happy today.", 'text');
-    this.addMessageNode('yangiee', "I fed him a strawberry donut earlier and his sparkles went into high gear!", 'text');
-    this.addMessageNode('patrick', "Let's steer the telescope towards the Butterfly Galaxy next.", 'text');
+    this.addMessageNode('yangiee', "I fed him a star treat earlier and his sparkles went into high gear!", 'text');
   }
 }

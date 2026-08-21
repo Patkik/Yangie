@@ -184,7 +184,63 @@ document.addEventListener('DOMContentLoaded', () => {
     revealDashboard();
   }
 
-  // 1. Dynamic Timezone Greeting & Live Clock (Philippine Standard Time UTC+8)
+  // 1. Dynamic Single-Identity Profile Architecture
+  function updatePersonaProfile() {
+    const rawPersona = KiroState.get('persona') || 'pat';
+    const persona = (rawPersona === 'yang' || rawPersona === 'yangiee') ? 'yang' : 'pat';
+    const partner = persona === 'pat' ? 'yang' : 'pat';
+    const personaName = persona === 'pat' ? 'Patrick' : 'Yangiee';
+    const partnerName = persona === 'pat' ? 'Yangiee' : 'Patrick';
+
+    // A. Update Top Header Connected Subtitle
+    const brandSub = document.getElementById('brand-connected-sub');
+    if (brandSub) {
+      brandSub.textContent = `CONNECTED TO ${partnerName.toUpperCase()}`;
+    }
+
+    // B. Update Weather/Telemetry Hub
+    const localStationEl = document.getElementById('telemetry-local-station');
+    const partnerStationEl = document.getElementById('telemetry-partner-station');
+    if (localStationEl) {
+      localStationEl.innerHTML = `
+        <svg class="inline-svg-icon ${persona === 'pat' ? 'galaxy-icon' : 'moon-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${persona === 'pat' 
+            ? '<circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>' 
+            : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'}
+        </svg>
+        <span style="font-weight:700; color:var(--color-mint);">${persona === 'pat' ? 'Malaybalay (You)' : 'Capas (You)'} • ${persona === 'pat' ? '24°C' : '28°C'}</span>
+      `;
+    }
+    if (partnerStationEl) {
+      partnerStationEl.innerHTML = `
+        <svg class="inline-svg-icon ${partner === 'pat' ? 'galaxy-icon' : 'moon-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${partner === 'pat' 
+            ? '<circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>' 
+            : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'}
+        </svg>
+        <span>${partner === 'pat' ? 'Malaybalay (Patrick)' : 'Capas (Yangiee)'} • ${partner === 'pat' ? '24°C' : '28°C'}</span>
+      `;
+    }
+
+    // C. Update Settings Modal Persona Card
+    const settingsBadge = document.getElementById('settings-current-persona-badge');
+    const settingsTitle = document.getElementById('settings-persona-title');
+    const settingsStation = document.getElementById('settings-persona-station');
+    if (settingsBadge) {
+      settingsBadge.textContent = personaName.toUpperCase();
+      settingsBadge.style.color = persona === 'pat' ? 'var(--color-mint)' : 'var(--color-pink-blush)';
+      settingsBadge.style.borderColor = persona === 'pat' ? 'rgba(78, 201, 176, 0.35)' : 'rgba(245, 183, 192, 0.35)';
+      settingsBadge.style.background = persona === 'pat' ? 'rgba(78, 201, 176, 0.15)' : 'rgba(245, 183, 192, 0.15)';
+    }
+    if (settingsTitle) settingsTitle.textContent = `${personaName} (${persona === 'pat' ? 'The Anchor' : 'The Catalyst'})`;
+    if (settingsStation) settingsStation.textContent = `Primary Station: ${persona === 'pat' ? 'Malaybalay' : 'Capas'}`;
+  }
+
+  updatePersonaProfile();
+  KiroState.on('persona:change', updatePersonaProfile);
+  KiroState.on('change:persona', updatePersonaProfile);
+
+  // 2. Dynamic Timezone Greeting & Live Clock (Philippine Standard Time UTC+8)
   function updateClockAndGreeting() {
     const clockEl = document.getElementById('live-clock');
     const greetEl = document.getElementById('time-greeting');
@@ -353,6 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 6. Settings Modal Handlers
   const settingsModal = document.getElementById('settings-modal');
+  const switchPersonaBtn = document.getElementById('settings-switch-persona-btn');
+
+  if (switchPersonaBtn) {
+    switchPersonaBtn.addEventListener('click', () => {
+      const current = KiroState.get('persona') || 'pat';
+      const next = (current === 'pat' || current === 'patrick') ? 'yang' : 'pat';
+      KiroState.setPersona(next);
+      synthEngine.playChimeSound(next === 'pat' ? 520 : 680);
+    });
+  }
+
   if (settingsNavBtn) {
     settingsNavBtn.addEventListener('click', () => {
       const verBadge = document.getElementById('settings-current-ver-badge');
@@ -360,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cur = KiroState.get('installedVersion');
       if (verBadge) verBadge.textContent = cur.startsWith('v') ? cur : `v${cur}`;
       if (verVal) verVal.textContent = cur.startsWith('v') ? cur : `v${cur}`;
+      updatePersonaProfile();
       if (settingsModal) settingsModal.classList.add('open');
     });
   }
@@ -467,4 +535,12 @@ document.addEventListener('DOMContentLoaded', () => {
     sleepBtn.addEventListener('mouseleave', cancelSleepPress);
     sleepBtn.addEventListener('touchend', cancelSleepPress);
   }
+
+  // 9. Rigid Viewport Lock — Prevent screen bounce/scrolling
+  document.addEventListener('touchmove', (e) => {
+    const isScrollable = e.target.closest('.mailbox-feed, .settings-card, .intro-portals-stage, .call-panel');
+    if (!isScrollable) {
+      e.preventDefault();
+    }
+  }, { passive: false });
 });

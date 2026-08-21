@@ -7,15 +7,18 @@
   position: fixed;
   inset: 0;
   z-index: 15000;
-  background: rgba(13, 22, 34, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(8, 14, 22, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -89,6 +92,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .message-row {
@@ -97,8 +103,14 @@
   align-items: flex-end;
 }
 
-.message-row.yangiee {
+/* Outgoing message (You) -> aligned right */
+.message-row.outgoing {
   flex-direction: row-reverse;
+}
+
+/* Incoming message (Partner) -> aligned left */
+.message-row.incoming {
+  flex-direction: row;
 }
 
 .avatar-wrapper svg {
@@ -119,10 +131,24 @@
   transition: transform 0.15s ease;
 }
 
-.message-row.yangiee .message-bubble {
-  background: rgba(245, 183, 192, 0.15);
-  border-color: rgba(245, 183, 192, 0.35);
+/* Outgoing bubble styles */
+.message-row.outgoing .message-bubble {
+  background: rgba(78, 201, 176, 0.16);
+  border-color: rgba(78, 201, 176, 0.38);
   border-radius: 16px 16px 4px 16px;
+}
+
+/* Outgoing from Yangiee (if active persona is yang) */
+.message-row.outgoing.yangiee .message-bubble {
+  background: rgba(245, 183, 192, 0.18);
+  border-color: rgba(245, 183, 192, 0.4);
+}
+
+/* Incoming bubble styles */
+.message-row.incoming .message-bubble {
+  background: rgba(25, 30, 44, 0.88);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 16px 16px 16px 4px;
 }
 
 .message-text {
@@ -195,41 +221,33 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sender-selector {
-  display: flex;
-  gap: 8px;
-}
-
-.sender-pill {
-  padding: 4px 12px;
-  border-radius: 14px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
+.active-identity-badge {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #A6ADC8;
-  transition: all 0.2s;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-.sender-pill svg {
+.active-identity-badge.patrick {
+  background: rgba(78, 201, 176, 0.15);
+  border: 1px solid rgba(78, 201, 176, 0.35);
+  color: var(--color-mint);
+}
+
+.active-identity-badge.yangiee {
+  background: rgba(245, 183, 192, 0.15);
+  border: 1px solid rgba(245, 183, 192, 0.35);
+  color: var(--color-pink-blush);
+}
+
+.active-identity-badge svg {
   width: 14px;
   height: 14px;
-}
-
-.sender-pill.active.patrick-pill {
-  background: rgba(78, 201, 176, 0.2);
-  border-color: var(--color-mint, #4EC9B0);
-  color: var(--color-mint, #4EC9B0);
-}
-
-.sender-pill.active.yangiee-pill {
-  background: rgba(245, 183, 192, 0.2);
-  border-color: var(--color-pink-blush, #F5B7C0);
-  color: var(--color-pink-blush, #F5B7C0);
 }
 
 .input-row {
