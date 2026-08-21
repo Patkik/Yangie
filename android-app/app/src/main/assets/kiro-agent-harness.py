@@ -190,6 +190,9 @@ def run_integrity_checks():
     # Test 6: Anti-Distortion Flexbox Geometry Audit
     passed = audit_anti_distortion_geometry() and passed
 
+    # Test 7: Antigravity Agent Skill Registry Audit
+    passed = audit_skill_registry() and passed
+
     print(f"\n{Colors.BRIGHT}========================================{Colors.RESET}")
     if passed:
         print(f"{Colors.GREEN}{Colors.BRIGHT}🎉 WORKSPACE VERIFICATION SUCCESSFUL: Ready for Android Studio compile! ✨{Colors.RESET}\n")
@@ -466,6 +469,36 @@ def audit_anti_distortion_geometry():
 
         if passed:
             print(f"  {Colors.GREEN}✔ Anti-distortion geometry rules verified (buttons & avatars protected from flex squishing).{Colors.RESET}")
+    return passed
+
+def audit_skill_registry():
+    print(f"\n{Colors.TEAL}7. Auditing Antigravity Agent Skill Registry (.agents/skills/)...{Colors.RESET}")
+    skills_dir = PROJECT_ROOT / ".agents" / "skills"
+    if not skills_dir.exists():
+        print(f"  {Colors.RED}❌ Missing skills directory at: {skills_dir}{Colors.RESET}")
+        return False
+
+    skill_dirs = [d for d in skills_dir.iterdir() if d.is_dir()]
+    valid_skills = 0
+    passed = True
+
+    for d in skill_dirs:
+        skill_file = d / "SKILL.md"
+        if not skill_file.exists():
+            print(f"  {Colors.RED}❌ Skill '{d.name}' is missing SKILL.md!{Colors.RESET}")
+            passed = False
+            continue
+
+        with open(skill_file, "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+
+        if not content.startswith("---") or "name:" not in content or "description:" not in content:
+            print(f"  {Colors.YELLOW}⚠️ Skill '{d.name}' SKILL.md lacks YAML frontmatter (name/description).{Colors.RESET}")
+
+        valid_skills += 1
+
+    if passed:
+        print(f"  {Colors.GREEN}✔ Verified {valid_skills} active agent skills in registry with valid SKILL.md definitions.{Colors.RESET}")
     return passed
 
 # ─────────────────────────────────────────────────────────────────────────────

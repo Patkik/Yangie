@@ -15,6 +15,33 @@ No task is exempt. Every code change, styling tweak, bug fix, or UI refactor MUS
 ---
 
 # =============================================================================
+# 0.1 MANDATORY AGENTIC SKILL DISPATCH & EXECUTION PROTOCOL
+# =============================================================================
+All 34 Antigravity skills in `.agents/skills/` are ACTIVE OPERATIONAL CONTRACTS. Whenever a task touches a specific workflow or domain, the agent MUST immediately inspect, load, and follow the corresponding skill instructions (`SKILL.md`):
+
+1. **Debugging, Failures, & Performance Regressions**:
+   - MUST trigger `diagnosing-bugs` (`.agents/skills/diagnosing-bugs/SKILL.md`).
+   - Hard invariant: Build a tight, deterministic, red-capable feedback loop first (test, CLI runner, or harness invocation) before formulating hypotheses or editing code.
+2. **Feature Development & Test-Driven Code**:
+   - MUST trigger `tdd` (`.agents/skills/tdd/SKILL.md`) and `implement` (`.agents/skills/implement/SKILL.md`).
+   - Follow strict Red -> Green -> Refactor cycles with deterministic assertions.
+3. **Architecture, Deep Modules, & Seams**:
+   - MUST trigger `codebase-design` (`.agents/skills/codebase-design/SKILL.md`) and `domain-modeling` (`.agents/skills/domain-modeling/SKILL.md`).
+   - Enforce "Design It Twice" and "Deepening" heuristics.
+4. **Code Audits & Review Tasks**:
+   - MUST trigger `code-review` (`.agents/skills/code-review/SKILL.md`) to evaluate Standards and Spec compliance.
+5. **Ambiguity, Fuzzy Requirements, or User Questions**:
+   - MUST trigger `grilling` (`.agents/skills/grilling/SKILL.md`) / `grill-me` (`.agents/skills/grill-me/SKILL.md`) to interview and eliminate misalignment.
+6. **Domain Subsystems (Kiro Native Matrix)**:
+   - **3D Graphics & Three.js**: MUST invoke `kiro-webgl-procedural`.
+   - **Procedural Web Audio**: MUST invoke `kiro-webaudio-synthesis`.
+   - **UI Tokens & Glassmorphism**: MUST invoke `kiro-glassmorphic-design`.
+   - **Android Sandbox, Permissions & OTA**: MUST invoke `kiro-android-webview-hardening`.
+   - **Git Versioning & Safety**: MUST invoke `kiro-git-lifecycle` and `git-guardrails-claude-code`.
+
+---
+
+# =============================================================================
 # 1. HARD NEGATIVE CONSTRAINTS (WHAT AN AGENT MUST NEVER DO)
 # =============================================================================
 - 🚫 **NEVER** use system emoji fonts for controls, badges, logos, or HUD meters. Use crisp inline vector SVGs.
@@ -105,3 +132,6 @@ Commands:
 - **[DEC-948120] Offline WebGL Engine Hardening & Cinematic Warp Acceleration**:
   - *Decision Strategy*: Eliminated external CDN dependencies by bundling Three.js r128 and GSAP 3.12.5 locally in /js/vendor/, guaranteeing 100% offline WebGL 3D rendering within hardened Android WebView sandboxes, and added Cinematic Warp Acceleration with full recursive memory disposal.
   - *Evaluated Perspectives*: Creative: Score 5/5: Bundled local Three.js r128 and GSAP 3.12.5 engines to restore Kiro's vibrant 3D cosmos, rotating spiral nebula stardust, and reactive neon ring visuals. Added cinematic warp acceleration with dynamic z-stretch stardust streaks and accelerated spiral orbital rotation during cockpit telescope transitions. | Performance: Score 5/5: Enforces zero network latency and eliminates external CDN asset fetches. Implemented full recursive scene graph disposal (.dispose() on geometries, materials, particle pools, and candy/water meshes) to guarantee leak-free GPU VRAM management inside the Android WebView. | Container: Score 5/5: Completely resolved silent WebGL crashes in Android WebView sandbox (allowFileAccess=false, mixedContentMode=NEVER_ALLOW) by serving all 3D libraries via local virtual assets. SemVer bumped to v1.7.0 to force clean OTA cache eviction.
+- **[DEC-982310] Strict Antigravity Skill Dispatch Matrix & 34-Skill Operational Registry**:
+  - *Decision Strategy*: Integrated the complete 34-skill Antigravity agentic system into .agents/skills/, codified the Mandatory Skill Dispatch Matrix in Section 0.1 across all rulebooks, and added automated Test 7 in kiro-agent-harness.py.
+  - *Evaluated Perspectives*: Creative: Score 5/5: Preserves Twilight celestial tokens and glassmorphic UI conventions while integrating domain skills (kiro-glassmorphic-design, kiro-webgl-procedural) with full Matt Pocock engineering and productivity skills. | Performance: Score 5/5: Automated AST syntax checks, local asset verification, and memory disposal hook auditing prevent runtime jank and memory leaks across all workflows. | Container: Score 5/5: Local skill definitions with zero external network dependencies maintain 100% offline isolation and compliance with the hardened Android WebView sandbox.
