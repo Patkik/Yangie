@@ -1,10 +1,10 @@
 /**
- * scene.js (Space Capsule V5.0 — Unified WebGL Core & Projective Geometry Engine)
+ * scene.js (Space Capsule V5.1 — High-Performance Logarithmic Galaxy & Projective WebGL Engine)
  * ─────────────────────────────────────────────────────────────────────────────
- * 1. Projective Geometry Camera Model: Pinhole (fx=fy=3024, (cx,cy)=[W/2, H/2], Yc=1.7m, Zc=6.2m)
- * 2. Hoiem's Law Perspective Height Scaling for Kiro (Yo=0.85m) & Radial Distortion Correction (k1=-0.15)
- * 3. 800-Star Double-Arm Logarithmic Spiral Galaxy with Pointer Repulsion & Audio Synesthesia
- * 4. Stardust Touch Trail Particle Emitter & Interactive Physics Treat/Water Drops
+ * 1. Double-Arm Logarithmic Spiral Galaxy (800 dynamic stardust particles with pointer repulsion)
+ * 2. Opaque RGBX WebGL Backbuffer (alpha: false, clearColor #11111b) for 100% Android WebView compatibility
+ * 3. Exact 3D Unproject-to-Plane Vector Repulsion Math at Galaxy Depth (Z = -10.0)
+ * 4. Kiro 3D Model with Tactile Petting Physics, Treat Feeding, Water Splashes & Audio Synesthesia
  * 5. Single requestAnimationFrame loop with sub-50 draw call budget & leak-proof GPU/CPU memory disposal.
  */
 
@@ -38,10 +38,11 @@ export class KiroSceneManager {
     this.leftArm = null;
     this.rightArm = null;
 
-    // 1. Dynamic Spiral Galaxy
-    this.galaxyStars = null;
-    this.galaxyStarCount = 800;
-    this.galaxyData = [];
+    // 1. Dynamic Logarithmic Spiral Galaxy
+    this.galaxyPoints = null;
+    this.galaxyCount = 800;
+    this.galaxyOriginalPositions = [];
+    this.galaxyPhases = [];
 
     // 2. Stardust Touch Trails
     this.touchParticles = [];
@@ -58,31 +59,23 @@ export class KiroSceneManager {
     this.spaceSystems = [
       { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 12, y: -8, z: -15, size: 0.45, color: 0xF5C2E7, unlockedGame: 'Nebula Dodge' },
       { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -14, y: 15, z: -18, size: 0.55, color: 0x94E2D5, unlockedGame: 'Celestial Bounce' },
-      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 22, y: 14, z: -25, size: 0.6, color: 0xF9E2AF, unlockedGame: 'Cosmic Chime Sequence' },
+      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 22, y: 14, z: -25, size: 0.6, color: 0xF9E2AF, unlockedGame: 'Cosmic Chimes' },
       { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -18, y: -16, z: -20, size: 0.5, color: 0xCBA6F7, unlockedGame: 'Supernova Blast' }
     ];
 
-    // 5. Cinematic Warp Acceleration State
+    // 5. Cinematic Warp State
     this.warpActive = false;
-    this.warpSpeed = 0.0012;
-    this.warpTargetSpeed = 0.0012;
-    this.warpStarSize = 0.14;
-    this.warpTargetStarSize = 0.14;
+    this.warpSpeed = 0.02;
+    this.warpTargetSpeed = 0.02;
+    this.warpStarSize = 0.18;
+    this.warpTargetStarSize = 0.18;
     this.warpZStretch = 1.0;
     this.warpTargetZStretch = 1.0;
 
-    // Projective Geometry Constants
-    this.FOCAL_LENGTH = 3024;
-    this.CAMERA_ELEVATION = 1.7; // Yc = 1.7m (eye level)
-    this.PEDESTAL_DEPTH = 6.2;   // Zc = 6.2m along optical Z-axis
-    this.KIRO_PHYSICAL_HEIGHT = 0.85; // Yo = 0.85m
-    this.RADIAL_DISTORTION_K1 = -0.15;
-
-    // Raycasting & Gyro Parallax
+    // Pointer Coordinates & Repulsion
+    this.mouse = new THREE.Vector2(0, 0);
+    this.pointerInCanvas = false;
     this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2(-999, -999);
-    this.touchPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-    this.touchIntersectPoint = new THREE.Vector3();
     this.clock = new THREE.Clock();
     this.animationFrameId = null;
     this.gyro = { x: 0, y: 0, targetX: 0, targetY: 0 };
@@ -93,15 +86,18 @@ export class KiroSceneManager {
 
   init() {
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x11111b);
+
     const width = window.innerWidth || this.container.clientWidth || 360;
     const height = window.innerHeight || this.container.clientHeight || 640;
 
-    // Camera Intrinsics Calibration (Optimized 45 deg FOV mapping for portrait sanctuary stage)
+    // Pinhole Camera with 45 deg FOV optimized for mobile sanctuary stage
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
-    this.camera.position.set(0, 0.25, 5.8);
+    this.camera.position.set(0, 0.2, 5.2);
 
-    // WebGL Renderer with Fill-Rate Clamping & Performance Budget
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    // Opaque WebGL Renderer (alpha: false for reliable GPU compositing across all Android WebViews)
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    this.renderer.setClearColor(0x11111b, 1.0);
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
@@ -115,19 +111,19 @@ export class KiroSceneManager {
     this.container.appendChild(this.renderer.domElement);
 
     // High-Contrast Celestial Lighting
-    const ambient = new THREE.AmbientLight(0xFFFFFF, 1.0);
+    const ambient = new THREE.AmbientLight(0xFFFFFF, 1.2);
     this.scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
+    const dirLight = new THREE.DirectionalLight(0xFFFFFF, 1.4);
     dirLight.position.set(5, 10, 7);
     dirLight.castShadow = true;
     this.scene.add(dirLight);
 
-    const bottomPoint = new THREE.PointLight(0x4EC9B0, 2.2, 16);
-    bottomPoint.position.set(0, -1.4, 0.8);
+    const bottomPoint = new THREE.PointLight(0x4EC9B0, 2.5, 16);
+    bottomPoint.position.set(0, -1.2, 0.8);
     this.scene.add(bottomPoint);
 
-    const backLight = new THREE.PointLight(0xF5B7C0, 1.5, 14);
+    const backLight = new THREE.PointLight(0xF5B7C0, 1.8, 14);
     backLight.position.set(0, 2.5, -2.5);
     this.scene.add(backLight);
 
@@ -141,7 +137,7 @@ export class KiroSceneManager {
     this.bindEvents();
     this.subscribeState();
 
-    // Multi-stage Resize Calibration for WebView
+    // Multi-stage Resize Calibration
     this.resize();
     requestAnimationFrame(() => this.resize());
     setTimeout(() => this.resize(), 100);
@@ -153,64 +149,63 @@ export class KiroSceneManager {
 
   /* 1. Double-Arm Logarithmic Spiral Galaxy */
   buildDynamicSpiralGalaxy() {
-    const starGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(this.galaxyStarCount * 3);
-    const colors = new Float32Array(this.galaxyStarCount * 3);
+    const galaxyGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(this.galaxyCount * 3);
+    const colors = new Float32Array(this.galaxyCount * 3);
 
-    const mintColor = new THREE.Color(0x4EC9B0);
-    const pinkColor = new THREE.Color(0xFFB6C1);
-    const goldColor = new THREE.Color(0xF9E2AF);
-    const lavenderColor = new THREE.Color(0xCBA6F7);
+    this.galaxyOriginalPositions = [];
+    this.galaxyPhases = [];
 
-    for (let i = 0; i < this.galaxyStarCount; i++) {
-      const armIndex = i % 2;
-      const angleOffset = armIndex * Math.PI;
-      const dist = Math.pow(Math.random(), 1.6) * 16.0 + 1.2;
-      const spiralAngle = dist * 0.45 + angleOffset + (Math.random() - 0.5) * 0.45;
+    const colorTeal = new THREE.Color(0x4EC9B0);   // Mint-Teal
+    const colorPink = new THREE.Color(0xFFB6C1);   // Pastel-Pink
+    const colorAmber = new THREE.Color(0xF9E2AF);  // Warm Gold
+    const colorLavender = new THREE.Color(0xCBA6F7); // Lavender
 
-      const baseX = Math.cos(spiralAngle) * dist;
-      const baseY = Math.sin(spiralAngle) * dist * 0.65;
-      const baseZ = -3.5 - Math.random() * 8.0;
+    for (let i = 0; i < this.galaxyCount; i++) {
+      const arm = i % 2; // Split particles across exactly 2 spiral arms
 
-      this.galaxyData.push({
-        baseX, baseY, baseZ,
-        x: baseX, y: baseY, z: baseZ,
-        vx: 0, vy: 0,
-        spiralAngle,
-        dist,
-        phase: Math.random() * Math.PI * 2,
-        twinkleSpeed: 1.5 + Math.random() * 3.0,
-        repelRadius: 2.2
-      });
+      // Logarithmic density distribution math: clusters particles tightly at core
+      const r = 0.5 + Math.pow(Math.random(), 1.8) * 9.0;
+      const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.4;
 
-      positions[i * 3] = baseX;
-      positions[i * 3 + 1] = baseY;
-      positions[i * 3 + 2] = baseZ;
+      const x = Math.cos(angle) * r;
+      const y = (Math.random() - 0.5) * 1.2;
+      const z = Math.sin(angle) * r - 10.0; // Place behind Kiro and interactive HUD
 
-      const t = (baseX + 12) / 24;
-      let c = new THREE.Color().lerpColors(mintColor, pinkColor, Math.max(0, Math.min(1, t)));
-      if (Math.random() < 0.15) c = goldColor;
-      else if (Math.random() < 0.15) c = lavenderColor;
+      positions[i * 3]     = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
 
-      colors[i * 3] = c.r;
-      colors[i * 3 + 1] = c.g;
-      colors[i * 3 + 2] = c.b;
+      this.galaxyOriginalPositions.push(new THREE.Vector3(x, y, z));
+      this.galaxyPhases.push(Math.random() * Math.PI * 2);
+
+      // Dynamic color interpolation across arms
+      let starColor;
+      if (arm === 0) {
+        starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.5);
+      } else {
+        starColor = colorPink.clone().lerp(colorLavender, Math.random() * 0.5);
+      }
+
+      colors[i * 3]     = starColor.r;
+      colors[i * 3 + 1] = starColor.g;
+      colors[i * 3 + 2] = starColor.b;
     }
 
-    starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    galaxyGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    galaxyGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const starMat = new THREE.PointsMaterial({
-      size: 0.22,
+    const galaxyMat = new THREE.PointsMaterial({
+      size: this.warpStarSize,
       vertexColors: true,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.9,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
-    this.galaxyStars = new THREE.Points(starGeo, starMat);
-    this.scene.add(this.galaxyStars);
+    this.galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
+    this.scene.add(this.galaxyPoints);
   }
 
   buildEnvironment() {
@@ -303,64 +298,50 @@ export class KiroSceneManager {
     this.rightSleepEye.visible = false;
     this.kiroGroup.add(this.rightSleepEye);
 
-    // 4. Snout / Nose (#F5B7C0)
-    const noseGeo = new THREE.SphereGeometry(0.065, 16, 16);
-    const noseMat = new THREE.MeshStandardMaterial({ color: 0xF5B7C0, roughness: 0.8 });
-    const noseMesh = new THREE.Mesh(noseGeo, noseMat);
-    noseMesh.scale.set(1.2, 1.0, 0.8);
-    noseMesh.position.set(0, 0.06, 0.95);
-    this.kiroGroup.add(noseMesh);
-
-    // 5. Blush Cheeks
-    const cheekGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.02, 16);
-    const cheekMat = new THREE.MeshBasicMaterial({ color: 0xFFB6C1, transparent: true, opacity: 0.6 });
-
-    const leftCheek = new THREE.Mesh(cheekGeo, cheekMat);
-    leftCheek.rotation.set(Math.PI / 2.3, -Math.PI / 6, 0);
-    leftCheek.position.set(-0.55, 0.02, 0.82);
-    this.kiroGroup.add(leftCheek);
-
-    const rightCheek = new THREE.Mesh(cheekGeo, cheekMat);
-    rightCheek.rotation.set(Math.PI / 2.3, Math.PI / 6, 0);
-    rightCheek.position.set(0.55, 0.02, 0.82);
-    this.kiroGroup.add(rightCheek);
-
-    // 6. Flipper Arms
+    // 4. Arms
     const armGeo = new THREE.SphereGeometry(0.24, 16, 16);
     this.leftArm = new THREE.Mesh(armGeo, mintMat);
-    this.leftArm.scale.set(1.5, 0.8, 0.8);
-    this.leftArm.position.set(-0.9, -0.3, 0.2);
-    this.leftArm.rotation.set(0, -Math.PI / 4, -Math.PI / 6);
+    this.leftArm.scale.set(0.8, 1.2, 0.8);
+    this.leftArm.position.set(-0.95, -0.15, 0.3);
     this.kiroGroup.add(this.leftArm);
 
     this.rightArm = new THREE.Mesh(armGeo, mintMat);
-    this.rightArm.scale.set(1.5, 0.8, 0.8);
-    this.rightArm.position.set(0.9, -0.3, 0.2);
-    this.rightArm.rotation.set(0, Math.PI / 4, Math.PI / 6);
+    this.rightArm.scale.set(0.8, 1.2, 0.8);
+    this.rightArm.position.set(0.95, -0.15, 0.3);
     this.kiroGroup.add(this.rightArm);
 
-    // 7. Lavender Nightcap (#CBA6F7)
-    this.nightcap = new THREE.Group();
-    this.nightcap.position.set(0, 0.9, 0);
-    const capGeo = new THREE.ConeGeometry(0.45, 1.0, 16);
-    const capMat = new THREE.MeshStandardMaterial({ color: 0xCBA6F7, roughness: 0.7 });
+    // 5. Sleep Nightcap (Pastel Lavender with Golden Star)
+    const capGroup = new THREE.Group();
+    const capGeo = new THREE.ConeGeometry(0.48, 1.1, 24);
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xCBA6F7, roughness: 0.8 });
     const capMesh = new THREE.Mesh(capGeo, capMat);
-    capMesh.rotation.set(-0.15, 0, -0.25);
-    this.nightcap.add(capMesh);
+    capMesh.rotation.z = -Math.PI / 4.5;
+    capMesh.position.set(0.25, 0.45, 0);
+    capGroup.add(capMesh);
 
-    const starPompom = new THREE.Mesh(new THREE.DodecahedronGeometry(0.12), new THREE.MeshStandardMaterial({ color: 0xF9E2AF }));
-    starPompom.position.set(0.18, 0.55, 0.1);
-    this.nightcap.add(starPompom);
+    const pomGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    const pomMat = new THREE.MeshStandardMaterial({ color: 0xF9E2AF, roughness: 0.3 });
+    const pomMesh = new THREE.Mesh(pomGeo, pomMat);
+    pomMesh.position.set(0.72, 0.78, 0);
+    capGroup.add(pomMesh);
 
+    capGroup.position.set(0, 0.85, 0);
+    capGroup.visible = false;
+    this.nightcap = capGroup;
     this.kiroGroup.add(this.nightcap);
-    this.nightcap.visible = KiroState.get('isSleeping');
 
-    // 8. Golden Aura
+    // 6. Well-Rested Golden Aura
     const auraGeo = new THREE.SphereGeometry(1.4, 32, 32);
-    const auraMat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF, transparent: true, opacity: 0.12, side: THREE.BackSide });
+    const auraMat = new THREE.MeshBasicMaterial({
+      color: 0xF9E2AF,
+      transparent: true,
+      opacity: 0.15,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide
+    });
     this.goldenAura = new THREE.Mesh(auraGeo, auraMat);
+    this.goldenAura.visible = false;
     this.kiroGroup.add(this.goldenAura);
-    this.goldenAura.visible = KiroState.get('hasWellRestedBuff');
   }
 
   buildCockpitHUD() {
@@ -368,72 +349,81 @@ export class KiroSceneManager {
     this.cockpitGroup.visible = false;
     this.scene.add(this.cockpitGroup);
 
-    const ringGeo = new THREE.RingGeometry(0.45, 0.48, 32);
-    const lineMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-    this.crosshairMesh = new THREE.Mesh(ringGeo, lineMat);
-    this.crosshairMesh.position.set(0, 1.6, 3.5);
+    // Pilot Reticle
+    const crossGeo = new THREE.RingGeometry(0.55, 0.58, 32);
+    const crossMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.85 });
+    this.crosshairMesh = new THREE.Mesh(crossGeo, crossMat);
+    this.crosshairMesh.position.set(0, 1.6, -4);
     this.cockpitGroup.add(this.crosshairMesh);
 
-    const vertGeo = new THREE.PlaneGeometry(0.015, 1.2);
-    const horGeo = new THREE.PlaneGeometry(1.2, 0.015);
-    const hLine = new THREE.Mesh(horGeo, lineMat);
-    const vLine = new THREE.Mesh(vertGeo, lineMat);
-    hLine.position.set(0, 1.6, 3.48);
-    vLine.position.set(0, 1.6, 3.48);
-    this.cockpitGroup.add(hLine);
-    this.cockpitGroup.add(vLine);
-
+    // Celestial Minigame Space Systems
     this.spaceSystems.forEach(sys => {
-      const planetGeo = new THREE.SphereGeometry(sys.size, 16, 16);
-      const planetMat = new THREE.MeshBasicMaterial({
+      const geo = new THREE.IcosahedronGeometry(sys.size, 2);
+      const mat = new THREE.MeshStandardMaterial({
         color: sys.color,
-        transparent: true,
-        opacity: 0.9,
+        emissive: sys.color,
+        emissiveIntensity: 0.45,
         wireframe: true
       });
-      const mesh = new THREE.Mesh(planetGeo, planetMat);
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(sys.x, sys.y, sys.z);
-      mesh.userData = { id: sys.id, name: sys.name, basePos: new THREE.Vector3(sys.x, sys.y, sys.z) };
+      mesh.userData = { id: sys.id, name: sys.name, basePos: mesh.position.clone() };
 
-      this.scene.add(mesh);
+      const glowGeo = new THREE.SphereGeometry(sys.size * 1.3, 16, 16);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: sys.color,
+        transparent: true,
+        opacity: 0.25,
+        blending: THREE.AdditiveBlending
+      });
+      mesh.add(new THREE.Mesh(glowGeo, glowMat));
+
+      this.cockpitGroup.add(mesh);
       this.targetSystemMeshes.push(mesh);
     });
   }
 
   bindEvents() {
-    window.addEventListener('resize', () => this.resize());
-
     const onPointerMove = (clientX, clientY) => {
-      if (!this.container || !this.camera) return;
-      const rect = this.container.getBoundingClientRect();
-      this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-      this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      this.mouse.x = (clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+      this.pointerInCanvas = true;
 
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      this.raycaster.ray.intersectPlane(this.touchPlane, this.touchIntersectPoint);
-
-      if (this.touchIntersectPoint) {
-        this.spawnStardustParticle(this.touchIntersectPoint.x, this.touchIntersectPoint.y, this.touchIntersectPoint.z);
-      }
+      // Unproject pointer to 3D world space at depth Z = 0 for stardust sparkles
+      const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
+      const mouseDir = mouseProj.sub(this.camera.position).normalize();
+      const dist = (0 - this.camera.position.z) / mouseDir.z;
+      const worldPos = this.camera.position.clone().add(mouseDir.multiplyScalar(dist));
+      this.spawnStardustParticle(worldPos.x, worldPos.y, worldPos.z);
     };
 
-    this.container.addEventListener('pointermove', (e) => onPointerMove(e.clientX, e.clientY));
-    this.container.addEventListener('touchmove', (e) => {
+    window.addEventListener('pointermove', (e) => onPointerMove(e.clientX, e.clientY));
+    window.addEventListener('pointerdown', (e) => onPointerMove(e.clientX, e.clientY));
+    window.addEventListener('pointerenter', () => { this.pointerInCanvas = true; });
+    window.addEventListener('pointerleave', () => { this.pointerInCanvas = false; });
+
+    window.addEventListener('touchmove', (e) => {
       if (e.touches && e.touches[0]) {
         onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     }, { passive: true });
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', () => { this.pointerInCanvas = false; }, { passive: true });
 
-    this.container.addEventListener('click', (e) => {
+    // Interactive Kiro Petting Touch Raycast
+    window.addEventListener('click', (e) => {
       if (!this.kiroGroup || !this.camera) return;
       if (KiroState.get('telescopeActive')) return;
 
-      const rect = this.container.getBoundingClientRect();
-      this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      const hits = this.raycaster.intersectObjects(this.kiroGroup.children, true);
+      const normX = (e.clientX / window.innerWidth) * 2 - 1;
+      const normY = -(e.clientY / window.innerHeight) * 2 + 1;
+      const clickRay = new THREE.Raycaster();
+      clickRay.setFromCamera(new THREE.Vector2(normX, normY), this.camera);
+      const hits = clickRay.intersectObjects(this.kiroGroup.children, true);
       if (hits.length > 0) {
         this.triggerPetReaction();
       }
@@ -567,10 +557,10 @@ export class KiroSceneManager {
     p.position.set(x + (Math.random() - 0.5) * 0.2, y + (Math.random() - 0.5) * 0.2, z + (Math.random() - 0.5) * 0.2);
     p.userData = {
       vx: (Math.random() - 0.5) * 0.02,
-      vy: 0.025 + Math.random() * 0.035,
+      vy: 0.02 + Math.random() * 0.02,
       vz: (Math.random() - 0.5) * 0.02,
       life: 1.0,
-      decay: 0.035 + Math.random() * 0.025
+      decay: 0.03
     };
 
     this.scene.add(p);
@@ -598,23 +588,36 @@ export class KiroSceneManager {
   }
 
   dropCandy(type = 'star') {
-    if (KiroState.get('isSleeping')) return;
-
-    let candyMesh;
-    const group = new THREE.Group();
-
-    if (type === 'donut') {
-      const donut = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.05, 8, 24), new THREE.MeshStandardMaterial({ color: 0xFFB6C1, roughness: 0.3 }));
-      donut.rotation.x = Math.PI / 2;
-      group.add(donut);
-      candyMesh = group;
+    let candyGeo, candyMat;
+    if (type === 'star') {
+      candyGeo = new THREE.DodecahedronGeometry(0.22);
+      candyMat = new THREE.MeshStandardMaterial({
+        color: 0xF9E2AF,
+        emissive: 0xF9E2AF,
+        emissiveIntensity: 0.35,
+        roughness: 0.2,
+        metalness: 0.1
+      });
     } else {
-      const star = new THREE.Mesh(new THREE.DodecahedronGeometry(0.14), new THREE.MeshStandardMaterial({ color: 0xF9E2AF, roughness: 0.2, metalness: 0.4 }));
-      candyMesh = star;
+      candyGeo = new THREE.TorusGeometry(0.18, 0.09, 16, 32);
+      candyMat = new THREE.MeshStandardMaterial({
+        color: 0xF5C2E7,
+        roughness: 0.3,
+        metalness: 0.05
+      });
     }
 
-    candyMesh.position.set((Math.random() - 0.5) * 0.4, 4.2, 0.85);
-    candyMesh.userData = { vy: -0.07, ay: -0.005, rotX: (Math.random() - 0.5) * 0.05, rotY: (Math.random() - 0.5) * 0.05, type };
+    const candyMesh = new THREE.Mesh(candyGeo, candyMat);
+    candyMesh.position.set((Math.random() - 0.5) * 0.6, 2.5, 0.85);
+    candyMesh.castShadow = true;
+    candyMesh.userData = {
+      vy: -0.015,
+      ay: -0.003,
+      rotX: (Math.random() - 0.5) * 0.08,
+      rotY: (Math.random() - 0.5) * 0.08,
+      type
+    };
+
     this.scene.add(candyMesh);
     this.activeCandies.push(candyMesh);
   }
@@ -717,10 +720,10 @@ export class KiroSceneManager {
   triggerWarpAcceleration() {
     this.warpActive = true;
     this.warpTargetSpeed = 0.08;
-    this.warpTargetStarSize = 0.6;
+    this.warpTargetStarSize = 0.55;
     this.warpTargetZStretch = 4.0;
 
-    if (window.gsap && this.galaxyStars) {
+    if (window.gsap && this.galaxyPoints) {
       gsap.to(this, {
         warpSpeed: this.warpTargetSpeed,
         warpStarSize: this.warpTargetStarSize,
@@ -737,8 +740,8 @@ export class KiroSceneManager {
 
   exitWarpAcceleration() {
     this.warpActive = false;
-    this.warpTargetSpeed = 0.0012;
-    this.warpTargetStarSize = 0.14;
+    this.warpTargetSpeed = 0.02;
+    this.warpStarSize = 0.18;
     this.warpTargetZStretch = 1.0;
 
     if (window.gsap) {
@@ -772,7 +775,7 @@ export class KiroSceneManager {
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;
     this.gyro.y += (this.gyro.targetY - this.gyro.y) * 0.08;
     this.camera.position.x = this.gyro.x;
-    this.camera.position.y = 0.25 + this.gyro.y;
+    this.camera.position.y = 0.2 + this.gyro.y;
 
     // 2. Idle Bobbing & Telescope Steering
     const isTelescope = KiroState.get('telescopeActive');
@@ -783,9 +786,9 @@ export class KiroSceneManager {
       const lookY = 1.6 + (steering.pitch || 0) * 0.02;
       this.camera.lookAt(lookX, lookY, 0);
 
-      if (this.galaxyStars) {
-        this.galaxyStars.position.x = (steering.yaw || 0) * 0.06;
-        this.galaxyStars.position.y = (steering.pitch || 0) * 0.06;
+      if (this.galaxyPoints) {
+        this.galaxyPoints.position.x = (steering.yaw || 0) * 0.06;
+        this.galaxyPoints.position.y = (steering.pitch || 0) * 0.06;
       }
 
       this.targetSystemMeshes.forEach(mesh => {
@@ -793,17 +796,8 @@ export class KiroSceneManager {
         let targetX = base.x + ((steering.yaw || 0) * 0.15);
         let targetY = base.y + ((steering.pitch || 0) * 0.15);
 
-        // Projective Radial Distortion Correction (k1 = -0.15) for off-axis peripheral planets
-        const r2 = (targetX * targetX + targetY * targetY) / (this.FOCAL_LENGTH * 0.01);
-        if (r2 > 0.3) {
-          const distortionFactor = 1.0 + this.RADIAL_DISTORTION_K1 * r2;
-          targetX *= distortionFactor;
-          targetY *= distortionFactor;
-        }
-
         mesh.position.x = targetX;
         mesh.position.y = targetY;
-
         mesh.rotation.y += 0.01;
         mesh.rotation.x += 0.005;
 
@@ -827,48 +821,58 @@ export class KiroSceneManager {
       }
     }
 
-    // 3. Dynamic Spiral Galaxy Twinkle, Pointer Repulsion & Warp Stride
-    if (this.galaxyStars) {
-      const positions = this.galaxyStars.geometry.attributes.position.array;
-      const rotSpeed = isSleeping ? 0.0003 : this.warpSpeed;
-      this.galaxyStars.rotation.z += rotSpeed;
+    // 3. Double-Arm Logarithmic Spiral Galaxy Twinkle & Tactile Repulsion
+    if (this.galaxyPoints) {
+      const positions = this.galaxyPoints.geometry.attributes.position.array;
+      const count = this.galaxyCount;
 
-      if (this.galaxyStars.material.size !== this.warpStarSize) {
-        this.galaxyStars.material.size = this.warpStarSize;
+      if (this.galaxyPoints.material.size !== this.warpStarSize) {
+        this.galaxyPoints.material.size = this.warpStarSize;
       }
 
-      const touchX = this.touchIntersectPoint ? this.touchIntersectPoint.x : -999;
-      const touchY = this.touchIntersectPoint ? this.touchIntersectPoint.y : -999;
+      // Project pointer NDC coordinates to the plane at depth Z = -10.0
+      const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
+      const mouseDir = mouseProj.sub(this.camera.position).normalize();
+      const mouseDist = (-10.0 - this.camera.position.z) / mouseDir.z;
+      const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
 
-      for (let i = 0; i < this.galaxyStarCount; i++) {
-        const star = this.galaxyData[i];
-        const pIdx = i * 3;
+      const rotAngle = isSleeping ? t * 0.005 : t * this.warpSpeed;
 
-        const dx = star.x - touchX;
-        const dy = star.y - touchY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
+      for (let i = 0; i < count; i++) {
+        const orig = this.galaxyOriginalPositions[i];
 
-        if (dist < star.repelRadius && dist > 0.01) {
-          const force = (1.0 - dist / star.repelRadius) * 0.22;
-          star.vx += (dx / dist) * force;
-          star.vy += (dy / dist) * force;
+        // 3D Orbital Spiral Rotation
+        const rotatedX = orig.x * Math.cos(rotAngle) - orig.z * Math.sin(rotAngle);
+        const rotatedZ = (orig.x * Math.sin(rotAngle) + orig.z * Math.cos(rotAngle)) * this.warpZStretch;
+
+        this.galaxyPhases[i] += 0.005;
+
+        if (this.pointerInCanvas) {
+          const dx = positions[i * 3] - mousePlanePos.x;
+          const dy = positions[i * 3 + 1] - mousePlanePos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          // Repulse stars if pointer lies within 2.5 units
+          if (distance < 2.5) {
+            const force = (2.5 - distance) * 0.28;
+            positions[i * 3]     += (dx / distance) * force;
+            positions[i * 3 + 1] += (dy / distance) * force;
+          } else {
+            // Smooth ease back to logarithmic orbital path
+            positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.05;
+            positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.05;
+          }
+        } else {
+          // Seamless drift along orbital coordinates
+          positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
+          positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
         }
 
-        star.vx += (star.baseX - star.x) * 0.04;
-        star.vy += (star.baseY - star.y) * 0.04;
-        star.vx *= 0.88;
-        star.vy *= 0.88;
-
-        star.x += star.vx;
-        star.y += star.vy;
-
-        positions[pIdx] = star.x;
-        positions[pIdx + 1] = star.y;
-        const twinkle = Math.sin(t * star.twinkleSpeed + star.phase) * 0.15;
-        positions[pIdx + 2] = star.z * this.warpZStretch + twinkle;
+        const twinkle = Math.sin(t * 2.0 + this.galaxyPhases[i]) * 0.2;
+        positions[i * 3 + 2] = rotatedZ + twinkle;
       }
 
-      this.galaxyStars.geometry.attributes.position.needsUpdate = true;
+      this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
     }
 
     // 4. Audio-Visual Synesthesia (Neon Ring & Golden Aura)

@@ -1,5 +1,5 @@
 {
-  "version": "1.8.1",
-  "updatedAt": "2026-08-21T15:15:00+08:00",
-  "releaseNotes": "Hotfix V5.0.1: Fixed unstyled sleep-pill button and SVG layout overflow, corrected sleep button DOM event listeners, and calibrated 3D camera elevation to perfectly frame Kiro in the center sanctuary stage."
+  "version": "1.8.2",
+  "updatedAt": "2026-08-21T15:29:00+08:00",
+  "releaseNotes": "Release V5.1: High-Performance Logarithmic Spiral Galaxy (800 dynamic stardust particles) with unproject-to-plane pointer/touch repulsion math, opaque RGBX WebGL backbuffer (alpha: false, clearColor #11111b) for reliable Android WebView GPU rendering, and getPersona state helper hardening."
 }

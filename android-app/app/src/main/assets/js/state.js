@@ -45,7 +45,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '1.8.1',
+      installedVersion: localStorage.getItem('gn_installed_version') || '1.8.2',
       isOtaActive: false,
 
       // Wellbeing & Real-time Vitals
@@ -215,6 +215,19 @@ class KiroStateManager extends StateEmitter {
     this.emit('change:persona', { newValue: normalized });
     this.emit('change:currentUser', { newValue: normalized });
     return normalized;
+  }
+
+  getPersona() {
+    const raw = this.state.persona || localStorage.getItem('starlight_persona') || 'pat';
+    return this.normalizePersona(raw);
+  }
+
+  isYangiee() {
+    return this.getPersona() === 'yang';
+  }
+
+  isPatrick() {
+    return this.getPersona() === 'pat';
   }
 
   feed(candyType = 'star') {
