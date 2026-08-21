@@ -1,9 +1,12 @@
 /**
- * scene.js (Space Capsule V5.1 — High-Performance Logarithmic Galaxy & Projective WebGL Engine)
+ * scene.js (Space Capsule V5.2 — Volumetric Procedural Cosmic Nebula & Logarithmic Galaxy Engine)
  * ─────────────────────────────────────────────────────────────────────────────
- * 1. Double-Arm Logarithmic Spiral Galaxy (800 dynamic stardust particles with pointer repulsion)
- * 2. Opaque RGBX WebGL Backbuffer (alpha: false, clearColor #11111b) for 100% Android WebView compatibility
- * 3. Exact 3D Unproject-to-Plane Vector Repulsion Math at Galaxy Depth (Z = -10.0)
+ * 1. Living Volumetric Cosmic Nebula Shader (Procedural 2D Simplex Noise Shader Plane at Z = -14.0)
+ *    - Left Wing: Patrick's Mint Teal (#4EC9B0)
+ *    - Right Wing: Yangiee's Pastel Pink (#FFB6C1 / #F5C2E7)
+ *    - Core Spine: Deep Space Velvet Midnight Navy (#11111B) & Lavender (#CBA6F7)
+ * 2. Double-Arm Logarithmic Spiral Galaxy (800 dynamic stardust particles with pointer repulsion)
+ * 3. 3D Unproject-to-Plane Vector Repulsion Math at Galaxy Depth (Z = -10.0)
  * 4. Kiro 3D Model with Tactile Petting Physics, Treat Feeding, Water Splashes & Audio Synesthesia
  * 5. Single requestAnimationFrame loop with sub-50 draw call budget & leak-proof GPU/CPU memory disposal.
  */
@@ -38,21 +41,25 @@ export class KiroSceneManager {
     this.leftArm = null;
     this.rightArm = null;
 
-    // 1. Dynamic Logarithmic Spiral Galaxy
+    // 1. Volumetric Procedural Nebula Shader
+    this.nebulaMesh = null;
+    this.nebulaMaterial = null;
+
+    // 2. Dynamic Logarithmic Spiral Galaxy
     this.galaxyPoints = null;
     this.galaxyCount = 800;
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
 
-    // 2. Stardust Touch Trails
+    // 3. Stardust Touch Trails
     this.touchParticles = [];
     this.maxTouchParticles = 120;
 
-    // 3. Physics & Treat Drops
+    // 4. Physics & Treat Drops
     this.activeCandies = [];
     this.waterDroplets = [];
 
-    // 4. Cockpit HUD & Telescope Space Systems
+    // 5. Cockpit HUD & Telescope Space Systems
     this.cockpitGroup = null;
     this.crosshairMesh = null;
     this.targetSystemMeshes = [];
@@ -63,19 +70,18 @@ export class KiroSceneManager {
       { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -18, y: -16, z: -20, size: 0.5, color: 0xCBA6F7, unlockedGame: 'Supernova Blast' }
     ];
 
-    // 5. Cinematic Warp State
+    // 6. Cinematic Warp State
     this.warpActive = false;
     this.warpSpeed = 0.02;
     this.warpTargetSpeed = 0.02;
-    this.warpStarSize = 0.18;
-    this.warpTargetStarSize = 0.18;
+    this.warpStarSize = 0.20;
+    this.warpTargetStarSize = 0.20;
     this.warpZStretch = 1.0;
     this.warpTargetZStretch = 1.0;
 
     // Pointer Coordinates & Repulsion
     this.mouse = new THREE.Vector2(0, 0);
     this.pointerInCanvas = false;
-    this.raycaster = new THREE.Raycaster();
     this.clock = new THREE.Clock();
     this.animationFrameId = null;
     this.gyro = { x: 0, y: 0, targetX: 0, targetY: 0 };
@@ -86,7 +92,6 @@ export class KiroSceneManager {
 
   init() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x11111b);
 
     const width = window.innerWidth || this.container.clientWidth || 360;
     const height = window.innerHeight || this.container.clientHeight || 640;
@@ -95,20 +100,29 @@ export class KiroSceneManager {
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
     this.camera.position.set(0, 0.2, 5.2);
 
-    // Opaque WebGL Renderer (alpha: false for reliable GPU compositing across all Android WebViews)
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    // Direct Canvas Binding (or fallback element creation)
+    const existingCanvas = document.getElementById('webgl-canvas');
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: existingCanvas || undefined,
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance'
+    });
     this.renderer.setClearColor(0x11111b, 1.0);
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    this.renderer.domElement.style.position = 'absolute';
-    this.renderer.domElement.style.inset = '0';
-    this.renderer.domElement.style.width = '100%';
-    this.renderer.domElement.style.height = '100%';
-    this.renderer.domElement.style.display = 'block';
-    this.container.appendChild(this.renderer.domElement);
+    if (!existingCanvas) {
+      this.renderer.domElement.id = 'webgl-canvas';
+      this.renderer.domElement.style.position = 'absolute';
+      this.renderer.domElement.style.inset = '0';
+      this.renderer.domElement.style.width = '100%';
+      this.renderer.domElement.style.height = '100%';
+      this.renderer.domElement.style.display = 'block';
+      this.container.appendChild(this.renderer.domElement);
+    }
 
     // High-Contrast Celestial Lighting
     const ambient = new THREE.AmbientLight(0xFFFFFF, 1.2);
@@ -128,6 +142,7 @@ export class KiroSceneManager {
     this.scene.add(backLight);
 
     // Build Scene Geometry Components
+    this.buildVolumetricNebula();
     this.buildDynamicSpiralGalaxy();
     this.buildEnvironment();
     this.buildKiro();
@@ -147,7 +162,97 @@ export class KiroSceneManager {
     this.animate();
   }
 
-  /* 1. Double-Arm Logarithmic Spiral Galaxy */
+  /* 1. Volumetric Procedural Cosmic Nebula Shader Plane */
+  buildVolumetricNebula() {
+    const vertexShader = `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
+    const fragmentShader = `
+      uniform float u_time;
+      uniform float u_audio;
+      varying vec2 vUv;
+
+      vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+      vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+      vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+      float snoise(vec2 v) {
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy));
+        vec2 x0 = v -   i + dot(i, C.xx);
+        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod289(i);
+        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+        m = m*m;
+        m = m*m;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+        vec3 g;
+        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+      }
+
+      void main() {
+        vec2 uv = vUv * 2.0 - 1.0;
+        float t = u_time * 0.06;
+
+        float n1 = snoise(uv * 1.4 + vec2(t * 0.4, t * 0.2));
+        float n2 = snoise(uv * 2.8 - vec2(t * 0.2, t * 0.5));
+        float cloud = (n1 * 0.6 + n2 * 0.4) * 0.5 + 0.5;
+
+        // Signature Celestial Palette
+        vec3 deepSpace = vec3(0.067, 0.067, 0.106); // #11111B Midnight Navy
+        vec3 lavender  = vec3(0.55, 0.40, 0.85);    // #CBA6F7 Lavender
+        vec3 mint      = vec3(0.31, 0.79, 0.69);    // #4EC9B0 Mint Teal (Patrick)
+        vec3 pink      = vec3(1.0, 0.71, 0.76);     // #FFB6C1 Pastel Pink (Yangiee)
+        vec3 gold      = vec3(0.98, 0.89, 0.69);    // #F9E2AF Golden Glow
+
+        vec3 col = mix(deepSpace, lavender, smoothstep(0.28, 0.72, cloud) * 0.75);
+
+        // Chromatic Separation (Mint on left, Pink on right)
+        if (uv.x < 0.0) {
+          col = mix(col, mint, smoothstep(0.32, 0.85, cloud) * abs(uv.x) * 0.85);
+        } else {
+          col = mix(col, pink, smoothstep(0.32, 0.85, cloud) * uv.x * 0.85);
+        }
+
+        // Center Golden Aura Pulse
+        float centerDist = length(uv);
+        col = mix(col, gold, smoothstep(0.6, 0.0, centerDist) * 0.15 * (1.0 + u_audio * 0.5));
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `;
+
+    const nebulaGeo = new THREE.PlaneGeometry(48, 32);
+    this.nebulaMaterial = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        u_time: { value: 0.0 },
+        u_audio: { value: 0.0 }
+      },
+      depthWrite: false
+    });
+
+    this.nebulaMesh = new THREE.Mesh(nebulaGeo, this.nebulaMaterial);
+    this.nebulaMesh.position.set(0, 0, -14.0);
+    this.scene.add(this.nebulaMesh);
+  }
+
+  /* 2. Double-Arm Logarithmic Spiral Galaxy */
   buildDynamicSpiralGalaxy() {
     const galaxyGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.galaxyCount * 3);
@@ -165,7 +270,7 @@ export class KiroSceneManager {
       const arm = i % 2; // Split particles across exactly 2 spiral arms
 
       // Logarithmic density distribution math: clusters particles tightly at core
-      const r = 0.5 + Math.pow(Math.random(), 1.8) * 9.0;
+      const r = 0.5 + Math.pow(Math.random(), 1.8) * 8.5;
       const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.4;
 
       const x = Math.cos(angle) * r;
@@ -199,7 +304,7 @@ export class KiroSceneManager {
       size: this.warpStarSize,
       vertexColors: true,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.95,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -741,7 +846,7 @@ export class KiroSceneManager {
   exitWarpAcceleration() {
     this.warpActive = false;
     this.warpTargetSpeed = 0.02;
-    this.warpStarSize = 0.18;
+    this.warpStarSize = 0.20;
     this.warpTargetZStretch = 1.0;
 
     if (window.gsap) {
@@ -770,6 +875,7 @@ export class KiroSceneManager {
 
     const t = this.clock.getElapsedTime();
     const isSleeping = KiroState.get('isSleeping');
+    const audioLevel = synthEngine.getAudioReactiveLevel();
 
     // 1. Gyro Parallax Smooth Interpolation
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;
@@ -777,7 +883,13 @@ export class KiroSceneManager {
     this.camera.position.x = this.gyro.x;
     this.camera.position.y = 0.2 + this.gyro.y;
 
-    // 2. Idle Bobbing & Telescope Steering
+    // 2. Update Volumetric Nebula Shader Uniforms
+    if (this.nebulaMaterial) {
+      this.nebulaMaterial.uniforms.u_time.value = t;
+      this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
+    }
+
+    // 3. Idle Bobbing & Telescope Steering
     const isTelescope = KiroState.get('telescopeActive');
     const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
 
@@ -821,7 +933,7 @@ export class KiroSceneManager {
       }
     }
 
-    // 3. Double-Arm Logarithmic Spiral Galaxy Twinkle & Tactile Repulsion
+    // 4. Double-Arm Logarithmic Spiral Galaxy Twinkle & Tactile Repulsion
     if (this.galaxyPoints) {
       const positions = this.galaxyPoints.geometry.attributes.position.array;
       const count = this.galaxyCount;
@@ -875,8 +987,7 @@ export class KiroSceneManager {
       this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 4. Audio-Visual Synesthesia (Neon Ring & Golden Aura)
-    const audioLevel = synthEngine.getAudioReactiveLevel();
+    // 5. Audio-Visual Synesthesia (Neon Ring & Golden Aura)
     if (this.neonRing) {
       this.neonRing.rotation.z += 0.008;
       const ringScale = 1.0 + audioLevel * 0.35;
@@ -890,19 +1001,19 @@ export class KiroSceneManager {
       this.goldenAura.material.opacity = 0.1 + audioLevel * 0.2;
     }
 
-    // 5. Update Particle Systems & Physics
+    // 6. Update Particle Systems & Physics
     this.updateTouchParticles();
     this.updatePhysics();
     this.updateWaterPhysics();
 
-    // 6. Single WebGL Render Call
+    // 7. Single WebGL Render Call
     this.renderer.render(this.scene, this.camera);
   }
 
   resize() {
-    if (!this.container || !this.camera || !this.renderer) return;
-    const width = window.innerWidth || document.documentElement.clientWidth || this.container.clientWidth || 360;
-    const height = window.innerHeight || document.documentElement.clientHeight || this.container.clientHeight || 640;
+    if (!this.camera || !this.renderer) return;
+    const width = window.innerWidth || document.documentElement.clientWidth || (this.container ? this.container.clientWidth : 360);
+    const height = window.innerHeight || document.documentElement.clientHeight || (this.container ? this.container.clientHeight : 640);
     if (width <= 0 || height <= 0) return;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();

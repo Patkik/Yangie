@@ -1,5 +1,5 @@
 {
-  "version": "1.8.2",
-  "updatedAt": "2026-08-21T15:29:00+08:00",
-  "releaseNotes": "Release V5.1: High-Performance Logarithmic Spiral Galaxy (800 dynamic stardust particles) with unproject-to-plane pointer/touch repulsion math, opaque RGBX WebGL backbuffer (alpha: false, clearColor #11111b) for reliable Android WebView GPU rendering, and getPersona state helper hardening."
+  "version": "1.8.3",
+  "updatedAt": "2026-08-21T15:36:00+08:00",
+  "releaseNotes": "Release V5.2: Living Volumetric Procedural Cosmic Nebula Shader (Mint-Teal left wing, Pastel-Pink right wing, Deep Twilight core) ported directly to the main Space Capsule 3D scene behind Kiro and the double-arm logarithmic spiral galaxy with explicit canvas binding."
 }
