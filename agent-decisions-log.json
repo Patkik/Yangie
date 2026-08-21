@@ -271,5 +271,18 @@
       "gamification": "Score 5/5: Fluid touch repulsion on 3D galaxy plane with spring relaxation, subtle cosmic rotation during idle, and warp acceleration during telescope transitions."
     },
     "synthesis": "Eliminated the narrow horizontal linear clutter artifact and missing deep starfield. Implemented a 1,400-star distant cosmic starfield with natural spherical dispersion and spectral grading, a 3D tilted double-arm logarithmic spiral galaxy with a dense stellar nucleus, and soft volumetric interstellar dust clouds at Z = -18.0."
+  },
+  {
+    "id": "DEC-210450",
+    "timestamp": "2026-08-21T23:08:00.000000",
+    "feature": "GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX",
+    "perspectives": {
+      "creative": "Score 5/5: Elegant, friendly notice banners in place of raw Java UnknownHostException stack strings, maintaining the peaceful Twilight sanctuary aesthetic.",
+      "performance": "Score 5/5: Immediate ConnectivityManager.activeNetwork capability pre-check avoids 20-second socket timeout stalls when the mobile device is offline or in airplane mode.",
+      "container": "Score 5/5: Hardened native Android network exception handling catching UnknownHostException, SocketTimeoutException, and ConnectException with structured JSON IPC dispatch over the WebView JavaScript bridge.",
+      "structural": "Score 5/5: Clear distinction between offline network states (OFFLINE), rate limits (RATE_LIMIT), timeouts (TIMEOUT), and 404s (handled gracefully as up-to-date).",
+      "gamification": "Score 5/5: Reassuring updater feedback for Patrick and Yangiee keeping app synchronization transparent and friction-free."
+    },
+    "synthesis": "Diagnosed the DNS resolution error ('Unable to resolve host \"api.github.com\"') appearing in the settings update banner when the device is offline or DNS is unreachable. Implemented an active network capability pre-check via ConnectivityManager, specialized exception handling in KiroUpdateManager.kt, and polished error banners in app.js."
   }
 ]

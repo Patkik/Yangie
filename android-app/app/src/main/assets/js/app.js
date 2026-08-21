@@ -128,7 +128,8 @@ export const AppUpdater = {
         break;
 
       case 'ERROR':
-        if (banner) banner.textContent = `Notice: ${event.message}`;
+        const msg = event.message || 'Unable to connect to GitHub. Please check your internet connection.';
+        if (banner) banner.textContent = msg.startsWith('Notice:') ? msg : `Notice: ${msg}`;
         if (pBox) pBox.style.display = 'none';
         break;
     }

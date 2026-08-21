@@ -2,6 +2,8 @@ package com.starlight.sanctuary
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -245,6 +247,17 @@ class KiroUpdateManager(private val context: Context) {
     // Update Checking & GitHub Releases API
     // ==========================================
 
+    private fun isNetworkAvailable(): Boolean {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } catch (e: Exception) {
+            true // Fallback to attempting network call if check fails
+        }
+    }
+
     /**
      * Checks GitHub Releases API for the latest published tag/release.
      */
@@ -256,6 +269,12 @@ class KiroUpdateManager(private val context: Context) {
         postState(UpdateState.Checking, onStateChange)
 
         executor.execute {
+            if (!isNetworkAvailable()) {
+                Log.w(TAG, "Device is offline or has no active internet connection")
+                postState(UpdateState.Error("OFFLINE", "Unable to connect to GitHub. Please check your device's internet connection."), onStateChange)
+                return@execute
+            }
+
             try {
                 val apiUrl = "https://api.github.com/repos/$repo/releases/latest"
                 Log.d(TAG, "Querying GitHub release endpoint: $apiUrl")
@@ -312,9 +331,23 @@ class KiroUpdateManager(private val context: Context) {
                     postState(UpdateState.UpToDate(currentVer), onStateChange)
                 }
 
+            } catch (e: java.net.UnknownHostException) {
+                Log.w(TAG, "DNS resolution failure for api.github.com", e)
+                postState(UpdateState.Error("OFFLINE", "Unable to connect to GitHub. Please check your internet connection.", e), onStateChange)
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.w(TAG, "Connection to api.github.com timed out", e)
+                postState(UpdateState.Error("TIMEOUT", "Connection to GitHub timed out. Please try again.", e), onStateChange)
+            } catch (e: java.net.ConnectException) {
+                Log.w(TAG, "Connection to api.github.com failed", e)
+                postState(UpdateState.Error("CONNECT_ERROR", "Unable to reach GitHub servers. Please try again later.", e), onStateChange)
             } catch (e: Exception) {
                 Log.e(TAG, "Update check failed", e)
-                postState(UpdateState.Error("NETWORK_ERROR", e.message ?: "Update check network error", e), onStateChange)
+                val friendlyMessage = when {
+                    e.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
+                        "Unable to connect to GitHub. Please check your internet connection."
+                    else -> e.message ?: "Update check network error"
+                }
+                postState(UpdateState.Error("NETWORK_ERROR", friendlyMessage, e), onStateChange)
             }
         }
     }

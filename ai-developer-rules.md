@@ -101,3 +101,4 @@ To ensure safe, non-breaking developer iterations, you must strictly follow this
 - **[DEC-181240]** Elimination of gsap.isAnimating Render-Loop Crash & Transition Flag Architecture
 - **[DEC-190100]** Kiro Procedural 3D Companion Redesign, Soulful Starlight Eyes & Responsive Viewport Framing
 - **[DEC-201940]** Deep Distant Cosmic Starfield, 3D-Tilted Spiral Galaxy & Volumetric Nebula Real Space Architecture
+- **[DEC-210450]** GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX

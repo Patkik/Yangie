@@ -1,5 +1,5 @@
 {
-  "version": "1.9.1",
-  "updatedAt": "2026-08-21T21:48:00+08:00",
-  "releaseNotes": "Release V6.0: Implemented deep cosmic starfield (1400 stars across vast 3D hemisphere with Morgan-Keenan spectral classification), organic 3D-tilted logarithmic spiral galaxy disk (Z = -13.5), and soft volumetric cosmic dust nebula."
+  "version": "1.9.2",
+  "updatedAt": "2026-08-21T23:08:00+08:00",
+  "releaseNotes": "Release V6.1: Hardened GitHub Releases Updater with ConnectivityManager active network pre-check, graceful DNS UnknownHostException handling, and friendly error banners."
 }

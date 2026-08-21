@@ -259,3 +259,15 @@
 
 ---
 
+### [DEC-210450] GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX
+- **Timestamp**: `2026-08-21T23:08:00.000000`
+- **Strategy & Synthesis**: Diagnosed the DNS resolution error ('Unable to resolve host "api.github.com"') appearing in the settings update banner when the device is offline or DNS is unreachable. Implemented an active network capability pre-check via ConnectivityManager, specialized exception handling in KiroUpdateManager.kt, and polished error banners in app.js.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Elegant, friendly notice banners in place of raw Java UnknownHostException stack strings, maintaining the peaceful Twilight sanctuary aesthetic.
+  - **Performance**: Score 5/5: Immediate ConnectivityManager.activeNetwork capability pre-check avoids 20-second socket timeout stalls when the mobile device is offline or in airplane mode.
+  - **Container**: Score 5/5: Hardened native Android network exception handling catching UnknownHostException, SocketTimeoutException, and ConnectException with structured JSON IPC dispatch over the WebView JavaScript bridge.
+  - **Structural**: Score 5/5: Clear distinction between offline network states (OFFLINE), rate limits (RATE_LIMIT), timeouts (TIMEOUT), and 404s (handled gracefully as up-to-date).
+  - **Gamification**: Score 5/5: Reassuring updater feedback for Patrick and Yangiee keeping app synchronization transparent and friction-free.
+
+---
+
