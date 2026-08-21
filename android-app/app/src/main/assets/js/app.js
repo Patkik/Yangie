@@ -169,6 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.classList.add('hidden');
       overlay.style.pointerEvents = 'none';
     }
+    // Cinematic Boot Warp: quick starburst acceleration on dashboard reveal
+    if (sceneManager && typeof sceneManager.triggerBootWarp === 'function') {
+      sceneManager.triggerBootWarp();
+    }
   };
 
   if (KiroState.get('hasCompletedIntro')) {

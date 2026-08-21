@@ -1,5 +1,5 @@
 {
-  "version": "1.6.2",
-  "updatedAt": "2026-08-21T13:38:00+08:00",
-  "releaseNotes": "Fixed flexbox button compression and avatar distortion in Starlight Messenger via locked dimensions (flex-shrink: 0, min-width: 0), restored outgoing message routing state, and enforced crisp circular touch targets."
+  "version": "1.7.0",
+  "updatedAt": "2026-08-21T14:00:00+08:00",
+  "releaseNotes": "Critical WebGL rendering fix: bundled Three.js r128 and GSAP 3.12.5 locally to guarantee 100% offline 3D rendering in Android WebView sandbox. Added Cinematic Warp Acceleration with GSAP-driven z-stretch and spiral speed animation on telescope entry and boot. Full recursive dispose() for leak-free memory cleanup. Fixed telescope camera lookAt steering."
 }

@@ -19,6 +19,12 @@ export class KiroSceneManager {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
+    // Guard: Three.js must be loaded
+    if (typeof THREE === 'undefined') {
+      console.error('[KiroScene] THREE.js not loaded — WebGL init aborted. Check js/vendor/three.min.js.');
+      return;
+    }
+
     this.scene = null;
     this.camera = null;
     this.renderer = null;
@@ -60,6 +66,15 @@ export class KiroSceneManager {
       { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 22, y: 14, z: -25, size: 0.6, color: 0xF9E2AF, unlockedGame: 'Cosmic Chime Sequence' },
       { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -18, y: -16, z: -20, size: 0.5, color: 0xCBA6F7, unlockedGame: 'Supernova Blast' }
     ];
+
+    // 5. Cinematic Warp Acceleration State
+    this.warpActive = false;
+    this.warpSpeed = 0.0012; // Normal spiral rotation speed
+    this.warpTargetSpeed = 0.0012;
+    this.warpStarSize = 0.14;
+    this.warpTargetStarSize = 0.14;
+    this.warpZStretch = 1.0;
+    this.warpTargetZStretch = 1.0;
 
     // Raycasting & Gyro Parallax
     this.raycaster = new THREE.Raycaster();
@@ -438,6 +453,13 @@ export class KiroSceneManager {
       const isActive = Boolean(newValue);
       if (this.cockpitGroup) this.cockpitGroup.visible = isActive;
 
+      // Cinematic Warp Acceleration on telescope entry/exit
+      if (isActive) {
+        this.triggerWarpAcceleration();
+      } else {
+        this.exitWarpAcceleration();
+      }
+
       if (window.gsap && this.kiroGroup && this.pedestal && this.neonRing) {
         gsap.to(this.kiroGroup.position, {
           y: isActive ? -4 : 0,
@@ -692,6 +714,55 @@ export class KiroSceneManager {
     this.spawnHeartParticles();
   }
 
+  /* Cinematic Warp Acceleration (Lightspeed Streak Effect) */
+  triggerWarpAcceleration() {
+    this.warpActive = true;
+    this.warpTargetSpeed = 0.08;
+    this.warpTargetStarSize = 0.6;
+    this.warpTargetZStretch = 4.0;
+
+    if (window.gsap && this.galaxyStars) {
+      gsap.to(this, {
+        warpSpeed: this.warpTargetSpeed,
+        warpStarSize: this.warpTargetStarSize,
+        warpZStretch: this.warpTargetZStretch,
+        duration: 1.8,
+        ease: 'power2.in'
+      });
+    } else {
+      this.warpSpeed = this.warpTargetSpeed;
+      this.warpStarSize = this.warpTargetStarSize;
+      this.warpZStretch = this.warpTargetZStretch;
+    }
+  }
+
+  exitWarpAcceleration() {
+    this.warpActive = false;
+    this.warpTargetSpeed = 0.0012;
+    this.warpTargetStarSize = 0.14;
+    this.warpTargetZStretch = 1.0;
+
+    if (window.gsap) {
+      gsap.to(this, {
+        warpSpeed: this.warpTargetSpeed,
+        warpStarSize: this.warpTargetStarSize,
+        warpZStretch: this.warpTargetZStretch,
+        duration: 1.2,
+        ease: 'power2.out'
+      });
+    } else {
+      this.warpSpeed = this.warpTargetSpeed;
+      this.warpStarSize = this.warpTargetStarSize;
+      this.warpZStretch = this.warpTargetZStretch;
+    }
+  }
+
+  /* Boot Warp: Quick burst on app launch after intro */
+  triggerBootWarp() {
+    this.triggerWarpAcceleration();
+    setTimeout(() => this.exitWarpAcceleration(), 2200);
+  }
+
   animate() {
     if (this.isDisposed) return;
     this.animationFrameId = requestAnimationFrame(() => this.animate());
@@ -704,13 +775,17 @@ export class KiroSceneManager {
     this.gyro.y += (this.gyro.targetY - this.gyro.y) * 0.08;
     this.camera.position.x = this.gyro.x;
     this.camera.position.y = 1.6 + this.gyro.y;
-    this.camera.lookAt(0, 0, 0);
 
     // 2. Idle Bobbing & Telescope Steering
     const isTelescope = KiroState.get('telescopeActive');
     const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
 
     if (isTelescope) {
+      // Telescope mode: offset camera look target based on steering
+      const lookX = (steering.yaw || 0) * 0.02;
+      const lookY = 1.6 + (steering.pitch || 0) * 0.02;
+      this.camera.lookAt(lookX, lookY, 0);
+
       if (this.galaxyStars) {
         this.galaxyStars.position.x = (steering.yaw || 0) * 0.06;
         this.galaxyStars.position.y = (steering.pitch || 0) * 0.06;
@@ -735,6 +810,9 @@ export class KiroSceneManager {
         }
       });
     } else {
+      // Normal home mode: camera looks at origin
+      this.camera.lookAt(0, 0, 0);
+
       const freq = isSleeping ? 0.6 : 2.0;
       const amp = isSleeping ? 0.02 : 0.06;
       if (this.kiroGroup && (!window.gsap || !gsap.isAnimating(this.kiroGroup.position))) {
@@ -742,11 +820,16 @@ export class KiroSceneManager {
       }
     }
 
-    // 3. Dynamic Spiral Galaxy Twinkle & Pointer Repulsion
+    // 3. Dynamic Spiral Galaxy Twinkle, Pointer Repulsion, & Warp Acceleration
     if (this.galaxyStars) {
       const positions = this.galaxyStars.geometry.attributes.position.array;
-      const rotSpeed = isSleeping ? 0.0003 : 0.0012;
+      const rotSpeed = isSleeping ? 0.0003 : this.warpSpeed;
       this.galaxyStars.rotation.z += rotSpeed;
+
+      // Dynamically update star point size during warp
+      if (this.galaxyStars.material.size !== this.warpStarSize) {
+        this.galaxyStars.material.size = this.warpStarSize;
+      }
 
       // Project pointer into galaxy plane for repulsion
       const touchX = this.touchIntersectPoint ? this.touchIntersectPoint.x : -999;
@@ -778,7 +861,9 @@ export class KiroSceneManager {
 
         positions[pIdx] = star.x;
         positions[pIdx + 1] = star.y;
-        positions[pIdx + 2] = star.z + Math.sin(t * star.twinkleSpeed + star.phase) * 0.15;
+        // Z-axis warp stretch creates lightspeed stardust streaks
+        const twinkle = Math.sin(t * star.twinkleSpeed + star.phase) * 0.15;
+        positions[pIdx + 2] = star.z * this.warpZStretch + twinkle;
       }
 
       this.galaxyStars.geometry.attributes.position.needsUpdate = true;
@@ -821,9 +906,42 @@ export class KiroSceneManager {
     this.isDisposed = true;
     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
 
-    if (this.galaxyStars) {
-      if (this.galaxyStars.geometry) this.galaxyStars.geometry.dispose();
-      if (this.galaxyStars.material) this.galaxyStars.material.dispose();
+    // Clean up touch particles
+    this.touchParticles.forEach(p => {
+      this.scene.remove(p);
+      if (p.geometry) p.geometry.dispose();
+      if (p.material) p.material.dispose();
+    });
+    this.touchParticles = [];
+
+    // Clean up active candies
+    this.activeCandies.forEach(c => {
+      this.scene.remove(c);
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) c.material.dispose();
+    });
+    this.activeCandies = [];
+
+    // Clean up water droplets
+    this.waterDroplets.forEach(d => {
+      this.scene.remove(d);
+      if (d.geometry) d.geometry.dispose();
+      if (d.material) d.material.dispose();
+    });
+    this.waterDroplets = [];
+
+    // Full recursive scene traversal
+    if (this.scene) {
+      this.scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(mat => mat.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
     }
 
     if (this.renderer) {

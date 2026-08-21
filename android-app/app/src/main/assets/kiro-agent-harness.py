@@ -83,7 +83,7 @@ SAFE_NEUTRALS = {
 REQUIRED_FILES = {
     "root": ["index.html", "version.json"],
     "css": ["main.css", "intro.css", "messenger.css", "call.css"],
-    "js": ["app.js", "state.js", "audio/synth.js", "three/intro.js", "three/scene.js", "ui/mailbox.js", "rtc/call-engine.js", "rtc/crypto-engine.js"]
+    "js": ["app.js", "state.js", "audio/synth.js", "three/intro.js", "three/scene.js", "ui/mailbox.js", "rtc/call-engine.js", "rtc/crypto-engine.js", "vendor/three.min.js", "vendor/gsap.min.js"]
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
