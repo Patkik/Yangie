@@ -280,13 +280,15 @@ export class KiroSceneManager {
     const colorLavender = new THREE.Color(0xCBA6F7); // Lavender
 
     for (let i = 0; i < this.galaxyCount; i++) {
-      const arm = i % 2;
-      const r = 0.6 + Math.pow(Math.random(), 1.7) * 9.0;
-      const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.45;
+      const arm = i % 2; // Split particles across exactly 2 spiral arms
+      
+      // Logarithmic density distribution math: clusters particles tightly at core
+      const r = 0.5 + Math.pow(Math.random(), 2.0) * 8.0;
+      const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.4;
 
       const x = Math.cos(angle) * r;
-      const y = (Math.random() - 0.5) * 1.5;
-      const z = Math.sin(angle) * r - 10.0;
+      const y = (Math.random() - 0.5) * 0.8;
+      const z = Math.sin(angle) * r - 12.0;
 
       positions[i * 3]     = x;
       positions[i * 3 + 1] = y;
@@ -295,11 +297,12 @@ export class KiroSceneManager {
       this.galaxyOriginalPositions.push(new THREE.Vector3(x, y, z));
       this.galaxyPhases.push(Math.random() * Math.PI * 2);
 
+      // Dynamic sibling color interpolation across arms
       let starColor;
       if (arm === 0) {
-        starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.6);
+        starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.5);
       } else {
-        starColor = colorPink.clone().lerp(colorLavender, Math.random() * 0.6);
+        starColor = colorPink.clone().lerp(colorAmber, Math.random() * 0.5);
       }
 
       colors[i * 3]     = starColor.r;
@@ -944,10 +947,10 @@ export class KiroSceneManager {
         this.galaxyPoints.material.size = this.warpStarSize;
       }
 
-      // Project pointer NDC coordinates to the plane at depth Z = -10.0
+      // Project pointer NDC coordinates to the plane at depth Z = -12.0
       const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
       const mouseDir = mouseProj.sub(this.camera.position).normalize();
-      const mouseDist = (-10.0 - this.camera.position.z) / mouseDir.z;
+      const mouseDist = (-12.0 - this.camera.position.z) / mouseDir.z;
       const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
 
       const rotAngle = isSleeping ? t * 0.004 : t * this.warpSpeed;
