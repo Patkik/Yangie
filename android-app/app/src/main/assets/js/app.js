@@ -232,8 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
       settingsBadge.style.borderColor = persona === 'pat' ? 'rgba(78, 201, 176, 0.35)' : 'rgba(245, 183, 192, 0.35)';
       settingsBadge.style.background = persona === 'pat' ? 'rgba(78, 201, 176, 0.15)' : 'rgba(245, 183, 192, 0.15)';
     }
-    if (settingsTitle) settingsTitle.textContent = `${personaName} (${persona === 'pat' ? 'The Anchor' : 'The Catalyst'})`;
-    if (settingsStation) settingsStation.textContent = `Primary Station: ${persona === 'pat' ? 'Malaybalay' : 'Capas'}`;
+    if (settingsTitle) settingsTitle.textContent = personaName;
+    if (settingsStation) settingsStation.textContent = `Location: ${persona === 'pat' ? 'Malaybalay' : 'Capas'}`;
   }
 
   updatePersonaProfile();
@@ -392,19 +392,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 5. Shared Sleep Alert Sync
+  // 5. Sleep Alert
   function showSleepAlert(sender) {
     if (!sleepBanner) return;
     const senderName = sender === 'pat' ? 'Patrick' : 'Yangiee';
     const partnerName = sender === 'pat' ? 'Yangiee' : 'Patrick';
     sleepBanner.innerHTML = `
       <svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg>
-      <span>${senderName} has entered cosmic slumber. Sweet dreams, ${partnerName}!</span>
+      <span>${senderName} is now sleeping. Good night, ${partnerName}!</span>
     `;
     sleepBanner.style.display = 'flex';
     setTimeout(() => {
       sleepBanner.style.display = 'none';
-    }, 4500);
+    }, 4000);
   }
 
   // 6. Settings Modal Handlers

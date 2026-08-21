@@ -160,12 +160,12 @@ export class StarlightMessenger {
         <div class="mailbox-header">
           <div class="mailbox-title-col">
             <div class="mailbox-title">
-              Starlight Mailbox
+              Messages
               <div class="connection-dot"></div>
             </div>
             <div class="mailbox-sub" id="mailbox-connection-sub">
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-              Celestial Telemetry • Connected with ${this.partnerName} • 938 km apart
+              Connected with ${this.partnerName} • 938 km apart
             </div>
           </div>
           <button class="settings-close-btn" id="mailbox-close-btn" aria-label="Close Mailbox">
@@ -200,7 +200,7 @@ export class StarlightMessenger {
             <!-- E2EE Lock Badge -->
             <div id="call-e2ee-badge" class="e2ee-badge" style="position:absolute;top:10px;left:10px;">
               <span class="lock-icon">${SVGS.e2eeLock}</span>
-              <span>ZERO-TRUST E2EE</span>
+              <span>E2EE Protected</span>
             </div>
           </div>
 
@@ -237,11 +237,11 @@ export class StarlightMessenger {
         </div>
 
         <div class="mailbox-footer">
-          <!-- Exclusive Locked Single-Identity Badge (No 2 Pats or 2 Yangs) -->
+          <!-- Exclusive Single-Identity Badge -->
           <div class="single-identity-indicator">
             <div class="active-identity-badge ${this.currentPersona === 'pat' ? 'patrick' : 'yangiee'}" id="mailbox-identity-badge">
               ${this.currentPersona === 'pat' ? SVGS.patrick : SVGS.yangiee}
-              <span id="mailbox-identity-label">You: ${this.localName}</span>
+              <span id="mailbox-identity-label">${this.localName}</span>
             </div>
           </div>
 
@@ -262,9 +262,9 @@ export class StarlightMessenger {
               ${SVGS.phoneCall}
             </button>
 
-            <input type="text" id="mailbox-input" class="chat-input" placeholder="${this.currentPersona === 'pat' ? 'Whisper something sweet to Yangiee...' : 'Send an adorable note to Patrick...'}" autocomplete="off" style="flex:1;">
+            <input type="text" id="mailbox-input" class="chat-input" placeholder="Type a message..." autocomplete="off" style="flex:1;">
             
-            <button id="mailbox-send-btn" class="send-button" title="Send Note">
+            <button id="mailbox-send-btn" class="send-button" title="Send">
               ${SVGS.send}
             </button>
           </div>
@@ -280,7 +280,7 @@ export class StarlightMessenger {
     if (subEl) {
       subEl.innerHTML = `
         <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-        Celestial Telemetry • Connected with ${this.partnerName} • 938 km apart
+        Connected with ${this.partnerName} • 938 km apart
       `;
     }
 
@@ -289,15 +289,13 @@ export class StarlightMessenger {
       badgeEl.className = `active-identity-badge ${this.currentPersona === 'pat' ? 'patrick' : 'yangiee'}`;
       badgeEl.innerHTML = `
         ${this.currentPersona === 'pat' ? SVGS.patrick : SVGS.yangiee}
-        <span id="mailbox-identity-label">You: ${this.localName}</span>
+        <span id="mailbox-identity-label">${this.localName}</span>
       `;
     }
 
     const inputEl = this.overlay.querySelector('#mailbox-input');
     if (inputEl) {
-      inputEl.placeholder = this.currentPersona === 'pat'
-        ? 'Whisper something sweet to Yangiee...'
-        : 'Send an adorable note to Patrick...';
+      inputEl.placeholder = 'Type a message...';
     }
 
     const selfLabel = this.overlay.querySelector('#call-self-label');
@@ -418,7 +416,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.startCall({ video: true, audio: true });
-    this.addMessageNode(this.localUser, `Initiating Starlight Video Call with ${this.partnerName}…`, 'text');
+    this.addMessageNode(this.localUser, `Calling ${this.partnerName}…`, 'text');
     synthEngine.playChimeSound(660);
   }
 
@@ -430,7 +428,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.answerCall({ video: true, audio: true });
-    this.addMessageNode(this.localUser, `Answering incoming call from ${this.partnerName}…`, 'text');
+    this.addMessageNode(this.localUser, `Answering call…`, 'text');
     synthEngine.playChimeSound(770);
   }
 

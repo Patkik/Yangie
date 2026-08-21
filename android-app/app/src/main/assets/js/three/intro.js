@@ -82,9 +82,9 @@ export class KiroIntroManager {
         <div class="intro-stage-header">
           <div class="intro-stage-badge">
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
-            Cosmic Haven Alignment
+            Select Profile
           </div>
-          <h2 class="intro-stage-title">Select Sanctuary Portal</h2>
+          <h2 class="intro-stage-title">Who is using this device?</h2>
         </div>
 
         <div class="persona-portals-grid">
@@ -103,8 +103,8 @@ export class KiroIntroManager {
             </div>
             <div class="portal-meta">
               <div class="portal-name">Patrick</div>
-              <div class="portal-role">The Anchor • Malaybalay</div>
-              <button type="button" class="portal-choose-btn btn-pat" data-persona="pat">Choose Patrick</button>
+              <div class="portal-role">Malaybalay</div>
+              <button type="button" class="portal-choose-btn btn-pat" data-persona="pat">Patrick</button>
             </div>
           </div>
 
@@ -127,8 +127,8 @@ export class KiroIntroManager {
             </div>
             <div class="portal-meta">
               <div class="portal-name">Yangiee</div>
-              <div class="portal-role">The Catalyst • Capas</div>
-              <button type="button" class="portal-choose-btn btn-yang" data-persona="yang">Choose Yangiee</button>
+              <div class="portal-role">Capas</div>
+              <button type="button" class="portal-choose-btn btn-yang" data-persona="yang">Yangiee</button>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
-  "updatedAt": "2026-08-21T11:48:00+08:00",
-  "releaseNotes": "Dynamic Single-Identity Profile Architecture & Immovable Viewport Lock v1.5.1: Strict non-scrollable viewport lockdown (zero screen shift/bounce), exclusive single-identity user state (no dual Patrick/Yangiee conflicts), dynamic app persona skinning across headers/chat/telemetry/calls, and live settings identity switcher."
+  "version": "1.5.2",
+  "updatedAt": "2026-08-21T12:50:00+08:00",
+  "releaseNotes": "Clean Grounded UI & Simplified Titles v1.5.2: Removed overreactive titles and role descriptions (The Anchor/The Catalyst), simplified all chat placeholders to generic 'Type a message...', streamlined settings, intro selection, and sleep alerts."
 }
