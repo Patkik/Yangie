@@ -1,12 +1,32 @@
 /**
- * scene.js (Space Capsule V5.3 — Master Procedural WebGL & Logarithmic Galaxy Engine)
- * ─────────────────────────────────────────────────────────────────────────────
- * 1. Volumetric Procedural Cosmic Nebula Shader (Simplex Noise at Z = -14.0)
- * 2. Double-Arm Logarithmic Spiral Galaxy (800 radial glow particles with unproject-to-plane touch repulsion)
- * 3. Soft Luminescent Star Texture (Offscreen Canvas Map immune to mobile GPU point-size bugs)
- * 4. Calibrated Baseline Gyro Parallax (Clamped Delta relative to 55 deg portrait hold)
- * 5. Vibrant 3D Kiro Companion Model with Petting Physics, Treat Drops, Splashes & Audio Synesthesia
- * 6. Cockpit Space Shuttle Pilot Mode (Target planetary lock-ons, reticle, and warp acceleration)
+ * scene.js (Space Capsule V5.5 — Master Procedural WebGL & Unified Celestial Environment)
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ * Fully implements the 5-phase Celestial Background & Space Shuttle Cockpit Architecture:
+ * 
+ * 1. Scene & Rendering Foundation:
+ *    - Unified backgroundCelestialGroup at (0, 0, 0)
+ *    - updateCelestialLayer(time, delta) render hook
+ *    - celestialDisposalRegistry for zero GPU memory leaks
+ *    - Togglable dev FPS & frame-budget performance monitor
+ * 
+ * 2. Living Celestial Body Systems (Children of backgroundCelestialGroup):
+ *    - Volumetric Nebula Shader (Simplex noise GLSL at Z = -14.0)
+ *    - Double-Arm Logarithmic Spiral Galaxy (800 radial glow stars at Z = -12.0)
+ *    - 3 Roaming Flat-Shaded Low-Poly Planets (with translucent Saturn-like ring at Z = -11.0 to -13.5)
+ *    - 6-Meteor Pooled Streak System (staggered diagonal diagonal trails with opacity tweens)
+ *    - Living Comet with procedurally waving tail vertices
+ * 
+ * 3. Interaction Layer:
+ *    - Unprojected pointer touch repulsion (2.5-unit radius, 0.03 fluid spring easing)
+ *    - Baseline-calibrated gyroscope parallax (55 deg portrait hold baseline, clamped +-0.25)
+ * 
+ * 4. Space Shuttle Cockpit & Pilot Navigation:
+ *    - Seamless camera/Kiro mode transitions via KiroState.get('telescopeActive')
+ *    - Unified rigid-body parallax translation (zero coordinate drift)
+ *    - 4 Holographic planetary targets (Butterfly Galaxy, Helix Nebula, Sombrero Vortex, Crab Pulsar)
+ *    - Centered reticle lock-on alignment with audio chime feedback
+ * 
+ * 5. Memory Hardening & Android TRIM_MEMORY Bridge
  */
 
 import { KiroState } from './state.js';
@@ -44,9 +64,78 @@ export class KiroSceneManager {
       return;
     }
 
+    // Core Engine References
     this.scene = null;
     this.camera = null;
     this.renderer = null;
+    this.clock = new THREE.Clock();
+    this.animationFrameId = null;
+    this.isDisposed = false;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 1: Foundation & Disposal Registry
+    // ─────────────────────────────────────────────────────────────────────────
+    this.backgroundCelestialGroup = null;
+    this.celestialDisposalRegistry = new Set();
+    this.lastFrameTime = performance.now();
+    this.fpsHistory = [];
+    this.devFpsBadge = null;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 2: Celestial Body Subsystems
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2.1 Nebula Shader
+    this.nebulaMesh = null;
+    this.nebulaMaterial = null;
+
+    // 2.2 Double-Arm Logarithmic Spiral Galaxy
+    this.galaxyPoints = null;
+    this.galaxyCount = 800;
+    this.galaxyOriginalPositions = [];
+    this.galaxyPhases = [];
+    this.starTexture = null;
+
+    // 2.3 Roaming Planets
+    this.roamingPlanets = [];
+
+    // 2.4 Meteor Pool
+    this.meteorPool = [];
+    this.maxMeteors = 6;
+    this.nextMeteorSpawnTime = 0;
+
+    // 2.5 Living Comet with Waving Tail
+    this.cometMesh = null;
+    this.cometTail = null;
+    this.cometHead = null;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 3: Interaction & Touch Trails
+    // ─────────────────────────────────────────────────────────────────────────
+    this.mouse = new THREE.Vector2(0, 0);
+    this.pointerInCanvas = false;
+    this.gyro = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    this.touchParticles = [];
+    this.maxTouchParticles = 80;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 4: Cockpit Space Shuttle & Holographic Targets
+    // ─────────────────────────────────────────────────────────────────────────
+    this.cockpitGroup = null;
+    this.crosshairMesh = null;
+    this.targetSystemMeshes = [];
+    this.spaceSystems = [
+      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 6.0, y: 1.2, z: -8.0, size: 0.65, color: 0xF5C2E7 },
+      { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -7.0, y: 2.5, z: -9.0, size: 0.75, color: 0x94E2D5 },
+      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 8.0, y: -1.0, z: -10.0, size: 0.80, color: 0xF9E2AF },
+      { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -6.0, y: -2.0, z: -8.0, size: 0.60, color: 0xCBA6F7 }
+    ];
+    this.warpSpeed = 0.02;
+    this.warpStarSize = 0.42;
+    this.warpZStretch = 1.0;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Kiro Sanctuary Companion (Z = 0.0)
+    // ─────────────────────────────────────────────────────────────────────────
     this.kiroGroup = null;
     this.pedestal = null;
     this.neonRing = null;
@@ -60,65 +149,26 @@ export class KiroSceneManager {
     this.rightSleepEye = null;
     this.leftArm = null;
     this.rightArm = null;
-
-    // 1. Volumetric Procedural Nebula Shader
-    this.nebulaMesh = null;
-    this.nebulaMaterial = null;
-
-    // 2. Double-Arm Logarithmic Spiral Galaxy
-    this.galaxyPoints = null;
-    this.galaxyCount = 800;
-    this.galaxyOriginalPositions = [];
-    this.galaxyPhases = [];
-    this.starTexture = null;
-
-    // 3. Stardust Touch Trails
-    this.touchParticles = [];
-    this.maxTouchParticles = 100;
-
-    // 4. Physics & Treat Drops
     this.activeCandies = [];
     this.waterDroplets = [];
-
-    // 5. Cockpit HUD & Space Shuttle Systems
-    this.cockpitGroup = null;
-    this.crosshairMesh = null;
-    this.targetSystemMeshes = [];
-    this.spaceSystems = [
-      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 6, y: 1.2, z: -8, size: 0.65, color: 0xF5C2E7, game: 'Nebula Dodge' },
-      { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -7, y: 2.5, z: -9, size: 0.75, color: 0x94E2D5, game: 'Celestial Bounce' },
-      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 8, y: -1.0, z: -10, size: 0.8, color: 0xF9E2AF, game: 'Cosmic Chimes' },
-      { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -6, y: -2.0, z: -8, size: 0.6, color: 0xCBA6F7, game: 'Supernova Blast' }
-    ];
-
-    // 6. Warp Parameters
-    this.warpActive = false;
-    this.warpSpeed = 0.02;
-    this.warpStarSize = 0.42;
-    this.warpZStretch = 1.0;
-
-    // Interaction & Coordinates
-    this.mouse = new THREE.Vector2(0, 0);
-    this.pointerInCanvas = false;
-    this.clock = new THREE.Clock();
-    this.animationFrameId = null;
-    this.gyro = { x: 0, y: 0, targetX: 0, targetY: 0 };
-    this.isDisposed = false;
 
     this.init();
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     Phase 1: Scene & Rendering Foundation
+     ───────────────────────────────────────────────────────────────────────── */
   init() {
     this.scene = new THREE.Scene();
 
     const width = window.innerWidth || (this.container ? this.container.clientWidth : 360);
     const height = window.innerHeight || (this.container ? this.container.clientHeight : 640);
 
-    // Optimized Pinhole Camera Framing
+    // Optimized Pinhole Camera Framing (45 deg FOV at Z = 5.2)
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
     this.camera.position.set(0, 0.15, 5.2);
 
-    // Canvas Binding
+    // Pre-rendered Canvas Binding
     const existingCanvas = document.getElementById('webgl-canvas');
     this.renderer = new THREE.WebGLRenderer({
       canvas: existingCanvas || undefined,
@@ -156,17 +206,32 @@ export class KiroSceneManager {
     pinkRim.position.set(0, 2.0, -2.0);
     this.scene.add(pinkRim);
 
-    // Star Texture
-    this.starTexture = createGlowStarTexture();
+    // 1. Instantiate the Master Background Celestial Group
+    this.backgroundCelestialGroup = new THREE.Group();
+    this.backgroundCelestialGroup.position.set(0, 0, 0);
+    this.scene.add(this.backgroundCelestialGroup);
 
-    // Build Subsystems
+    // 2. Offscreen Star Texture Map
+    this.starTexture = createGlowStarTexture();
+    this.registerDisposable(this.starTexture);
+
+    // 3. Build All Phase 2 Celestial Subsystems into backgroundCelestialGroup
     this.buildVolumetricNebula();
     this.buildDynamicSpiralGalaxy();
+    this.buildRoamingPlanets();
+    this.buildMeteorPool();
+    this.buildLivingComet();
+    this.buildHolographicTargets();
+
+    // 4. Build Kiro Companion & Cockpit HUD
     this.buildEnvironment();
     this.buildKiro();
     this.buildCockpitHUD();
 
-    // Event & State Bindings
+    // 5. Setup Dev Performance Monitor (if enabled)
+    this.setupDevPerformanceMonitor();
+
+    // 6. Bind Event Listeners & State Subscriptions
     this.bindEvents();
     this.subscribeState();
 
@@ -174,11 +239,34 @@ export class KiroSceneManager {
     requestAnimationFrame(() => this.resize());
     setTimeout(() => this.resize(), 150);
 
-    // Start Unified Loop
+    // Start Unified Render Loop
     this.animate();
   }
 
-  /* 1. Volumetric Procedural Cosmic Nebula Shader */
+  registerDisposable(resource) {
+    if (resource) {
+      this.celestialDisposalRegistry.add(resource);
+    }
+  }
+
+  setupDevPerformanceMonitor() {
+    if (localStorage.getItem('kiro_dev_fps') === 'true') {
+      this.devFpsBadge = document.createElement('div');
+      this.devFpsBadge.style.cssText = `
+        position: fixed; top: 8px; right: 8px; z-index: 9999;
+        background: rgba(17, 17, 27, 0.85); border: 1px solid #4EC9B0;
+        color: #4EC9B0; font-family: monospace; font-size: 11px;
+        padding: 4px 8px; border-radius: 6px; pointer-events: none;
+      `;
+      document.body.appendChild(this.devFpsBadge);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Phase 2: Celestial Body Systems (Children of backgroundCelestialGroup)
+     ───────────────────────────────────────────────────────────────────────── */
+
+  // 2.1 Volumetric Procedural Cosmic Nebula Shader (Z = -14.0)
   buildVolumetricNebula() {
     const vertexShader = `
       varying vec2 vUv;
@@ -249,7 +337,7 @@ export class KiroSceneManager {
       }
     `;
 
-    const nebulaGeo = new THREE.PlaneGeometry(52, 36);
+    const nebulaGeo = new THREE.PlaneGeometry(54, 38);
     this.nebulaMaterial = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -260,12 +348,15 @@ export class KiroSceneManager {
       depthWrite: false
     });
 
+    this.registerDisposable(nebulaGeo);
+    this.registerDisposable(this.nebulaMaterial);
+
     this.nebulaMesh = new THREE.Mesh(nebulaGeo, this.nebulaMaterial);
     this.nebulaMesh.position.set(0, 0, -14.0);
-    this.scene.add(this.nebulaMesh);
+    this.backgroundCelestialGroup.add(this.nebulaMesh);
   }
 
-  /* 2. Double-Arm Logarithmic Spiral Galaxy */
+  // 2.2 Double-Arm Logarithmic Spiral Galaxy (Z = -12.0)
   buildDynamicSpiralGalaxy() {
     const galaxyGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.galaxyCount * 3);
@@ -277,7 +368,6 @@ export class KiroSceneManager {
     const colorTeal = new THREE.Color(0x4EC9B0);   // Mint Teal
     const colorPink = new THREE.Color(0xFFB6C1);   // Pastel Pink
     const colorAmber = new THREE.Color(0xF9E2AF);  // Warm Gold
-    const colorLavender = new THREE.Color(0xCBA6F7); // Lavender
 
     for (let i = 0; i < this.galaxyCount; i++) {
       const arm = i % 2; // Split particles across exactly 2 spiral arms
@@ -323,10 +413,334 @@ export class KiroSceneManager {
       depthWrite: false
     });
 
+    this.registerDisposable(galaxyGeo);
+    this.registerDisposable(galaxyMat);
+
     this.galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
-    this.scene.add(this.galaxyPoints);
+    this.backgroundCelestialGroup.add(this.galaxyPoints);
   }
 
+  // 2.3 Roaming Flat-Shaded Planets (Z = -10.0 to -14.0)
+  buildRoamingPlanets() {
+    this.roamingPlanets = [];
+
+    // Planet 1: Mint/Teal Ice World
+    const geo1 = new THREE.IcosahedronGeometry(0.45, 1);
+    const mat1 = new THREE.MeshLambertMaterial({ color: 0x4EC9B0, flatShading: true });
+    const p1 = new THREE.Mesh(geo1, mat1);
+    p1.userData = { orbitRadius: 6.5, speed: 0.04, baseAngle: 0, depth: -11.0 };
+    this.registerDisposable(geo1);
+    this.registerDisposable(mat1);
+    this.backgroundCelestialGroup.add(p1);
+    this.roamingPlanets.push(p1);
+
+    // Planet 2: Lavender Gas Giant with Translucent Saturn-like Ring
+    const planet2Group = new THREE.Group();
+    const geo2 = new THREE.IcosahedronGeometry(0.68, 1);
+    const mat2 = new THREE.MeshLambertMaterial({ color: 0xCBA6F7, flatShading: true });
+    const p2Mesh = new THREE.Mesh(geo2, mat2);
+    planet2Group.add(p2Mesh);
+
+    const ringGeo = new THREE.RingGeometry(0.88, 1.45, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xF9E2AF,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = Math.PI / 3;
+    planet2Group.add(ringMesh);
+
+    planet2Group.userData = { orbitRadius: 8.0, speed: 0.025, baseAngle: 2.2, depth: -12.5 };
+    this.registerDisposable(geo2);
+    this.registerDisposable(mat2);
+    this.registerDisposable(ringGeo);
+    this.registerDisposable(ringMat);
+    this.backgroundCelestialGroup.add(planet2Group);
+    this.roamingPlanets.push(planet2Group);
+
+    // Planet 3: Pastel-Pink Star Core
+    const geo3 = new THREE.IcosahedronGeometry(0.38, 1);
+    const mat3 = new THREE.MeshLambertMaterial({ color: 0xFFB6C1, flatShading: true });
+    const p3 = new THREE.Mesh(geo3, mat3);
+    p3.userData = { orbitRadius: 5.2, speed: 0.06, baseAngle: 4.4, depth: -13.5 };
+    this.registerDisposable(geo3);
+    this.registerDisposable(mat3);
+    this.backgroundCelestialGroup.add(p3);
+    this.roamingPlanets.push(p3);
+  }
+
+  // 2.4 Meteor Pool (6 Reusable Streaks)
+  buildMeteorPool() {
+    this.meteorPool = [];
+
+    for (let i = 0; i < this.maxMeteors; i++) {
+      const geo = new THREE.BufferGeometry();
+      const points = new Float32Array([0, 0, 0, -1.2, 0.8, 0]);
+      geo.setAttribute('position', new THREE.BufferAttribute(points, 3));
+
+      const mat = new THREE.LineBasicMaterial({
+        color: i % 2 === 0 ? 0x94E2D5 : 0xF9E2AF,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending
+      });
+
+      const line = new THREE.Line(geo, mat);
+      line.visible = false;
+      line.userData = {
+        active: false,
+        progress: 0,
+        startX: 0,
+        startY: 0,
+        startZ: -11.5,
+        speed: 0.03
+      };
+
+      this.registerDisposable(geo);
+      this.registerDisposable(mat);
+      this.backgroundCelestialGroup.add(line);
+      this.meteorPool.push(line);
+    }
+  }
+
+  // 2.5 Living Comet with Waving Tail
+  buildLivingComet() {
+    this.cometMesh = new THREE.Group();
+    this.cometMesh.position.set(-15, 4.0, -11.5);
+
+    // Comet Glowing Head
+    const headGeo = new THREE.SphereGeometry(0.18, 16, 16);
+    const headMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    this.cometHead = new THREE.Mesh(headGeo, headMat);
+    this.cometMesh.add(this.cometHead);
+
+    const haloGeo = new THREE.SphereGeometry(0.35, 16, 16);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: 0x94E2D5,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+    this.cometMesh.add(new THREE.Mesh(haloGeo, haloMat));
+
+    // Waving Tail Geometry (8 segment strip)
+    const tailGeo = new THREE.BufferGeometry();
+    const tailVerts = new Float32Array(8 * 3);
+    for (let j = 0; j < 8; j++) {
+      tailVerts[j * 3]     = -j * 0.35;
+      tailVerts[j * 3 + 1] = 0;
+      tailVerts[j * 3 + 2] = 0;
+    }
+    tailGeo.setAttribute('position', new THREE.BufferAttribute(tailVerts, 3));
+
+    const tailMat = new THREE.LineBasicMaterial({
+      color: 0xF5C2E7,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
+    });
+    this.cometTail = new THREE.Line(tailGeo, tailMat);
+    this.cometMesh.add(this.cometTail);
+
+    this.registerDisposable(headGeo);
+    this.registerDisposable(headMat);
+    this.registerDisposable(haloGeo);
+    this.registerDisposable(haloMat);
+    this.registerDisposable(tailGeo);
+    this.registerDisposable(tailMat);
+
+    this.backgroundCelestialGroup.add(this.cometMesh);
+  }
+
+  // 4.4 Holographic Planetary Targets in backgroundCelestialGroup
+  buildHolographicTargets() {
+    this.targetSystemMeshes = [];
+
+    this.spaceSystems.forEach(sys => {
+      const group = new THREE.Group();
+      group.position.set(sys.x, sys.y, sys.z);
+
+      const geo = new THREE.IcosahedronGeometry(sys.size, 2);
+      const mat = new THREE.MeshBasicMaterial({
+        color: sys.color,
+        wireframe: true
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      group.add(mesh);
+
+      const glowGeo = new THREE.SphereGeometry(sys.size * 1.25, 16, 16);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: sys.color,
+        transparent: true,
+        opacity: 0.3,
+        blending: THREE.AdditiveBlending
+      });
+      group.add(new THREE.Mesh(glowGeo, glowMat));
+
+      group.userData = { id: sys.id, name: sys.name, basePos: new THREE.Vector3(sys.x, sys.y, sys.z) };
+
+      this.registerDisposable(geo);
+      this.registerDisposable(mat);
+      this.registerDisposable(glowGeo);
+      this.registerDisposable(glowMat);
+
+      this.backgroundCelestialGroup.add(group);
+      this.targetSystemMeshes.push(group);
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Render Hook: updateCelestialLayer (Called per-frame)
+     ───────────────────────────────────────────────────────────────────────── */
+  updateCelestialLayer(time, delta) {
+    const audioLevel = synthEngine.getAudioReactiveLevel();
+    const isSleeping = KiroState.get('isSleeping');
+
+    // 1. Update Nebula Shader Uniforms
+    if (this.nebulaMaterial) {
+      this.nebulaMaterial.uniforms.u_time.value = time;
+      this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
+    }
+
+    // 2. Galaxy Rotation & Touch Repulsion
+    if (this.galaxyPoints) {
+      const positions = this.galaxyPoints.geometry.attributes.position.array;
+      const count = this.galaxyCount;
+
+      if (this.galaxyPoints.material.size !== this.warpStarSize) {
+        this.galaxyPoints.material.size = this.warpStarSize;
+      }
+
+      // Unproject pointer to Z = -12.0 plane
+      const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
+      const mouseDir = mouseProj.sub(this.camera.position).normalize();
+      const mouseDist = (-12.0 - this.camera.position.z) / mouseDir.z;
+      const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
+
+      const rotAngle = isSleeping ? time * 0.004 : time * this.warpSpeed;
+
+      for (let i = 0; i < count; i++) {
+        const orig = this.galaxyOriginalPositions[i];
+        const rotatedX = orig.x * Math.cos(rotAngle) - orig.z * Math.sin(rotAngle);
+        const rotatedZ = (orig.x * Math.sin(rotAngle) + orig.z * Math.cos(rotAngle)) * this.warpZStretch;
+
+        this.galaxyPhases[i] += 0.005;
+
+        if (this.pointerInCanvas) {
+          const dx = positions[i * 3] - mousePlanePos.x;
+          const dy = positions[i * 3 + 1] - mousePlanePos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 2.5) {
+            const force = (2.5 - distance) * 0.28;
+            positions[i * 3]     += (dx / distance) * force;
+            positions[i * 3 + 1] += (dy / distance) * force;
+          } else {
+            positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
+            positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
+          }
+        } else {
+          positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
+          positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
+        }
+
+        const twinkle = Math.sin(time * 2.0 + this.galaxyPhases[i]) * 0.15;
+        positions[i * 3 + 2] = rotatedZ + twinkle;
+      }
+      this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // 3. Roaming Planets Parametric Orbit
+    this.roamingPlanets.forEach(planet => {
+      const u = planet.userData;
+      const angle = u.baseAngle + time * u.speed;
+      planet.position.x = Math.cos(angle) * u.orbitRadius;
+      planet.position.y = Math.sin(angle * 0.7) * (u.orbitRadius * 0.45);
+      planet.position.z = u.depth;
+      planet.rotation.y += 0.01;
+      planet.rotation.x += 0.005;
+    });
+
+    // 4. Staggered Meteor Spawner
+    if (time > this.nextMeteorSpawnTime) {
+      const inactiveMeteor = this.meteorPool.find(m => !m.userData.active);
+      if (inactiveMeteor) {
+        inactiveMeteor.userData.active = true;
+        inactiveMeteor.userData.progress = 0;
+        inactiveMeteor.userData.startX = (Math.random() - 0.5) * 14;
+        inactiveMeteor.userData.startY = 5.0 + Math.random() * 2.0;
+        inactiveMeteor.position.set(inactiveMeteor.userData.startX, inactiveMeteor.userData.startY, -11.5);
+        inactiveMeteor.visible = true;
+      }
+      this.nextMeteorSpawnTime = time + 2.5 + Math.random() * 1.5;
+    }
+
+    // Update Active Meteors
+    this.meteorPool.forEach(meteor => {
+      if (meteor.userData.active) {
+        meteor.userData.progress += meteor.userData.speed;
+        meteor.position.x = meteor.userData.startX - meteor.userData.progress * 8.0;
+        meteor.position.y = meteor.userData.startY - meteor.userData.progress * 5.5;
+
+        // Opacity fade in and out
+        const p = meteor.userData.progress;
+        const opacity = Math.sin(p * Math.PI) * 0.9;
+        meteor.material.opacity = Math.max(0, opacity);
+
+        if (meteor.userData.progress >= 1.0) {
+          meteor.userData.active = false;
+          meteor.visible = false;
+          meteor.material.opacity = 0.0;
+        }
+      }
+    });
+
+    // 5. Living Comet with Waving Tail
+    if (this.cometMesh && this.cometTail) {
+      this.cometMesh.position.x += 0.015;
+      this.cometMesh.position.y = 3.5 + Math.sin(time * 0.35) * 0.6;
+      if (this.cometMesh.position.x > 16.0) {
+        this.cometMesh.position.x = -16.0;
+      }
+
+      const tailPos = this.cometTail.geometry.attributes.position.array;
+      for (let j = 0; j < 8; j++) {
+        tailPos[j * 3 + 1] = Math.sin(time * 8.0 + j * 0.8) * 0.04;
+      }
+      this.cometTail.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // 6. Holographic Target Markers
+    const isTelescope = KiroState.get('telescopeActive');
+    const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
+
+    this.targetSystemMeshes.forEach(target => {
+      target.rotation.y += 0.012;
+      target.rotation.x += 0.006;
+
+      if (isTelescope) {
+        // Calculate screen-projected distance to center crosshair
+        const screenPos = target.position.clone();
+        screenPos.add(this.backgroundCelestialGroup.position);
+        const distToCenter = Math.sqrt(Math.pow(screenPos.x, 2) + Math.pow(screenPos.y - 0.15, 2));
+
+        if (distToCenter < 0.9) {
+          if (KiroState.get('cockpitSteering.currentTarget') !== target.userData.id) {
+            KiroState.set('cockpitSteering.currentTarget', target.userData.id);
+            KiroState.set('cockpitSteering.aligned', true);
+            synthEngine.playChimeSound(660);
+          }
+        }
+      }
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Kiro Companion & Sanctuary Setup (Z = 0.0)
+     ───────────────────────────────────────────────────────────────────────── */
   buildEnvironment() {
     const pedestalGeo = new THREE.CylinderGeometry(1.9, 2.0, 0.45, 32);
     const pedestalMat = new THREE.MeshPhongMaterial({
@@ -474,32 +888,11 @@ export class KiroSceneManager {
     this.crosshairMesh = new THREE.Mesh(crossGeo, crossMat);
     this.crosshairMesh.position.set(0, 0.15, -3.0);
     this.cockpitGroup.add(this.crosshairMesh);
-
-    // Celestial Space Systems
-    this.spaceSystems.forEach(sys => {
-      const geo = new THREE.IcosahedronGeometry(sys.size, 2);
-      const mat = new THREE.MeshBasicMaterial({
-        color: sys.color,
-        wireframe: true
-      });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(sys.x, sys.y, sys.z);
-      mesh.userData = { id: sys.id, name: sys.name, basePos: mesh.position.clone() };
-
-      const glowGeo = new THREE.SphereGeometry(sys.size * 1.3, 16, 16);
-      const glowMat = new THREE.MeshBasicMaterial({
-        color: sys.color,
-        transparent: true,
-        opacity: 0.35,
-        blending: THREE.AdditiveBlending
-      });
-      mesh.add(new THREE.Mesh(glowGeo, glowMat));
-
-      this.cockpitGroup.add(mesh);
-      this.targetSystemMeshes.push(mesh);
-    });
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     Phase 3 & 4: Interactions, Parallax & State Synchronization
+     ───────────────────────────────────────────────────────────────────────── */
   bindEvents() {
     const onPointerMove = (clientX, clientY) => {
       this.mouse.x = (clientX / window.innerWidth) * 2 - 1;
@@ -546,7 +939,7 @@ export class KiroSceneManager {
       }
     });
 
-    // Calibrated Gyro Parallax with 55 deg baseline hold subtraction
+    // Baseline-Calibrated Gyro Parallax (55 deg portrait hold baseline)
     window.addEventListener('deviceorientation', (e) => {
       if (KiroState.get('gyroEnabled')) {
         const deltaBeta = ((e.beta || 55) - 55) * 0.003;
@@ -555,6 +948,9 @@ export class KiroSceneManager {
         this.gyro.targetX = Math.max(-0.25, Math.min(0.25, deltaGamma));
       }
     });
+
+    // Native Memory Trim Bridge Listener
+    window.addEventListener('kiro:trim_memory', () => this.disposeCelestialLayer());
 
     this.boundResize = () => this.resize();
     window.addEventListener('resize', this.boundResize);
@@ -566,6 +962,7 @@ export class KiroSceneManager {
     KiroState.on('vital:feed', ({ type }) => this.dropCandy(type));
     KiroState.on('vital:water', () => this.splashWater());
     KiroState.on('sleep:change', ({ isSleeping, hasWellRestedBuff }) => this.onSleepChange(isSleeping, hasWellRestedBuff));
+    KiroState.on('memory:trim', () => this.disposeCelestialLayer());
 
     KiroState.on('change:telescopeActive', ({ newValue }) => {
       const isActive = Boolean(newValue);
@@ -836,7 +1233,6 @@ export class KiroSceneManager {
   }
 
   triggerWarpAcceleration() {
-    this.warpActive = true;
     if (window.gsap) {
       gsap.to(this, {
         warpSpeed: 0.08,
@@ -853,7 +1249,6 @@ export class KiroSceneManager {
   }
 
   exitWarpAcceleration() {
-    this.warpActive = false;
     if (window.gsap) {
       gsap.to(this, {
         warpSpeed: 0.02,
@@ -869,18 +1264,27 @@ export class KiroSceneManager {
     }
   }
 
-  triggerBootWarp() {
-    this.triggerWarpAcceleration();
-    setTimeout(() => this.exitWarpAcceleration(), 2000);
-  }
-
+  /* ─────────────────────────────────────────────────────────────────────────
+     Main Render Loop (Single requestAnimationFrame)
+     ───────────────────────────────────────────────────────────────────────── */
   animate() {
     if (this.isDisposed) return;
     this.animationFrameId = requestAnimationFrame(() => this.animate());
 
     const t = this.clock.getElapsedTime();
-    const isSleeping = KiroState.get('isSleeping');
-    const audioLevel = synthEngine.getAudioReactiveLevel();
+    const delta = this.clock.getDelta();
+    const now = performance.now();
+    const frameMs = now - this.lastFrameTime;
+    this.lastFrameTime = now;
+
+    // Performance Monitor update
+    if (this.devFpsBadge) {
+      this.fpsHistory.push(frameMs);
+      if (this.fpsHistory.length > 30) this.fpsHistory.shift();
+      const avgMs = this.fpsHistory.reduce((a, b) => a + b, 0) / this.fpsHistory.length;
+      const currentFps = Math.round(1000 / (avgMs || 16.6));
+      this.devFpsBadge.textContent = `${currentFps} FPS | ${avgMs.toFixed(1)}ms`;
+    }
 
     // 1. Gyro Parallax Smooth Interpolation
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;
@@ -888,49 +1292,26 @@ export class KiroSceneManager {
     this.camera.position.x = this.gyro.x;
     this.camera.position.y = 0.15 + this.gyro.y;
 
-    // 2. Update Volumetric Nebula Shader Uniforms
-    if (this.nebulaMaterial) {
-      this.nebulaMaterial.uniforms.u_time.value = t;
-      this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
-    }
-
-    // 3. Idle Bobbing & Telescope Steering
+    // 2. Space Shuttle Steering & Unified Rigid-Body Celestial Parallax (Phase 5.2)
     const isTelescope = KiroState.get('telescopeActive');
     const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
 
     if (isTelescope) {
+      const targetGroupX = (steering.yaw || 0) * 0.08;
+      const targetGroupY = (steering.pitch || 0) * 0.08;
+      this.backgroundCelestialGroup.position.x += (targetGroupX - this.backgroundCelestialGroup.position.x) * 0.08;
+      this.backgroundCelestialGroup.position.y += (targetGroupY - this.backgroundCelestialGroup.position.y) * 0.08;
+
       const lookX = (steering.yaw || 0) * 0.02;
       const lookY = 0.15 + (steering.pitch || 0) * 0.02;
       this.camera.lookAt(lookX, lookY, 0);
-
-      if (this.galaxyPoints) {
-        this.galaxyPoints.position.x = (steering.yaw || 0) * 0.05;
-        this.galaxyPoints.position.y = (steering.pitch || 0) * 0.05;
-      }
-
-      this.targetSystemMeshes.forEach(mesh => {
-        const base = mesh.userData.basePos;
-        let targetX = base.x + ((steering.yaw || 0) * 0.12);
-        let targetY = base.y + ((steering.pitch || 0) * 0.12);
-
-        mesh.position.x = targetX;
-        mesh.position.y = targetY;
-        mesh.rotation.y += 0.012;
-        mesh.rotation.x += 0.006;
-
-        // Check lock-on alignment with reticle (at x=0, y=0.15)
-        const distToReticle = Math.sqrt(Math.pow(mesh.position.x, 2) + Math.pow(mesh.position.y - 0.15, 2));
-        if (distToReticle < 0.85) {
-          if (KiroState.get('cockpitSteering.currentTarget') !== mesh.userData.id) {
-            KiroState.set('cockpitSteering.currentTarget', mesh.userData.id);
-            KiroState.set('cockpitSteering.aligned', true);
-            synthEngine.playChimeSound(660);
-          }
-        }
-      });
     } else {
+      this.backgroundCelestialGroup.position.x += (0 - this.backgroundCelestialGroup.position.x) * 0.05;
+      this.backgroundCelestialGroup.position.y += (0 - this.backgroundCelestialGroup.position.y) * 0.05;
       this.camera.lookAt(0, 0, 0);
 
+      // Kiro Breathing Idle
+      const isSleeping = KiroState.get('isSleeping');
       const freq = isSleeping ? 0.6 : 2.0;
       const amp = isSleeping ? 0.02 : 0.05;
       if (this.kiroGroup && (!window.gsap || !gsap.isAnimating(this.kiroGroup.position))) {
@@ -938,59 +1319,11 @@ export class KiroSceneManager {
       }
     }
 
-    // 4. Double-Arm Logarithmic Spiral Galaxy Twinkle & Tactile Repulsion
-    if (this.galaxyPoints) {
-      const positions = this.galaxyPoints.geometry.attributes.position.array;
-      const count = this.galaxyCount;
+    // 3. Update Living Celestial Subsystems
+    this.updateCelestialLayer(t, delta);
 
-      if (this.galaxyPoints.material.size !== this.warpStarSize) {
-        this.galaxyPoints.material.size = this.warpStarSize;
-      }
-
-      // Project pointer NDC coordinates to the plane at depth Z = -12.0
-      const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
-      const mouseDir = mouseProj.sub(this.camera.position).normalize();
-      const mouseDist = (-12.0 - this.camera.position.z) / mouseDir.z;
-      const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
-
-      const rotAngle = isSleeping ? t * 0.004 : t * this.warpSpeed;
-
-      for (let i = 0; i < count; i++) {
-        const orig = this.galaxyOriginalPositions[i];
-
-        // 3D Orbital Spiral Rotation
-        const rotatedX = orig.x * Math.cos(rotAngle) - orig.z * Math.sin(rotAngle);
-        const rotatedZ = (orig.x * Math.sin(rotAngle) + orig.z * Math.cos(rotAngle)) * this.warpZStretch;
-
-        this.galaxyPhases[i] += 0.005;
-
-        if (this.pointerInCanvas) {
-          const dx = positions[i * 3] - mousePlanePos.x;
-          const dy = positions[i * 3 + 1] - mousePlanePos.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          // Repulse stars if pointer lies within 2.5 units
-          if (distance < 2.5) {
-            const force = (2.5 - distance) * 0.28;
-            positions[i * 3]     += (dx / distance) * force;
-            positions[i * 3 + 1] += (dy / distance) * force;
-          } else {
-            positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.05;
-            positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.05;
-          }
-        } else {
-          positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
-          positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
-        }
-
-        const twinkle = Math.sin(t * 2.0 + this.galaxyPhases[i]) * 0.2;
-        positions[i * 3 + 2] = rotatedZ + twinkle;
-      }
-
-      this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
-    }
-
-    // 5. Audio-Visual Synesthesia
+    // 4. Audio-Visual Synesthesia
+    const audioLevel = synthEngine.getAudioReactiveLevel();
     if (this.neonRing) {
       this.neonRing.rotation.z += 0.008;
       const ringScale = 1.0 + audioLevel * 0.35;
@@ -1004,12 +1337,12 @@ export class KiroSceneManager {
       this.goldenAura.material.opacity = 0.15 + audioLevel * 0.2;
     }
 
-    // 6. Update Particle Systems & Physics
+    // 5. Update Local Particle Systems & Physics
     this.updateTouchParticles();
     this.updatePhysics();
     this.updateWaterPhysics();
 
-    // 7. Single WebGL Render Call
+    // 6. Single WebGL Render Call
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -1024,6 +1357,18 @@ export class KiroSceneManager {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     Phase 5: Resource Disposal & Memory Trim Bridge
+     ───────────────────────────────────────────────────────────────────────── */
+  disposeCelestialLayer() {
+    this.celestialDisposalRegistry.forEach(resource => {
+      if (resource && typeof resource.dispose === 'function') {
+        try { resource.dispose(); } catch (e) { /* ignore */ }
+      }
+    });
+    this.celestialDisposalRegistry.clear();
+  }
+
   dispose() {
     this.isDisposed = true;
     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
@@ -1033,9 +1378,11 @@ export class KiroSceneManager {
       window.removeEventListener('orientationchange', this.boundResize);
     }
 
-    if (this.starTexture) {
-      this.starTexture.dispose();
+    if (this.devFpsBadge && this.devFpsBadge.parentNode) {
+      this.devFpsBadge.parentNode.removeChild(this.devFpsBadge);
     }
+
+    this.disposeCelestialLayer();
 
     this.touchParticles.forEach(p => {
       this.scene.remove(p);
