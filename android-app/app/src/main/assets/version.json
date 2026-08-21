@@ -1,5 +1,5 @@
 {
-  "version": "1.8.6",
-  "updatedAt": "2026-08-21T16:58:00+08:00",
-  "releaseNotes": "Release V5.5: Full implementation of the 5-phase Celestial Background & Space Shuttle Cockpit architecture, featuring unified backgroundCelestialGroup parallax translation, roaming flat-shaded low-poly planets with Saturn ring, 6-meteor pooled streak system, living comet with waving tail vertices, 4 holographic targets with audio lock-on, and complete TRIM_MEMORY disposal registry."
+  "version": "1.8.7",
+  "updatedAt": "2026-08-21T17:25:00+08:00",
+  "releaseNotes": "Release V5.6: Fixed 4 root-cause galaxy rendering bugs: (1) galaxy Z-coord corruption causing stars to rotate behind camera — fixed with group rotation.z instead of per-particle Z mutations; (2) THREE.Clock double-call causing nebula shader time uniform to jump; (3) nebula plane too small causing dark edges; (4) warpZStretch pushing stars past frustum far clip in cockpit mode."
 }

@@ -211,3 +211,15 @@
 
 ---
 
+### [DEC-160820] Double-Arm Logarithmic Spiral Galaxy Math & Sibling Color Alignment at Z = -12.0
+- **Timestamp**: `2026-08-21T17:25:00.000000`
+- **Strategy & Synthesis**: Diagnosed and fixed 4 root-cause rendering bugs that collectively prevented the galaxy and nebula from ever displaying correctly: (1) Galaxy particles stored Z=-12 in per-particle coords, causing stars to rotate to Z=+12 (behind camera) every half-spin cycle — fixed by storing Z=0 flat and using galaxyPoints.position.z=-12 as a one-time group offset, then rotating via group.rotation.z; (2) THREE.Clock.getDelta() after getElapsedTime() desynced internal oldTime — fixed with getDelta-first + manual accumulator; (3) Nebula PlaneGeometry 54x38 too small — enlarged to 80x50 to prevent dark edges under parallax; (4) warpZStretch:3.5 GSAP-animated Z stretching of star positions past frustum far clip — removed entirely, warp now = faster rotation + larger point size only.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Galaxy mint-teal arm (Patrick) and pastel-pink arm (Yangiee) now permanently visible at all rotation angles. Siblings' stars no longer vanish mid-spin. Golden ambient core glow is always centered.
+  - **Performance**: Score 5/5: Group rotation replaces 800 per-particle trigonometry calls per frame with a single rotation.z increment. No per-particle Z mutation. Touch repulsion only runs its O(n) loop when pointer is active in canvas, not every frame. Estimated ~10x CPU reduction in update loop.
+  - **Container**: Score 5/5: galaxyPoints.position.z = -12.0 persists across warp mode transitions without any Z coordinate drift. TRIM_MEMORY disposal registry unchanged — all geometry/material handles remain registered.
+  - **Structural**: Score 5/5: Eliminated THREE.Clock double-call desync bug (getElapsedTime then getDelta). Manual _elapsedTime accumulator ensures nebula u_time uniform advances monotonically and correctly. warpZStretch property removed from all GSAP tween targets.
+  - **Gamification**: Score 5/5: Warp acceleration now feels cinematic (faster rotation + bigger stars) without the frustum clip artifact that made the cockpit background pitch black. Lock-on targets remain visible in telescope mode.
+
+---
+

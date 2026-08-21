@@ -69,6 +69,7 @@ export class KiroSceneManager {
     this.camera = null;
     this.renderer = null;
     this.clock = new THREE.Clock();
+    this._elapsedTime = 0; // Manual accumulator — avoids THREE.Clock double-call bug
     this.animationFrameId = null;
     this.isDisposed = false;
 
@@ -337,7 +338,7 @@ export class KiroSceneManager {
       }
     `;
 
-    const nebulaGeo = new THREE.PlaneGeometry(54, 38);
+    const nebulaGeo = new THREE.PlaneGeometry(80, 50); // Oversized to prevent dark edges under any parallax/gyro offset
     this.nebulaMaterial = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -357,6 +358,10 @@ export class KiroSceneManager {
   }
 
   // 2.2 Double-Arm Logarithmic Spiral Galaxy (Z = -12.0)
+  // FIX: Positions stored flat in X/Y plane (Z = 0 local). The Points object
+  //      is offset to position.z = -12 once. Galaxy rotation is applied to the
+  //      GROUP (galaxyPoints.rotation.z) — never to individual Z coordinates.
+  //      This prevents stars from rotating into Z > 0 (behind camera) every cycle.
   buildDynamicSpiralGalaxy() {
     const galaxyGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.galaxyCount * 3);
@@ -365,29 +370,31 @@ export class KiroSceneManager {
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
 
-    const colorTeal = new THREE.Color(0x4EC9B0);   // Mint Teal
-    const colorPink = new THREE.Color(0xFFB6C1);   // Pastel Pink
-    const colorAmber = new THREE.Color(0xF9E2AF);  // Warm Gold
+    const colorTeal = new THREE.Color(0x4EC9B0);   // Mint Teal (Patrick's arm)
+    const colorPink = new THREE.Color(0xFFB6C1);   // Pastel Pink (Yangiee's arm)
+    const colorAmber = new THREE.Color(0xF9E2AF);  // Warm Gold (shared core)
 
     for (let i = 0; i < this.galaxyCount; i++) {
-      const arm = i % 2; // Split particles across exactly 2 spiral arms
-      
-      // Logarithmic density distribution math: clusters particles tightly at core
+      const arm = i % 2;
+
+      // Logarithmic density distribution — clusters tightly at core
       const r = 0.5 + Math.pow(Math.random(), 2.0) * 8.0;
       const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.4;
 
+      // CRITICAL FIX: Z = 0 in local space. The galaxyPoints object is placed
+      // at position.z = -12 below. Never store -12 in per-particle Z.
       const x = Math.cos(angle) * r;
-      const y = (Math.random() - 0.5) * 0.8;
-      const z = Math.sin(angle) * r - 12.0;
+      const y = (Math.random() - 0.5) * 0.8; // thin galactic disk
+      const z = Math.sin(angle) * r * 0.08;  // near-flat disk, tiny Z variance only
 
       positions[i * 3]     = x;
       positions[i * 3 + 1] = y;
       positions[i * 3 + 2] = z;
 
-      this.galaxyOriginalPositions.push(new THREE.Vector3(x, y, z));
+      this.galaxyOriginalPositions.push({ x, y, z, r, arm });
       this.galaxyPhases.push(Math.random() * Math.PI * 2);
 
-      // Dynamic sibling color interpolation across arms
+      // Sibling color story
       let starColor;
       if (arm === 0) {
         starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.5);
@@ -410,13 +417,16 @@ export class KiroSceneManager {
       transparent: true,
       opacity: 0.95,
       blending: THREE.AdditiveBlending,
-      depthWrite: false
+      depthWrite: false,
+      sizeAttenuation: true
     });
 
     this.registerDisposable(galaxyGeo);
     this.registerDisposable(galaxyMat);
 
     this.galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
+    // CRITICAL FIX: depth offset on the object, not in per-particle Z coords
+    this.galaxyPoints.position.set(0, 0, -12.0);
     this.backgroundCelestialGroup.add(this.galaxyPoints);
   }
 
@@ -605,52 +615,68 @@ export class KiroSceneManager {
       this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
     }
 
-    // 2. Galaxy Rotation & Touch Repulsion
+    // 2. Galaxy — Group Rotation + Touch Repulsion (per-particle spring only)
+    // FIX: Galaxy spins as a GROUP (rotation.z), not via per-particle Z coordinate
+    //      mutation. This eliminates stars rotating behind the camera.
     if (this.galaxyPoints) {
-      const positions = this.galaxyPoints.geometry.attributes.position.array;
-      const count = this.galaxyCount;
-
+      // Size update for warp mode
       if (this.galaxyPoints.material.size !== this.warpStarSize) {
         this.galaxyPoints.material.size = this.warpStarSize;
+        this.galaxyPoints.material.needsUpdate = true;
       }
 
-      // Unproject pointer to Z = -12.0 plane
-      const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
-      const mouseDir = mouseProj.sub(this.camera.position).normalize();
-      const mouseDist = (-12.0 - this.camera.position.z) / mouseDir.z;
-      const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
+      // Rotate galaxy group in-plane — zero Z coordinate corruption
+      const rotSpeed = isSleeping ? 0.004 : this.warpSpeed;
+      this.galaxyPoints.rotation.z += rotSpeed * (delta || 0.016);
 
-      const rotAngle = isSleeping ? time * 0.004 : time * this.warpSpeed;
+      // Touch repulsion: unproject pointer into galaxy's local X/Y plane
+      // (group is at Z=-12, so we project to that world Z)
+      if (this.pointerInCanvas) {
+        const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
+        const mouseDir = mouseProj.sub(this.camera.position).normalize();
+        const worldZ = -12.0 + (this.backgroundCelestialGroup.position.z || 0);
+        const mouseDist = (worldZ - this.camera.position.z) / mouseDir.z;
+        const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
 
-      for (let i = 0; i < count; i++) {
-        const orig = this.galaxyOriginalPositions[i];
-        const rotatedX = orig.x * Math.cos(rotAngle) - orig.z * Math.sin(rotAngle);
-        const rotatedZ = (orig.x * Math.sin(rotAngle) + orig.z * Math.cos(rotAngle)) * this.warpZStretch;
+        const positions = this.galaxyPoints.geometry.attributes.position.array;
+        const count = this.galaxyCount;
 
-        this.galaxyPhases[i] += 0.005;
-
-        if (this.pointerInCanvas) {
-          const dx = positions[i * 3] - mousePlanePos.x;
+        for (let i = 0; i < count; i++) {
+          const orig = this.galaxyOriginalPositions[i];
+          const dx = positions[i * 3]     - mousePlanePos.x;
           const dy = positions[i * 3 + 1] - mousePlanePos.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+          const dist2 = dx * dx + dy * dy;
 
-          if (distance < 2.5) {
+          if (dist2 < 6.25) { // 2.5^2 — skip sqrt for performance
+            const distance = Math.sqrt(dist2);
             const force = (2.5 - distance) * 0.28;
             positions[i * 3]     += (dx / distance) * force;
             positions[i * 3 + 1] += (dy / distance) * force;
           } else {
-            positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
+            // Spring back to rest position
+            positions[i * 3]     += (orig.x - positions[i * 3])     * 0.03;
             positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
           }
-        } else {
-          positions[i * 3]     += (rotatedX - positions[i * 3]) * 0.03;
-          positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
-        }
 
-        const twinkle = Math.sin(time * 2.0 + this.galaxyPhases[i]) * 0.15;
-        positions[i * 3 + 2] = rotatedZ + twinkle;
+          // Twinkle: only Z flicker, stays near 0 in local space
+          this.galaxyPhases[i] += 0.005;
+          const twinkle = Math.sin(time * 2.0 + this.galaxyPhases[i]) * 0.08;
+          positions[i * 3 + 2] = orig.z + twinkle;
+        }
+        this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
+      } else {
+        // No touch: just twinkle Z — no full position loop needed
+        const positions = this.galaxyPoints.geometry.attributes.position.array;
+        for (let i = 0; i < this.galaxyCount; i++) {
+          const orig = this.galaxyOriginalPositions[i];
+          this.galaxyPhases[i] += 0.003;
+          positions[i * 3 + 2] = orig.z + Math.sin(time * 1.5 + this.galaxyPhases[i]) * 0.08;
+          // Spring X/Y back to rest (in case of prior touch)
+          positions[i * 3]     += (orig.x - positions[i * 3])     * 0.02;
+          positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.02;
+        }
+        this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
       }
-      this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
     }
 
     // 3. Roaming Planets Parametric Orbit
@@ -1233,18 +1259,18 @@ export class KiroSceneManager {
   }
 
   triggerWarpAcceleration() {
+    // FIX: warpZStretch removed — it pushed star Z coords past the frustum far plane
+    // Warp visual = faster rotation speed + larger point size only
     if (window.gsap) {
       gsap.to(this, {
-        warpSpeed: 0.08,
-        warpStarSize: 0.75,
-        warpZStretch: 3.5,
+        warpSpeed: 0.12,
+        warpStarSize: 0.85,
         duration: 1.5,
         ease: 'power2.in'
       });
     } else {
-      this.warpSpeed = 0.08;
-      this.warpStarSize = 0.75;
-      this.warpZStretch = 3.5;
+      this.warpSpeed = 0.12;
+      this.warpStarSize = 0.85;
     }
   }
 
@@ -1253,14 +1279,12 @@ export class KiroSceneManager {
       gsap.to(this, {
         warpSpeed: 0.02,
         warpStarSize: 0.42,
-        warpZStretch: 1.0,
         duration: 1.0,
         ease: 'power2.out'
       });
     } else {
       this.warpSpeed = 0.02;
       this.warpStarSize = 0.42;
-      this.warpZStretch = 1.0;
     }
   }
 
@@ -1271,8 +1295,12 @@ export class KiroSceneManager {
     if (this.isDisposed) return;
     this.animationFrameId = requestAnimationFrame(() => this.animate());
 
-    const t = this.clock.getElapsedTime();
+    // FIX: getDelta() first (resets internal oldTime), then accumulate elapsed
+    // manually. Calling getElapsedTime() before getDelta() caused the clock's
+    // internal state to desync, making nebula u_time jump erratically.
     const delta = this.clock.getDelta();
+    this._elapsedTime += delta;
+    const t = this._elapsedTime;
     const now = performance.now();
     const frameMs = now - this.lastFrameTime;
     this.lastFrameTime = now;
