@@ -10,8 +10,8 @@ android {
         applicationId = "com.starlight.sanctuary"
         minSdk = 24
         targetSdk = 34
-        versionCode = 36
-        versionName = "1.8.8"
+        versionCode = 37
+        versionName = "1.8.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

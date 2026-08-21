@@ -1,5 +1,5 @@
 {
-  "version": "1.8.8",
-  "updatedAt": "2026-08-21T17:55:00+08:00",
-  "releaseNotes": "Release V5.7: Resolved runtime TypeError crash in requestAnimationFrame render loop caused by nonexistent gsap.isAnimating call. Implemented robust local lifecycle flags (isPetting, isTelescopeTransitioning) to manage Kiro breathing idle without interrupting active GSAP tweens."
+  "version": "1.8.9",
+  "updatedAt": "2026-08-21T18:02:00+08:00",
+  "releaseNotes": "Release V5.8: Cleaned SVG path syntax for navigation and settings gear icons in index.html to prevent Chromium XML parser warnings. Re-verified robust render loop and Android WebView asset serving."
 }
