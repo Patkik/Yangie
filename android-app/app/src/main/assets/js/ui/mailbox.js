@@ -1,7 +1,8 @@
 /**
- * mailbox.js (StarlightMessenger V3 + Starlight Call Engine v1.4.0)
+ * mailbox.js (StarlightMessenger V3 + Starlight Call Engine v1.5.0)
+ * ──────────────────────────────────────────────────────────────────────────
  * Full-featured Starlight Messenger and Discord-grade Video Call interface for Patrick & Yangiee.
- * Supports: Discord-style emojis, inline base64 images, voice notes, WebRTC video calling,
+ * 100% Vector SVG-driven UI: Discord-style emojis, inline base64 images, voice notes, WebRTC video calling,
  * screen sharing, DAVE-equivalent E2EE (ECDH P-256 + AES-GCM-128), and native Android audio bridge.
  *
  * Complies with Master Walkthrough Audit v1.2.1 (token normalization via KiroState).
@@ -14,7 +15,7 @@ import { kiroCryptoEngine } from '../rtc/crypto-engine.js';
 
 const DISCORD_EMOJIS = ["✨", "💖", "🌙", "🛸", "🍬", "🐱", "👨‍🚀", "🍩", "🔋", "🪐"];
 
-const SVGS = {
+export const SVGS = {
   patrick: `
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="10" stroke="#4EC9B0" stroke-width="1.5" fill="rgba(78, 201, 176, 0.15)"/>
@@ -25,16 +26,86 @@ const SVGS = {
   `,
   yangiee: `
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="#FFB6C1" stroke-width="1.5" fill="rgba(255, 182, 193, 0.15)"/>
-      <path d="M7 10L6 6L10.5 7.5M17 10L18 6L13.5 7.5" stroke="#FFB6C1" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M6 11.5C6 15 8.68 17.5 12 17.5C15.32 17.5 18 15 18 11.5C18 8.46 15.32 8 12 8C8.68 8 6 8.46 6 11.5Z" fill="#FFB6C1"/>
+      <circle cx="12" cy="12" r="10" stroke="#F5B7C0" stroke-width="1.5" fill="rgba(245, 183, 192, 0.15)"/>
+      <path d="M7 10L6 6L10.5 7.5M17 10L18 6L13.5 7.5" stroke="#F5B7C0" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M6 11.5C6 15 8.68 17.5 12 17.5C15.32 17.5 18 15 18 11.5C18 8.46 15.32 8 12 8C8.68 8 6 8.46 6 11.5Z" fill="#F5B7C0"/>
       <circle cx="10" cy="11" r="0.8" fill="#1B2A38"/>
       <circle cx="14" cy="11" r="0.8" fill="#1B2A38"/>
     </svg>
   `,
   send: `
-    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </svg>
+  `,
+  image: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="4" ry="4"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
+    </svg>
+  `,
+  mic: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  `,
+  micMuted: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23"/>
+      <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
+      <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  `,
+  camera: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 7l-7 5 7 5V7z"/>
+      <rect x="1" y="5" width="15" height="14" rx="3" ry="3"/>
+    </svg>
+  `,
+  cameraOff: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23"/>
+      <path d="M21 21l-3.34-3.34L16 16.5V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1.5l1-1h5.86l2 2H19a2 2 0 0 1 2 2v6.5l3 3V7l-4.5 3.21"/>
+    </svg>
+  `,
+  phoneCall: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.59 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.54a16 16 0 0 0 6.55 6.55l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </svg>
+  `,
+  phoneEnd: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/>
+      <line x1="23" y1="1" x2="1" y2="23"/>
+    </svg>
+  `,
+  screenShare: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+      <line x1="8" y1="21" x2="16" y2="21"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+      <polyline points="7 9 12 4 17 9"/>
+    </svg>
+  `,
+  e2eeLock: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <circle cx="12" cy="11" r="1.5" fill="currentColor"/>
+    </svg>
+  `,
+  radarPulse: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 2a10 10 0 0 1 10 10"/>
+      <path d="M12 6a6 6 0 0 1 6 6"/>
+      <circle cx="12" cy="12" r="2" fill="currentColor"/>
     </svg>
   `
 };
@@ -75,8 +146,8 @@ export class StarlightMessenger {
               <div class="connection-dot"></div>
             </div>
             <div class="mailbox-sub">
-              <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7l5 5m-2-7l4 4-1.5 1.5L14.5 6 16 4.5zM2 22l6-6m2-2l4-4-5-5-4 4 5 5z"/></svg>
-              Under the same sky • 938 km apart
+              <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+              Celestial Telemetry • 938 km apart
             </div>
           </div>
           <button class="settings-close-btn" id="mailbox-close-btn" aria-label="Close Mailbox">
@@ -85,7 +156,7 @@ export class StarlightMessenger {
         </div>
 
         <!-- Call Session Panel (full-chrome video call UI, hidden when no call) -->
-        <div id="call-session-panel" style="display:none; position:relative; background:rgba(3,7,18,0.88); border-bottom:1px solid rgba(148,226,213,0.2); width:100%; border-radius:12px; margin:4px 0; overflow:hidden;">
+        <div id="call-session-panel" style="display:none; position:relative; background:rgba(3,7,18,0.88); border-bottom:1px solid rgba(148,226,213,0.2); width:100%; border-radius:16px; margin:4px 0; overflow:hidden;">
 
           <!-- Remote Video Full-Bleed -->
           <div style="position:relative; width:100%; height:200px; background:#060d18;">
@@ -94,7 +165,9 @@ export class StarlightMessenger {
             <!-- Remote Placeholder (shown when no remote stream) -->
             <div id="call-remote-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
               <div class="call-awaiting-ring">
-                <div class="call-awaiting-ring-inner">📡</div>
+                <div class="call-awaiting-ring-inner">
+                  ${SVGS.radarPulse}
+                </div>
               </div>
               <span id="call-status-badge" class="call-status-badge idle">IDLE</span>
             </div>
@@ -107,30 +180,31 @@ export class StarlightMessenger {
 
             <!-- E2EE Lock Badge -->
             <div id="call-e2ee-badge" class="e2ee-badge" style="position:absolute;top:10px;left:10px;">
-              <span class="lock-icon">🔒</span> E2EE
+              <span class="lock-icon">${SVGS.e2eeLock}</span>
+              <span>ZERO-TRUST E2EE</span>
             </div>
           </div>
 
           <!-- Call HUD Controls -->
           <div class="call-hud" style="padding:10px 16px 12px;background:rgba(6,13,24,0.92);display:flex;align-items:center;justify-content:center;gap:12px;">
             <div class="call-hud-label-group">
-              <button id="call-btn-mute" class="call-hud-btn" title="Mute">🎤</button>
+              <button id="call-btn-mute" class="call-hud-btn" title="Mute Microphone">${SVGS.mic}</button>
               <span class="call-hud-label">Mute</span>
             </div>
             <div class="call-hud-label-group">
-              <button id="call-btn-camera" class="call-hud-btn" title="Camera Off">📷</button>
+              <button id="call-btn-camera" class="call-hud-btn" title="Toggle Camera">${SVGS.camera}</button>
               <span class="call-hud-label">Camera</span>
             </div>
             <div class="call-hud-label-group">
-              <button id="call-btn-end" class="call-hud-btn end-call-btn" title="End Call">📵</button>
+              <button id="call-btn-end" class="call-hud-btn end-call-btn" title="End Call">${SVGS.phoneEnd}</button>
               <span class="call-hud-label">End</span>
             </div>
             <div class="call-hud-label-group">
-              <button id="call-btn-screen" class="call-hud-btn" title="Share Screen">🖥️</button>
+              <button id="call-btn-screen" class="call-hud-btn" title="Share Screen">${SVGS.screenShare}</button>
               <span class="call-hud-label">Screen</span>
             </div>
             <div class="call-hud-label-group">
-              <button id="call-btn-answer" class="call-hud-btn" title="Answer (Receiver mode)" style="background:rgba(78,201,176,0.22);border-color:rgba(78,201,176,0.5);">📞</button>
+              <button id="call-btn-answer" class="call-hud-btn" title="Answer Incoming Call" style="background:rgba(78,201,176,0.22);border-color:rgba(78,201,176,0.5);">${SVGS.phoneCall}</button>
               <span class="call-hud-label">Answer</span>
             </div>
           </div>
@@ -140,7 +214,7 @@ export class StarlightMessenger {
 
         <!-- Custom Discord-style Emojis Quick Bar -->
         <div class="emoji-quick-bar" style="display:flex; gap:6px; overflow-x:auto; padding:6px 0; border-top:1px solid rgba(255,255,255,0.06);">
-          ${DISCORD_EMOJIS.map(emoji => `<span class="emoji-tap-btn" data-emoji="${emoji}" style="cursor:pointer; font-size:18px; padding:2px 5px; border-radius:6px; background:rgba(255,255,255,0.04); transition:all 0.15s ease;">${emoji}</span>`).join('')}
+          ${DISCORD_EMOJIS.map(emoji => `<span class="emoji-tap-btn" data-emoji="${emoji}" style="cursor:pointer; font-size:18px; padding:3px 6px; border-radius:8px; background:rgba(255,255,255,0.05); transition:all 0.15s ease;">${emoji}</span>`).join('')}
         </div>
 
         <div class="mailbox-footer">
@@ -153,21 +227,21 @@ export class StarlightMessenger {
             </div>
           </div>
 
-          <div class="input-row" style="display:flex; gap:6px; align-items:center;">
+          <div class="input-row" style="display:flex; gap:8px; align-items:center;">
             <!-- Image Picker Button -->
-            <button id="attach-img-btn" class="chat-action-btn" title="Send Picture" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              🖼️
+            <button id="attach-img-btn" class="chat-action-btn" title="Send Picture" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              ${SVGS.image}
               <input type="file" id="attach-img-file" accept="image/*" style="display:none;">
             </button>
 
             <!-- Voice Message Button -->
-            <button id="attach-voice-btn" class="chat-action-btn" title="Hold to record voice note" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              🎤
+            <button id="attach-voice-btn" class="chat-action-btn" title="Hold to record voice note" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#FFF; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              ${SVGS.mic}
             </button>
 
             <!-- Start Call Button -->
-            <button id="mailbox-call-btn" class="chat-action-btn" title="Start Video Call" style="width:36px; height:36px; border-radius:50%; border:1px solid rgba(148,226,213,0.4); background:rgba(148,226,213,0.1); color:#4EC9B0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px;">
-              📞
+            <button id="mailbox-call-btn" class="chat-action-btn" title="Start Video Call" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(148,226,213,0.4); background:rgba(148,226,213,0.12); color:#4EC9B0; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              ${SVGS.phoneCall}
             </button>
 
             <input type="text" id="mailbox-input" class="chat-input" placeholder="Whisper something sweet to Yangiee..." autocomplete="off" style="flex:1;">
@@ -270,7 +344,7 @@ export class StarlightMessenger {
     bindHud('#call-btn-screen', () => this._onScreenShare());
     bindHud('#call-btn-answer', () => this._onAnswerCall());
 
-    // Start call button (📞) in messenger footer
+    // Start call button in messenger footer
     if (callBtn) callBtn.addEventListener('click', () => this._onStartCall());
 
     this.overlay.addEventListener('click', (e) => {
@@ -289,7 +363,7 @@ export class StarlightMessenger {
       onRemoteStream: (stream) => this._onRemoteStream(stream),
       onError: (msg, err) => {
         console.error('[Messenger] Call error:', msg, err);
-        this.addMessageNode(this.currentSender, `📡 Call error: ${msg}`, 'text');
+        this.addMessageNode(this.currentSender, `Call error: ${msg}`, 'text');
       },
     });
   }
@@ -308,7 +382,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.startCall({ video: true, audio: true });
-    this.addMessageNode(this.currentSender, '📞 Initiating Starlight Video Call…', 'text');
+    this.addMessageNode(this.currentSender, 'Initiating Starlight Video Call…', 'text');
     synthEngine.playChimeSound(660);
   }
 
@@ -320,7 +394,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.answerCall({ video: true, audio: true });
-    this.addMessageNode(this.currentSender, '📞 Answering incoming call…', 'text');
+    this.addMessageNode(this.currentSender, 'Answering incoming call…', 'text');
     synthEngine.playChimeSound(770);
   }
 
@@ -334,7 +408,7 @@ export class StarlightMessenger {
     const panel = this.overlay.querySelector('#call-session-panel');
     if (panel) setTimeout(() => { panel.style.display = 'none'; }, 1200);
 
-    this.addMessageNode(this.currentSender, '📵 Call ended.', 'text');
+    this.addMessageNode(this.currentSender, 'Call ended.', 'text');
     synthEngine.playChimeSound(330);
   }
 
@@ -342,7 +416,7 @@ export class StarlightMessenger {
     this._isMuted = kiroCallEngine.toggleMute();
     const btn = this.overlay.querySelector('#call-btn-mute');
     if (btn) {
-      btn.textContent = this._isMuted ? '🔇' : '🎤';
+      btn.innerHTML = this._isMuted ? SVGS.micMuted : SVGS.mic;
       btn.classList.toggle('active-red', this._isMuted);
     }
   }
@@ -351,7 +425,7 @@ export class StarlightMessenger {
     this._isCamOff = kiroCallEngine.toggleCamera();
     const btn = this.overlay.querySelector('#call-btn-camera');
     if (btn) {
-      btn.textContent = this._isCamOff ? '📵' : '📷';
+      btn.innerHTML = this._isCamOff ? SVGS.cameraOff : SVGS.camera;
       btn.classList.toggle('active-red', this._isCamOff);
     }
   }
@@ -361,15 +435,15 @@ export class StarlightMessenger {
       await kiroCallEngine.stopScreenShare();
       this._isSharing = false;
       const btn = this.overlay.querySelector('#call-btn-screen');
-      if (btn) { btn.textContent = '🖥️'; btn.classList.remove('active-red'); }
-      this.addMessageNode(this.currentSender, '🖥️ Screen sharing stopped.', 'text');
+      if (btn) { btn.innerHTML = SVGS.screenShare; btn.classList.remove('active-red'); }
+      this.addMessageNode(this.currentSender, 'Screen sharing stopped.', 'text');
     } else {
       const stream = await kiroCallEngine.startScreenShare();
       if (stream) {
         this._isSharing = true;
         const btn = this.overlay.querySelector('#call-btn-screen');
-        if (btn) { btn.textContent = '🟢'; btn.classList.add('active-red'); }
-        this.addMessageNode(this.currentSender, '🖥️ Started screen broadcast!', 'text');
+        if (btn) { btn.innerHTML = SVGS.screenShare; btn.classList.add('active-red'); }
+        this.addMessageNode(this.currentSender, 'Started screen broadcast.', 'text');
       }
     }
   }
@@ -379,7 +453,7 @@ export class StarlightMessenger {
   // ──────────────────────────────────────────────────────────────────────────
 
   _onCallStateChange(state) {
-    const badge      = this.overlay.querySelector('#call-status-badge');
+    const badge       = this.overlay.querySelector('#call-status-badge');
     const placeholder = this.overlay.querySelector('#call-remote-placeholder');
 
     if (!badge) return;
@@ -459,7 +533,9 @@ export class StarlightMessenger {
     } else if (type === 'audio') {
       contentHTML = `
         <div class="message-media" style="min-width: 170px;">
-          <span style="font-size:10px; display:block; margin-bottom:4px;">🎤 Voice Note</span>
+          <span style="font-size:10px; display:flex; align-items:center; gap:4px; margin-bottom:4px;">
+            ${SVGS.mic} Voice Note
+          </span>
           <audio src="${content}" controls style="width:100%; height:30px; outline:none; filter: invert(0.85);"></audio>
         </div>`;
     }
@@ -488,8 +564,8 @@ export class StarlightMessenger {
   }
 
   loadMockFeed() {
-    this.addMessageNode('patrick', "Hey! Did you see Kiro floating? He looks so happy today.", 'text');
-    this.addMessageNode('yangiee', "I know! I fed him a strawberry donut earlier and his sparkles went crazy!", 'text');
-    this.addMessageNode('patrick', "Let's steer the telescope towards the Butterfly Galaxy next! 🪐", 'text');
+    this.addMessageNode('patrick', "Did you see Kiro floating across the nebula? He looks so happy today.", 'text');
+    this.addMessageNode('yangiee', "I fed him a strawberry donut earlier and his sparkles went into high gear!", 'text');
+    this.addMessageNode('patrick', "Let's steer the telescope towards the Butterfly Galaxy next.", 'text');
   }
 }

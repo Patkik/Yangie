@@ -1,25 +1,33 @@
 /**
- * main.css
- * Core Design Tokens, Space Capsule Dashboard, Settings, & Glassmorphic Layouts
+ * main.css — Kiro Space Capsule V3 Visual Engine (v1.5.0)
+ * ──────────────────────────────────────────────────────────────────────────
+ * Core Design Tokens, Bespoke Glassmorphic Dashboard, SVG Insignia, & HUD Telemetry
  */
 
 :root {
-  /* Design Tokens: The Kiro Signature Palette */
+  /* Curated Design Tokens: Celestial Haven Signature Palette */
   --color-mint: #4EC9B0;
   --color-mint-glow: rgba(78, 201, 176, 0.45);
+  --color-mint-soft: rgba(78, 201, 176, 0.12);
   --color-pink-blush: #F5B7C0;
   --color-pink-glow: rgba(245, 183, 192, 0.4);
+  --color-pink-soft: rgba(245, 183, 192, 0.12);
   --color-lavender: #CBA6F7;
   --color-lavender-glow: rgba(203, 166, 247, 0.35);
   --color-cream: #F0EDE8;
-  --color-obsidian: #1A3A3A;
+  --color-obsidian: #0A1118;
   --color-twilight-bg: #0D1622;
-  --color-panel-glass: rgba(19, 31, 48, 0.75);
-  --color-border-glass: rgba(148, 226, 213, 0.22);
   
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-display: 'Cinzel Decorative', serif;
-  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  /* Precision Glassmorphism */
+  --color-panel-glass: rgba(15, 25, 38, 0.72);
+  --color-panel-glass-deep: rgba(10, 18, 28, 0.88);
+  --color-border-glass: rgba(148, 226, 213, 0.18);
+  --color-border-glass-bright: rgba(148, 226, 213, 0.4);
+
+  /* Typography */
+  --font-heading: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-display: 'Cinzel Decorative', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 *, *::before, *::after {
@@ -35,12 +43,16 @@ body {
   height: 100vh;
   overflow: hidden;
   background-color: var(--color-twilight-bg);
-  background-image: radial-gradient(circle at 50% 30%, #1B2C42 0%, #0D1622 100%);
+  background-image: 
+    radial-gradient(circle at 50% 20%, #18283B 0%, #0D1622 70%, #060B11 100%);
   font-family: var(--font-body);
   color: var(--color-cream);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* Multi-Canvas Layer Stack */
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. Multi-Canvas Layer Stack
+   ══════════════════════════════════════════════════════════════════════════ */
 #webgl-canvas-container,
 #atmosphere-canvas,
 #meteor-canvas {
@@ -64,7 +76,9 @@ body {
   z-index: 3;
 }
 
-/* Master App UI Viewport */
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. Master Space Capsule Viewport Layout
+   ══════════════════════════════════════════════════════════════════════════ */
 #app-ui {
   position: relative;
   z-index: 10;
@@ -73,7 +87,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: env(safe-area-inset-top, 20px) 18px env(safe-area-inset-bottom, 20px) 18px;
+  padding: max(env(safe-area-inset-top, 16px), 16px) 18px max(env(safe-area-inset-bottom, 16px), 16px) 18px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
@@ -84,7 +98,7 @@ body {
 }
 
 #app-ui.dissipated {
-  opacity: 0.15;
+  opacity: 0.12;
   filter: blur(8px);
 }
 
@@ -92,37 +106,91 @@ body {
   pointer-events: auto;
 }
 
-/* Top Header Bar */
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. Brand Header & SVG Insignia Logo
+   ══════════════════════════════════════════════════════════════════════════ */
 .main-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
-.brand-col {
+.brand-crest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(15, 25, 38, 0.65);
+  border: 1px solid rgba(148, 226, 213, 0.25);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(78, 201, 176, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-logo-wrap:hover {
+  border-color: var(--color-mint);
+  box-shadow: 
+    0 6px 25px rgba(0, 0, 0, 0.45),
+    0 0 25px var(--color-mint-glow);
+  transform: scale(1.05);
+}
+
+.brand-logo-svg {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 0 6px rgba(78, 201, 176, 0.4));
+}
+
+.brand-typography {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--color-pink-blush);
-  letter-spacing: 2px;
-  text-shadow: 0 0 16px var(--color-pink-glow);
+  letter-spacing: 2.5px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5B7C0 55%, #4EC9B0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 24px rgba(245, 183, 192, 0.35);
+  line-height: 1;
 }
 
-.brand-subtitle {
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: var(--font-heading);
-  font-size: 10px;
-  letter-spacing: 1.5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
   color: var(--color-mint);
   text-transform: uppercase;
 }
 
+.badge-star-icon {
+  width: 9px;
+  height: 9px;
+  color: var(--color-mint);
+}
+
+/* Header Action Buttons */
 .header-actions {
   display: flex;
   align-items: center;
@@ -140,64 +208,209 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  transition: all 0.25s ease;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-btn svg {
+  width: 19px;
+  height: 19px;
+  transition: transform 0.2s ease, stroke 0.2s ease;
 }
 
 .nav-btn:hover {
   border-color: var(--color-mint);
+  color: var(--color-mint);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px var(--color-mint-glow);
+}
+
+.nav-btn:hover svg {
+  transform: scale(1.08);
 }
 
 .nav-btn:active {
   transform: scale(0.92);
 }
 
-.nav-btn svg {
-  width: 18px;
-  height: 18px;
+.nav-btn.active {
+  background: rgba(78, 201, 176, 0.2);
+  border-color: var(--color-mint);
+  color: var(--color-mint);
+  box-shadow: 0 0 16px var(--color-mint-glow);
 }
 
-/* Central Hero & Hub */
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. Center Hero & Telemetry Greeting Hub
+   ══════════════════════════════════════════════════════════════════════════ */
 .hero-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   text-align: center;
   margin: auto 0;
+  width: 100%;
+}
+
+.time-greeting-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .time-greeting {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
-  color: #FFF;
+  color: #FFFFFF;
   letter-spacing: 3px;
   text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.greeting-svg-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-mint);
+  vertical-align: middle;
+}
+
+.live-clock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 25, 38, 0.6);
+  border: 1px solid rgba(148, 226, 213, 0.16);
+  border-radius: 20px;
+  padding: 4px 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.live-clock-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-mint);
+  box-shadow: 0 0 8px var(--color-mint);
+  animation: clockDotBlink 1.8s ease-in-out infinite;
+}
+
+@keyframes clockDotBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.7); }
 }
 
 .live-clock {
   font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--color-mint);
   letter-spacing: 1px;
 }
 
-/* Unified Connection Card */
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. Kiro Pou-Style Vitals Progress HUD Card
+   ══════════════════════════════════════════════════════════════════════════ */
+.vitals-hud-card {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-panel-glass);
+  border: 1px solid var(--color-border-glass);
+  border-radius: 20px;
+  padding: 12px 16px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  gap: 14px;
+}
+
+.vital-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.vital-label-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vital-svg {
+  width: 13px;
+  height: 13px;
+}
+
+.vital-name {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #CDD6F4;
+}
+
+.vital-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.vital-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vital-fill.food-fill {
+  background: linear-gradient(90deg, #F5B7C0, #FF8DA1);
+  box-shadow: 0 0 8px rgba(245, 183, 192, 0.6);
+}
+
+.vital-fill.water-fill {
+  background: linear-gradient(90deg, #4EC9B0, #2BC0E4);
+  box-shadow: 0 0 8px rgba(78, 201, 176, 0.6);
+}
+
+.vital-fill.energy-fill {
+  background: linear-gradient(90deg, #CBA6F7, #9B5DE5);
+  box-shadow: 0 0 8px rgba(203, 166, 247, 0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. Unified Telemetry Card
+   ══════════════════════════════════════════════════════════════════════════ */
 .unified-card {
   width: 100%;
   max-width: 400px;
   background: var(--color-panel-glass);
   border: 1px solid var(--color-border-glass);
-  border-radius: 24px;
-  padding: 16px 20px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  border-radius: 22px;
+  padding: 14px 18px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -207,32 +420,126 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
 }
 
 .connection-pill {
-  background: rgba(245, 183, 192, 0.15);
+  background: rgba(245, 183, 192, 0.12);
   border: 1px solid rgba(245, 183, 192, 0.3);
   color: var(--color-pink-blush);
   padding: 3px 10px;
   border-radius: 12px;
   font-family: var(--font-heading);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 10.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.distance-pill {
+  font-family: var(--font-heading);
   font-size: 11px;
+  font-weight: 600;
+  color: #BAC2DE;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .weather-sync-row {
   display: flex;
   justify-content: space-between;
-  font-size: 11.5px;
-  color: #CDD6F4;
+  gap: 8px;
 }
 
-/* Bottom Actions & Controls */
+.weather-telemetry-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #CDD6F4;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 4px 10px;
+  border-radius: 10px;
+  flex: 1;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7. Pilot D-Pad Joystick HUD (Telescope Mode)
+   ══════════════════════════════════════════════════════════════════════════ */
+.cockpit-joystick-wrap {
+  position: absolute;
+  bottom: 124px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 25;
+  background: rgba(10, 18, 28, 0.88);
+  border: 1px solid rgba(78, 201, 176, 0.35);
+  border-radius: 26px;
+  padding: 12px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(78, 201, 176, 0.2);
+}
+
+.joystick-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.joystick-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 226, 213, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-mint);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.joystick-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.joystick-btn:hover {
+  background: rgba(78, 201, 176, 0.15);
+  border-color: var(--color-mint);
+  transform: scale(1.05);
+}
+
+.joystick-btn:active {
+  transform: scale(0.92);
+  background: rgba(78, 201, 176, 0.3);
+}
+
+.joystick-btn.center-btn {
+  border-color: rgba(245, 183, 192, 0.4);
+  color: var(--color-pink-blush);
+  background: rgba(245, 183, 192, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8. Bottom Action Deck & Sleep Slider Switch
+   ══════════════════════════════════════════════════════════════════════════ */
 .bottom-deck {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
@@ -240,27 +547,38 @@ body {
 
 .quick-action-row {
   display: flex;
-  justify-content: space-around;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 6px;
 }
 
 .action-pill-btn {
   flex: 1;
   background: var(--color-panel-glass);
   border: 1px solid var(--color-border-glass);
-  border-radius: 20px;
-  padding: 10px 8px;
+  border-radius: 18px;
+  padding: 9px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: var(--color-cream);
   font-family: var(--font-heading);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  backdrop-filter: blur(12px);
-  transition: all 0.25s ease;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.action-pill-btn .btn-svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  margin: 0 auto;
+  color: var(--color-cream);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
 }
 
 .action-pill-btn:hover {
@@ -269,13 +587,20 @@ body {
   transform: translateY(-2px);
 }
 
-.action-pill-btn:active {
-  transform: scale(0.94);
+.action-pill-btn:hover .btn-svg,
+.action-pill-btn.active .btn-svg {
+  color: var(--color-mint);
+  transform: scale(1.18);
 }
 
-.action-pill-btn svg {
-  width: 18px;
-  height: 18px;
+.action-pill-btn.active {
+  background: rgba(78, 201, 176, 0.2);
+  border-color: var(--color-mint);
+  color: var(--color-mint);
+}
+
+.action-pill-btn:active {
+  transform: scale(0.93);
 }
 
 /* Sleep Hold Switch */
@@ -287,24 +612,26 @@ body {
 .sleep-switch-btn {
   width: 100%;
   padding: 13px 16px;
-  background: linear-gradient(135deg, rgba(203, 166, 247, 0.18) 0%, rgba(78, 201, 176, 0.12) 100%);
+  background: linear-gradient(135deg, rgba(203, 166, 247, 0.16) 0%, rgba(78, 201, 176, 0.12) 100%);
   border: 1px solid var(--color-border-glass);
-  border-radius: 24px;
+  border-radius: 22px;
   color: var(--color-cream);
   font-family: var(--font-heading);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
 }
 
 .sleep-switch-progress {
@@ -318,14 +645,16 @@ body {
   transition: width 0.1s linear;
 }
 
-/* Settings Modal */
+/* ═══════════════════════════════════════════════════════════════════════════
+   9. Settings & In-App Updates Modal
+   ══════════════════════════════════════════════════════════════════════════ */
 .settings-overlay {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: rgba(13, 22, 34, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(8, 14, 22, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -345,11 +674,13 @@ body {
   max-width: 420px;
   max-height: 90vh;
   overflow-y: auto;
-  background: linear-gradient(135deg, rgba(30, 30, 46, 0.96) 0%, rgba(20, 19, 33, 0.98) 100%);
+  background: linear-gradient(135deg, rgba(22, 28, 42, 0.96) 0%, rgba(13, 19, 30, 0.98) 100%);
   border: 1px solid var(--color-border-glass);
   border-radius: 24px;
   padding: 22px 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px var(--color-pink-glow);
+  box-shadow: 
+    0 24px 60px rgba(0, 0, 0, 0.65), 
+    0 0 30px var(--color-pink-glow);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -369,19 +700,32 @@ body {
   padding-bottom: 12px;
 }
 
+.settings-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-header-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-mint);
+}
+
 .settings-title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--color-pink-blush);
+  letter-spacing: 1px;
 }
 
 .settings-close-btn {
   background: transparent;
   border: none;
   color: #A6ADC8;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -395,13 +739,8 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.settings-close-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
 .settings-group {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.28);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
   padding: 14px;
@@ -410,13 +749,55 @@ body {
   gap: 10px;
 }
 
+.settings-version-badge {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(78, 201, 176, 0.15);
+  border: 1px solid rgba(78, 201, 176, 0.35);
+  color: var(--color-mint);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.settings-toggle-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--color-mint);
+  background: rgba(78, 201, 176, 0.18);
+  color: var(--color-mint);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-toggle-btn.active {
+  background: var(--color-mint);
+  color: #0D1622;
+}
+
+.settings-replay-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--color-pink-blush);
+  background: rgba(245, 183, 192, 0.15);
+  color: var(--color-pink-blush);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
 .settings-btn-primary {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, var(--color-pink-blush) 0%, var(--color-lavender) 100%);
+  background: linear-gradient(135deg, var(--color-pink-blush) 0%, var(--color-mint) 100%);
   border: none;
   border-radius: 14px;
-  color: #11111B;
+  color: #0A1118;
   font-family: var(--font-heading);
   font-size: 12px;
   font-weight: 700;
@@ -425,14 +806,22 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 16px var(--color-pink-glow);
+  box-shadow: 0 4px 18px rgba(78, 201, 176, 0.3);
+  transition: all 0.2s ease;
+}
+
+.settings-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(78, 201, 176, 0.45);
 }
 
 .settings-btn-primary:active {
   transform: scale(0.97);
 }
 
-/* Inline Vector SVGs & Icons */
+/* ═══════════════════════════════════════════════════════════════════════════
+   10. Inline Vector SVGs & Icons
+   ══════════════════════════════════════════════════════════════════════════ */
 .inline-svg-icon {
   display: inline-block;
   width: 14px;
@@ -460,140 +849,29 @@ body {
   color: var(--color-mint);
 }
 
-.btn-svg {
-  width: 18px;
-  height: 18px;
-  display: block;
-  margin: 0 auto 3px auto;
-  color: var(--color-cream);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
-}
-
-.action-pill-btn:hover .btn-svg,
-.action-pill-btn.active .btn-svg {
-  color: var(--color-mint);
-  transform: scale(1.18);
-}
-
-.btn-svg-inline {
-  width: 16px;
-  height: 16px;
-  vertical-align: -3px;
-  margin-right: 6px;
-}
-
-/* Vitals HUD Card */
-.vitals-hud-card {
-  display: flex;
-  justify-content: space-around;
-  background: var(--color-panel-glass);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 16px;
-  padding: 10px 14px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  margin-bottom: 10px;
-  gap: 12px;
-}
-
-.vital-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-}
-
-.vital-name {
-  font-family: var(--font-heading);
-  font-size: 10px;
-  font-weight: 700;
-  color: #CDD6F4;
-}
-
-.vital-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.vital-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-pink-blush), var(--color-mint));
-  border-radius: 4px;
-  transition: width 0.3s ease-out;
-}
-
-/* Cockpit D-Pad Joystick HUD */
-.cockpit-joystick-wrap {
-  position: absolute;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  z-index: 15;
-  background: rgba(13, 22, 34, 0.75);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 24px;
-  padding: 12px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.joystick-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.joystick-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 226, 213, 0.3);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-mint);
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.joystick-btn:active {
-  transform: scale(0.92);
-  background: rgba(78, 201, 176, 0.25);
-}
-
 /* Telescope Aligned Lock-On Card */
 .telescope-aligned-card {
   position: absolute;
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(19, 31, 48, 0.9);
+  background: rgba(15, 25, 38, 0.92);
   border: 1px solid var(--color-mint);
-  border-radius: 16px;
-  padding: 12px 18px;
-  z-index: 20;
+  border-radius: 18px;
+  padding: 14px 20px;
+  z-index: 30;
   text-align: center;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 0 20px rgba(78, 201, 176, 0.4);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.5),
+    0 0 25px rgba(78, 201, 176, 0.45);
 }
 
 /* Shared Sleep Notification Banner */
 .sleep-notification-banner {
   position: absolute;
-  top: 60px;
+  top: 64px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(203, 166, 247, 0.2);
@@ -602,13 +880,16 @@ body {
   font-family: var(--font-heading);
   font-size: 12px;
   font-weight: 700;
-  padding: 8px 16px;
-  border-radius: 20px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  padding: 8px 18px;
+  border-radius: 22px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   z-index: 30;
   animation: bannerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @keyframes bannerSlideDown {
@@ -624,4 +905,3 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
-

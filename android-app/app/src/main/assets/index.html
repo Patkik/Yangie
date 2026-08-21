@@ -16,7 +16,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Third-Party Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -39,37 +39,89 @@
   <!-- Layer 2: Master Space Capsule HUD Viewport -->
   <main id="app-ui">
     
-    <!-- Zone A: Top Navigation Bar -->
+    <!-- Zone A: Top Navigation Bar with Bespoke SVG Logo -->
     <header class="main-header">
-      <div class="brand-col">
-        <h1 class="brand-title">HAKDOG</h1>
-        <span class="brand-subtitle">FOR YANGIEE <svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg> CELESTIAL HAVEN</span>
+      <div class="brand-crest">
+        <!-- Bespoke Celestial Gyroscope & Starlight Constellation SVG Logo -->
+        <div class="brand-logo-wrap" title="Hakdog Sanctuary">
+          <svg class="brand-logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="orbitGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4EC9B0" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#4EC9B0" stop-opacity="0.1"/>
+              </linearGradient>
+              <linearGradient id="orbitGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#F5B7C0" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#CBA6F7" stop-opacity="0.2"/>
+              </linearGradient>
+              <radialGradient id="starCoreGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#FFFFFF"/>
+                <stop offset="60%" stop-color="#F5B7C0"/>
+                <stop offset="100%" stop-color="#4EC9B0" stop-opacity="0"/>
+              </radialGradient>
+              <filter id="logoGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <!-- Outer Ambient Glow Ring -->
+            <circle cx="24" cy="24" r="22" stroke="rgba(148, 226, 213, 0.15)" stroke-width="1" stroke-dasharray="3 3"/>
+            <!-- Patrick's Orbit Ellipse -->
+            <ellipse cx="24" cy="24" rx="20" ry="8" transform="rotate(-30 24 24)" stroke="url(#orbitGrad1)" stroke-width="1.6"/>
+            <!-- Yangiee's Orbit Ellipse -->
+            <ellipse cx="24" cy="24" rx="20" ry="8" transform="rotate(30 24 24)" stroke="url(#orbitGrad2)" stroke-width="1.6"/>
+            <!-- Orbital Node Points -->
+            <circle cx="7" cy="14" r="2" fill="#4EC9B0" filter="url(#logoGlow)"/>
+            <circle cx="41" cy="34" r="2" fill="#F5B7C0" filter="url(#logoGlow)"/>
+            <!-- Central Radiant 4-Point Starlight Core -->
+            <path d="M24 8L26.5 21.5L40 24L26.5 26.5L24 40L21.5 26.5L8 24L21.5 21.5L24 8Z" fill="url(#starCoreGlow)" filter="url(#logoGlow)"/>
+            <circle cx="24" cy="24" r="2.5" fill="#FFFFFF"/>
+          </svg>
+        </div>
+
+        <div class="brand-typography">
+          <h1 class="brand-title">HAKDOG</h1>
+          <div class="brand-badge">
+            <svg class="badge-star-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
+            <span>CELESTIAL SANCTUARY</span>
+          </div>
+        </div>
       </div>
 
+      <!-- Action Navigation Buttons with High-Resolution Vector Icons -->
       <div class="header-actions">
+        <!-- Shuttle Pilot Observatory Telescope -->
         <button class="nav-btn" id="shuttle-steer-btn" title="Toggle Pilot Telescope">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s-5 3.5-5 10c0 2 1 4 1.5 5h7c.5-1 1.5-3 1.5-5 0-6.5-5-10-5-10zm-1.5 16h3L12 21l-1.5-3zM5 16s-.5 2 1 4 4-1 4-1-1.5-2.5-2-3-3 0-3 0zm14 0s.5 2-1 4-4-1-4-1 1.5-2.5 2-3 3 0 3 0z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
+            <circle cx="12" cy="12" r="3" stroke-dasharray="2 2"/>
+            <path d="M19 19l-3-3M5 5l3 3"/>
+          </svg>
         </button>
 
-        <!-- Starlight Video Call Button -->
+        <!-- Starlight Holographic Video Call -->
         <button class="nav-btn" id="call-btn" title="Starlight Video Call" style="position:relative;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.59 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.54a16 16 0 0 0 6.55 6.55l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
           </svg>
           <div class="call-live-dot"></div>
         </button>
 
+        <!-- Starlight Mailbox -->
         <button class="nav-btn" id="btn-nav-mailbox" title="Starlight Mailbox">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <path d="M3 8l9 6 9-6"/>
+            <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
           </svg>
         </button>
 
+        <!-- Sanctuary Settings & Updates -->
         <button class="nav-btn" id="btn-nav-settings" title="Sanctuary Settings & Updates">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0 2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3.5"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
           </svg>
         </button>
       </div>
@@ -78,91 +130,183 @@
     <!-- Shared Sleep Notification Sliding Banner -->
     <div id="shared-sleep-banner" class="sleep-notification-banner" style="display: none;"></div>
 
-    <!-- Zone B: Center Hero & Connection Hub -->
+    <!-- Zone B: Center Hero & Connection Telemetry Hub -->
     <section class="hero-center">
-      <div class="time-greeting" id="time-greeting">GOOD NIGHT</div>
-      <div class="live-clock" id="live-clock">--:--:-- PST</div>
+      <div class="time-greeting-container">
+        <div class="time-greeting" id="time-greeting">GOOD NIGHT</div>
+      </div>
+      <div class="live-clock-badge">
+        <span class="live-clock-pulse"></span>
+        <span class="live-clock" id="live-clock">--:--:-- PST</span>
+      </div>
 
-      <!-- Kiro Pou-Style Vitals Progress HUD -->
+      <!-- Kiro Pou-Style Vitals Progress HUD with Clean Vector Icons -->
       <div class="vitals-hud-card">
+        <!-- Star Candy Vital -->
         <div class="vital-item">
-          <span class="vital-name">Candy 🍬</span>
-          <div class="vital-track"><div id="vital-food-fill" class="vital-fill" style="width: 100%;"></div></div>
+          <div class="vital-label-row">
+            <svg class="vital-svg star-candy-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(245, 183, 192, 0.25)" stroke="#F5B7C0"/>
+            </svg>
+            <span class="vital-name">STAR CANDY</span>
+          </div>
+          <div class="vital-track"><div id="vital-food-fill" class="vital-fill food-fill" style="width: 100%;"></div></div>
         </div>
+
+        <!-- Water Vital -->
         <div class="vital-item">
-          <span class="vital-name">Water 💧</span>
-          <div class="vital-track"><div id="vital-water-fill" class="vital-fill" style="width: 100%;"></div></div>
+          <div class="vital-label-row">
+            <svg class="vital-svg water-vital-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="rgba(78, 201, 176, 0.25)" stroke="#4EC9B0"/>
+            </svg>
+            <span class="vital-name">HYDRATION</span>
+          </div>
+          <div class="vital-track"><div id="vital-water-fill" class="vital-fill water-fill" style="width: 100%;"></div></div>
         </div>
+
+        <!-- Energy Vital -->
         <div class="vital-item">
-          <span class="vital-name">Energy 😴</span>
-          <div class="vital-track"><div id="vital-energy-fill" class="vital-fill" style="width: 100%;"></div></div>
+          <div class="vital-label-row">
+            <svg class="vital-svg energy-vital-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="rgba(203, 166, 247, 0.25)" stroke="#CBA6F7"/>
+            </svg>
+            <span class="vital-name">ENERGY</span>
+          </div>
+          <div class="vital-track"><div id="vital-energy-fill" class="vital-fill energy-fill" style="width: 100%;"></div></div>
         </div>
       </div>
 
+      <!-- Unified Telemetry Card -->
       <div class="unified-card">
         <div class="connection-meta">
           <span class="connection-pill">
-            <svg class="inline-svg-icon heart-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg class="inline-svg-icon heart-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
             Celestial Connection
           </span>
-          <span>938 km apart</span>
+          <span class="distance-pill">
+            <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>
+            </svg>
+            938 km apart
+          </span>
         </div>
         <div class="weather-sync-row">
-          <span>Capas (Tarlac) • 28°C <svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg></span>
-          <span>Malaybalay • 22°C <svg class="inline-svg-icon galaxy-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.67 15.46C12.19 18.23 10.4 18 9 17.15c-2.45-1.5-3.15-4.52-2-6.85 1.15-2.33 3.84-3.45 6.3-2.6.72.25 1.34.66 1.83 1.2.6.66.97 1.49 1.04 2.41a4.992 4.992 0 0 1-2.5 6.15z"/></svg></span>
+          <div class="weather-telemetry-item">
+            <svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <span>Capas • 28°C</span>
+          </div>
+          <div class="weather-telemetry-item">
+            <svg class="inline-svg-icon galaxy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+            <span>Malaybalay • 22°C</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Zone C: Pilot D-Pad Joystick (Visible only in Telescope Mode) -->
+    <!-- Zone C: Pilot D-Pad Joystick (Visible only in Telescope Mode) with SVG Chevrons & Reticle -->
     <div id="cockpit-joystick-hud" class="cockpit-joystick-wrap" style="display: none;">
-      <button type="button" class="joystick-btn" data-dir="up">▲</button>
+      <button type="button" class="joystick-btn" data-dir="up" title="Pitch Up">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
       <div class="joystick-row">
-        <button type="button" class="joystick-btn" data-dir="left">◀</button>
-        <button type="button" class="joystick-btn center-btn" style="pointer-events:none;">🕹️</button>
-        <button type="button" class="joystick-btn" data-dir="right">▶</button>
+        <button type="button" class="joystick-btn" data-dir="left" title="Yaw Left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button type="button" class="joystick-btn center-btn" style="pointer-events:none;" title="Target Center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="7"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+          </svg>
+        </button>
+        <button type="button" class="joystick-btn" data-dir="right" title="Yaw Right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
-      <button type="button" class="joystick-btn" data-dir="down">▼</button>
+      <button type="button" class="joystick-btn" data-dir="down" title="Pitch Down">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
     </div>
 
     <!-- Zone D: Telescope Target Aligned Card -->
     <div id="telescope-aligned-screen" class="telescope-aligned-card" style="display: none;"></div>
 
-    <!-- Zone E: Bottom Action Controls -->
+    <!-- Zone E: Bottom Action Controls with Bespoke Vector SVGs -->
     <footer class="bottom-deck">
       <div class="quick-action-row">
+        <!-- Feed Star Candy -->
         <button class="action-pill-btn" id="btn-feed-star" title="Feed Star Candy">
-          <svg class="btn-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(245, 183, 192, 0.2)"/>
+          </svg>
           <span>Star</span>
         </button>
+
+        <!-- Feed Donut -->
         <button class="action-pill-btn" id="btn-feed-donut" title="Feed Donut">
-          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M8.5 4.5c1 .5 1.5 2 2.5 2.5s2-.5 3 0 1.5 2 2.5 2.5 2-.5 3 0"/></svg>
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="3.5" fill="rgba(78, 201, 176, 0.2)"/>
+            <path d="M8.5 4.5c1 .5 1.5 2 2.5 2.5s2-.5 3 0 1.5 2 2.5 2.5 2-.5 3 0"/>
+          </svg>
           <span>Donut</span>
         </button>
+
+        <!-- Drink Water -->
         <button class="action-pill-btn" id="btn-drink-water" title="Give Fresh Water">
-          <svg class="btn-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="rgba(78, 201, 176, 0.2)"/>
+          </svg>
           <span>Water</span>
         </button>
+
+        <!-- Ocean Waves Synth -->
         <button class="action-pill-btn" id="btn-sound-ocean" title="Toggle Ocean Synth">
-          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+            <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+            <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+          </svg>
           <span>Waves</span>
         </button>
+
+        <!-- Rain Synth -->
         <button class="action-pill-btn" id="btn-sound-rain" title="Toggle Rain Synth">
-          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+            <line x1="8" y1="15" x2="8" y2="21"/>
+            <line x1="12" y1="15" x2="12" y2="21"/>
+            <line x1="16" y1="15" x2="16" y2="21"/>
+          </svg>
           <span>Rain</span>
         </button>
+
+        <!-- Lo-Fi Beats Synth -->
         <button class="action-pill-btn" id="btn-sound-lofi" title="Toggle Lo-Fi Beats">
-          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+          </svg>
           <span>Lo-Fi</span>
         </button>
       </div>
 
-      <!-- Sleep Mode Hold Switch -->
+      <!-- Sleep Mode Hold Switch with Vector Slumber Moon SVG -->
       <div class="sleep-switch-wrap">
         <button class="sleep-switch-btn" id="sleep-switch-btn">
           <div class="sleep-switch-progress" id="sleep-switch-progress"></div>
           <span class="btn-text">
-            <svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg>
+            <svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/>
+            </svg>
             Hold to Sleep
           </span>
         </button>
@@ -177,7 +321,13 @@
   <div id="settings-modal" class="settings-overlay">
     <div class="settings-card">
       <div class="settings-header">
-        <h2 class="settings-title">Settings & Updates</h2>
+        <div class="settings-title-row">
+          <svg class="settings-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0 2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <h2 class="settings-title">Sanctuary Control</h2>
+        </div>
         <button class="settings-close-btn" id="settings-close-btn" aria-label="Close Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -186,21 +336,21 @@
       <!-- In-App Software Updater Section -->
       <div class="settings-group">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase;">
+          <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
-            Software Updates
+            Software Architecture
           </span>
-          <span id="settings-current-ver-badge" style="font-family: var(--font-heading); font-size: 10px; font-weight: 700; background: rgba(78, 201, 176, 0.15); border: 1px solid rgba(78, 201, 176, 0.35); color: var(--color-mint); padding: 2px 8px; border-radius: 10px;">v1.4.0</span>
+          <span id="settings-current-ver-badge" class="settings-version-badge">v1.5.0</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #A6ADC8;">
           <div style="display: flex; justify-content: space-between;">
-            <span>Installed Version</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v1.4.0</span>
+            <span>Installed Core</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v1.5.0</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span>Release Channel</span>
-            <span style="color: #FFF; font-weight: 600;">GitHub • Patkik/Yangie</span>
+            <span>Distribution Channel</span>
+            <span style="color: #4EC9B0; font-weight: 600;">GitHub • Patkik/Yangie</span>
           </div>
         </div>
 
@@ -217,36 +367,39 @@
         </div>
 
         <div id="settings-status-banner" style="font-size: 11.5px; line-height: 1.45; color: #BAC2DE; background: rgba(245, 183, 192, 0.08); border-left: 3px solid var(--color-pink-blush); padding: 8px 10px; border-radius: 6px;">
-          Tap "Update Sanctuary Now" to sync the latest features directly from GitHub.
+          Tap "Sync Software Now" to check and download updates directly from GitHub.
         </div>
 
         <button class="settings-btn-primary" id="settings-update-now-btn">
-          <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          <span>Update Sanctuary Now</span>
+          <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span>Sync Software Now</span>
         </button>
       </div>
 
       <!-- Sensory Preferences Section -->
       <div class="settings-group">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase;">
+          <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
             <svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
-            Sensory Preferences
+            Sensory Dynamics
           </span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-size: 12px; font-weight: 600; color: #CDD6F4;">Gyroscope 3D Parallax</div>
-            <div style="font-size: 10px; color: #A6ADC8;">Tilt device to gaze around galaxy</div>
+            <div style="font-size: 10px; color: #A6ADC8;">Tilt device to gaze across cosmos</div>
           </div>
-          <button id="settings-gyro-toggle" style="padding: 6px 14px; border-radius: 20px; border: 1px solid var(--color-mint); background: rgba(78, 201, 176, 0.2); color: var(--color-mint); font-weight: 700; cursor: pointer;">ON</button>
+          <button id="settings-gyro-toggle" class="settings-toggle-btn">ON</button>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
           <div>
             <div style="font-size: 12px; font-weight: 600; color: #CDD6F4;">Cosmic Journey Intro</div>
             <div style="font-size: 10px; color: #A6ADC8;">Replay 4-Act Lightspeed Sequence</div>
           </div>
-          <button id="settings-replay-intro-btn" style="padding: 6px 14px; border-radius: 20px; border: 1px solid var(--color-pink-blush); background: rgba(245, 183, 192, 0.15); color: var(--color-pink-blush); font-weight: 700; cursor: pointer;">REPLAY</button>
+          <button id="settings-replay-intro-btn" class="settings-replay-btn">REPLAY</button>
         </div>
       </div>
     </div>

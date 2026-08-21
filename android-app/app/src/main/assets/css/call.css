@@ -268,7 +268,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+}
+.call-awaiting-ring-inner svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--color-mint);
+  animation: radarBlink 1.5s ease-in-out infinite;
+}
+@keyframes radarBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
 }
 @keyframes ringRotate {
   from { transform: rotate(0deg); }
@@ -281,15 +290,15 @@
 .e2ee-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-family: var(--font-heading, 'Space Grotesk', sans-serif);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: rgba(78, 201, 176, 0.9);
-  background: rgba(78, 201, 176, 0.08);
-  border: 1px solid rgba(78, 201, 176, 0.25);
-  padding: 2px 7px;
+  background: rgba(78, 201, 176, 0.1);
+  border: 1px solid rgba(78, 201, 176, 0.3);
+  padding: 3px 8px;
   border-radius: 10px;
   opacity: 0;
   transform: translateY(-4px);
@@ -299,7 +308,12 @@
   opacity: 1;
   transform: translateY(0);
 }
-.e2ee-badge .lock-icon { font-size: 10px; }
+.e2ee-badge .lock-icon svg { 
+  width: 12px; 
+  height: 12px; 
+  stroke: var(--color-mint);
+  display: block;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    8. Call Control HUD (bottom bar)
@@ -321,13 +335,12 @@
 }
 
 .call-hud-btn {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 1.5px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.07);
   color: #fff;
-  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,9 +349,18 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+.call-hud-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  transition: transform 0.15s ease;
+}
 .call-hud-btn:hover {
   background: rgba(255, 255, 255, 0.14);
   transform: scale(1.07);
+}
+.call-hud-btn:hover svg {
+  transform: scale(1.1);
 }
 .call-hud-btn:active { transform: scale(0.95); }
 
