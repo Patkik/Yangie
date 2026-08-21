@@ -1,5 +1,5 @@
 # Kiro's Cosmic Haven: Master Antigravity AI Developer Rules (V4.5)
-# .agents/rules/kiro-workflow-directives.md — Antigravity Customization Rules
+# AGENTS.md — Master Workspace Instructions for Agentic Frameworks
 
 # =============================================================================
 # 1. CORE DEVELOPER IDENTITY & ANTIGRAVITY COGNITIVE ENGINE

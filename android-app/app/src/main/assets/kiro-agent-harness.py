@@ -476,7 +476,15 @@ def sync_knowledge_rules():
         learnings_block += f"  - *Decision Strategy*: {entry['synthesis']}\n"
         learnings_block += f"  - *Evaluated Perspectives*: Creative: {entry['perspectives']['creative']} | Performance: {entry['perspectives']['performance']} | Container: {entry['perspectives']['container']}\n"
 
-    target_files = [CURSORRULES_PATH, CURSORRULES_ALT_PATH, DEVELOPER_RULES_PATH]
+    target_files = [
+        CURSORRULES_PATH,
+        CURSORRULES_ALT_PATH,
+        DEVELOPER_RULES_PATH,
+        PROJECT_ROOT / "ai-developer-rules.md",
+        PROJECT_ROOT / "GEMINI.md",
+        PROJECT_ROOT / "AGENTS.md",
+        PROJECT_ROOT / ".agents" / "rules" / "kiro-workflow-directives.md"
+    ]
     for target in target_files:
         if target.exists():
             try:
@@ -491,6 +499,17 @@ def sync_knowledge_rules():
                 print(f"  {Colors.GREEN}✔ Successfully injected {len(log)} project learnings into '{target.name}'!{Colors.RESET}")
             except Exception as e:
                 print(f"  {Colors.RED}❌ Failed to sync to {target}: {e}{Colors.RESET}")
+        else:
+            # Create if it's one of the master rules files
+            if target.name in ["GEMINI.md", "AGENTS.md"]:
+                try:
+                    with open(CURSORRULES_PATH, "r", encoding="utf-8") as cr:
+                        base_content = cr.read()
+                    with open(target, "w", encoding="utf-8") as f:
+                        f.write(base_content)
+                    print(f"  {Colors.GREEN}✔ Initialized and synchronized master rule file '{target.name}'!{Colors.RESET}")
+                except Exception as e:
+                    print(f"  {Colors.RED}❌ Failed to initialize {target}: {e}{Colors.RESET}")
 
     print(f"  {Colors.GREEN}✔ Continuous learning loop sync complete! AI agents are dynamically synchronized. 🚀{Colors.RESET}\n")
 
