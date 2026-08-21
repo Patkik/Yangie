@@ -2,15 +2,24 @@
 # .agents/rules/kiro-workflow-directives.md — Ultra-Effective Agent Operating System
 
 # =============================================================================
-# 0. INVARIANT CONTRACT & MANDATORY 5-STEP LIFECYCLE
+# 0. CONTINUOUS UNBLOCKED DEVELOPMENT & HARNESS GUARDRAIL PROTOCOL (V4.7)
 # =============================================================================
 **NON-NEGOTIABLE CORE CONTRACT FOR EVERY SINGLE CHAT SESSION & TASK TURN:**
-No task is exempt. Every code change, styling tweak, bug fix, or UI refactor MUST execute:
-1. **Pre-Flight Invariant Verification**: Sibling imports only (`./sibling.js`), zero emoji fonts (pure vector SVGs), fixed viewport lock, single-identity profile, 12-hour AM/PM time, and non-collapsible flex controls (`flex-shrink: 0`, `min-width: 0`).
-2. **Automated Dual Quality Gate**: Run `python kiro-agent-harness.py --check` AND `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`. Both must exit with code 0.
-3. **Synchronized SemVer Bump**: Increment version across `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts` (`versionName` & `versionCode`) to guarantee Android WebView OTA cache eviction.
-4. **Cognitive Logging & Rule Sync**: Evaluate 5 perspectives, append entry to `agent-decisions-log.json`, and run `python kiro-agent-harness.py --sync-rules`.
-5. **Git Publication & Audit**: `git add -A`, `git commit -m "..."`, `git tag v1.X.X`, `git push origin main --tags`, and update `walkthrough.md`.
+1. **UNBLOCKED CONTINUOUS DEVELOPMENT**: Never halt, artificially pause, or stall development flow with bureaucratic roadblocks. The agent must proactively and autonomously write, iterate, design, and implement features directly without unnecessary friction.
+2. **HARNESS AS DRIFT GUARDRAIL**: The workspace harness (`kiro-agent-harness.py`) and skill dispatch matrix exist specifically to catch when code strays or drifts from the core architecture, Twilight palette, projective geometry, or single-identity model. The harness is an active self-healing safety net, not an impediment to forward progress.
+3. **SKILLS-1.2.3 HARNESS ARCHITECTURE**: The operational skill framework leverages the clean taxonomy of `skills-1.2.3` (Engineering, Productivity, Domain matrix).
+4. **MANDATORY FINAL AUDIT & GIT LIFECYCLE (THE INVIOLABLE FINISHING GATE)**:
+   While development is fluid and unblocked, the completion of every task/turn MUST execute the strict audit and git publication cycle:
+   - **Step 1: Dual Verification**: Run `python kiro-agent-harness.py --check` AND `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`. Both must pass with exit code 0.
+   - **Step 2: Synchronized SemVer Bump**: Increment SemVer across `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts` (`versionName` & `versionCode`) to guarantee stale Android WebView OTA cache eviction.
+   - **Step 3: Decision Logging & Rule Sync**: Record 5-perspective cognitive scores in `agent-decisions-log.json` and execute `python kiro-agent-harness.py --sync-rules`.
+   - **Step 4: Git Commit, Tag, Push & Walkthrough Audit**:
+     - `git add -A`
+     - `git commit -m "..."`
+     - `git tag v1.X.X`
+     - `git push origin main --tags`
+     - Create or update `walkthrough.md` with complete architectural summary, tested mechanics, build logs, and commit status.
+5. **ZERO TRIVIAL BYPASS**: No task is too small to bypass the final verification, decision logging, version bumping, git publication, and walkthrough audit cycle.
 
 ---
 
@@ -136,3 +145,4 @@ Commands:
 - **[DEC-201940]** Deep Distant Cosmic Starfield, 3D-Tilted Spiral Galaxy & Volumetric Nebula Real Space Architecture
 - **[DEC-210450]** GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX
 - **[DEC-221800]** Celestial Sanctuary Transformation, Unobstructed 90% WebGL Viewport, Floating Starlight Dock & Tactile Petting Engine
+- **[DEC-231900]** Continuous Unblocked Development Protocol & Skills-1.2.3 Harness Architecture Integration

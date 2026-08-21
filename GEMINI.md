@@ -2,23 +2,27 @@
 # GEMINI.md — Master Workspace Instructions for Google Antigravity & AI Agents
 
 # =============================================================================
-# 0. NON-NEGOTIABLE CHAT INITIATION & MANDATORY ITERATION PROTOCOL
+# 0. CONTINUOUS UNBLOCKED DEVELOPMENT & HARNESS GUARDRAIL PROTOCOL (V4.7)
 # =============================================================================
 **STRICT DIRECTIVE FOR ALL AGENT SESSIONS (EVERY NEW CHAT & RESUMED CHAT):**
-1. **UNIVERSAL RULE APPLICABILITY**: All architectural, design, mathematical, container, and verification rules defined in this document apply 100% at all times across all chat sessions without exception. Under no circumstances may an agent assume rules do not apply to small, trivial, or follow-up tasks.
-2. **MANDATORY 5-STEP ITERATION LIFECYCLE ON EVERY TURN/TASK**:
-   Every code change, styling fix, bug resolution, or feature addition MUST execute the complete 5-step lifecycle:
-   - **Step 1: Staging & Implementation**: Write modular code adhering to the Twilight palette, inline vector SVGs, projective math geometry, single-identity architecture, and flat-directory sibling imports (`./sibling.js`).
-   - **Step 2: Dual Verification**: Run `python kiro-agent-harness.py --check` AND `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`. Both must pass with exit code 0.
-   - **Step 3: Synchronized SemVer Bump**: Increment SemVer across `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts` (`versionName` & `versionCode`) to guarantee stale Android WebView OTA cache eviction.
-   - **Step 4: Decision Logging & Rule Sync**: Record the 5-perspective cognitive scores in `agent-decisions-log.json` and execute `python kiro-agent-harness.py --sync-rules`.
-   - **Step 5: Git Commit, Tag, Push & Walkthrough Audit**:
+1. **UNBLOCKED CONTINUOUS DEVELOPMENT**: Never halt, artificially pause, or stall development flow with bureaucratic roadblocks. The agent must proactively and autonomously write, iterate, design, and implement features directly without unnecessary friction.
+2. **HARNESS AS DRIFT GUARDRAIL**: The workspace harness (`kiro-agent-harness.py`) and skill dispatch matrix exist specifically to catch when code strays or drifts from the core architecture, Twilight palette, projective geometry, or single-identity model. The harness is an active self-healing safety net, not an impediment to forward progress.
+3. **SKILLS-1.2.3 HARNESS ARCHITECTURE**: The operational skill framework leverages the clean taxonomy of `skills-1.2.3`:
+   - **Engineering Skills**: `implement`, `tdd`, `diagnosing-bugs`, `codebase-design`, `prototype`, `research`, `to-spec`, `triage`, `resolving-merge-conflicts`.
+   - **Productivity Skills**: `grilling`, `grill-me`, `handoff`, `teach`, `writing-for-agents`.
+   - **Domain Matrix**: `kiro-webgl-procedural`, `kiro-webaudio-synthesis`, `kiro-glassmorphic-design`, `kiro-android-webview-hardening`, `kiro-git-lifecycle`.
+4. **MANDATORY FINAL AUDIT & GIT LIFECYCLE (THE INVIOLABLE FINISHING GATE)**:
+   While development is fluid and unblocked, the completion of every task/turn MUST execute the strict audit and git publication cycle:
+   - **Step 1: Dual Verification**: Run `python kiro-agent-harness.py --check` AND `./gradlew.bat test compileDebugAndroidTestKotlin assembleDebug`. Both must pass with exit code 0.
+   - **Step 2: Synchronized SemVer Bump**: Increment SemVer across `version.json`, `index.html` badge, `state.js`, and `build.gradle.kts` (`versionName` & `versionCode`) to guarantee stale Android WebView OTA cache eviction.
+   - **Step 3: Decision Logging & Rule Sync**: Record 5-perspective cognitive scores in `agent-decisions-log.json` and execute `python kiro-agent-harness.py --sync-rules`.
+   - **Step 4: Git Commit, Tag, Push & Walkthrough Audit**:
      - `git add -A`
      - `git commit -m "..."`
      - `git tag v1.X.X`
      - `git push origin main --tags`
      - Create or update `walkthrough.md` with complete architectural summary, tested mechanics, build logs, and commit status.
-3. **ZERO TRIVIAL BYPASS**: No task is too small to bypass the verification, decision logging, version bumping, git publication, and walkthrough audit cycle.
+5. **ZERO TRIVIAL BYPASS**: No task is too small to bypass the final verification, decision logging, version bumping, git publication, and walkthrough audit cycle.
 
 ---
 
@@ -186,3 +190,4 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 - **[DEC-201940]** Deep Distant Cosmic Starfield, 3D-Tilted Spiral Galaxy & Volumetric Nebula Real Space Architecture
 - **[DEC-210450]** GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX
 - **[DEC-221800]** Celestial Sanctuary Transformation, Unobstructed 90% WebGL Viewport, Floating Starlight Dock & Tactile Petting Engine
+- **[DEC-231900]** Continuous Unblocked Development Protocol & Skills-1.2.3 Harness Architecture Integration
