@@ -1,5 +1,5 @@
 {
-  "version": "1.7.2",
-  "updatedAt": "2026-08-21T14:25:00+08:00",
-  "releaseNotes": "Resolved WebGL 3D background rendering and viewport occlusion: Restructured cockpit HUD into top header group and bottom deck group to provide an open central 3D viewing stage, added robust window resize calibration with DPR clamping in scene.js, and enhanced celestial lighting with soft rim backlighting."
+  "version": "1.7.3",
+  "updatedAt": "2026-08-21T14:38:00+08:00",
+  "releaseNotes": "Decongested AI rulebooks by externalizing detailed decision archives into DECISIONS.md while preserving a clean, linked index in master rulebooks (AGENTS.md, GEMINI.md, .cursorrules)."
 }

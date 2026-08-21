@@ -597,11 +597,34 @@ def sync_knowledge_rules():
         print(f"  {Colors.DIM}No decisions logged yet. Continuous learning loop is idling.{Colors.RESET}\n")
         return
 
-    learnings_block = "\n### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)\n"
+    # 1. Write full detailed architectural decisions log to DECISIONS.md
+    decisions_md_path = PROJECT_ROOT / "DECISIONS.md"
+    decisions_doc = "# 🧠 Kiro's Cosmic Haven — Architectural Decisions & Cognitive Logs\n\n"
+    decisions_doc += "> Master repository for all architectural decisions, design tradeoffs, and 5-perspective cognitive evaluations.\n"
+    decisions_doc += "> Machine-readable database: [`agent-decisions-log.json`](file:///./agent-decisions-log.json)\n\n"
+    decisions_doc += "--- \n\n## 📋 Full Architectural Decision Archive\n\n"
+
     for entry in log:
-        learnings_block += f"- **[{entry['id']}] {entry['feature']}**:\n"
-        learnings_block += f"  - *Decision Strategy*: {entry['synthesis']}\n"
-        learnings_block += f"  - *Evaluated Perspectives*: Creative: {entry['perspectives']['creative']} | Performance: {entry['perspectives']['performance']} | Container: {entry['perspectives']['container']}\n"
+        decisions_doc += f"### [{entry['id']}] {entry['feature']}\n"
+        decisions_doc += f"- **Timestamp**: `{entry['timestamp']}`\n"
+        decisions_doc += f"- **Strategy & Synthesis**: {entry['synthesis']}\n"
+        decisions_doc += f"- **Evaluated Perspectives**:\n"
+        for p_name, p_val in entry.get("perspectives", {}).items():
+            decisions_doc += f"  - **{p_name.capitalize()}**: {p_val}\n"
+        decisions_doc += "\n---\n\n"
+
+    try:
+        with open(decisions_md_path, "w", encoding="utf-8") as f:
+            f.write(decisions_doc)
+        print(f"  {Colors.GREEN}✔ Serialized {len(log)} full decision logs into '{decisions_md_path.name}'!{Colors.RESET}")
+    except Exception as e:
+        print(f"  {Colors.RED}❌ Failed to write {decisions_md_path}: {e}{Colors.RESET}")
+
+    # 2. Build concise, uncongested index block for agent rulebooks
+    learnings_block = "\n### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)\n"
+    learnings_block += "> Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).\n\n"
+    for entry in log:
+        learnings_block += f"- **[{entry['id']}]** {entry['feature']}\n"
 
     target_files = [
         CURSORRULES_PATH,
@@ -623,7 +646,7 @@ def sync_knowledge_rules():
 
                 with open(target, "w", encoding="utf-8") as f:
                     f.write(updated)
-                print(f"  {Colors.GREEN}✔ Successfully injected {len(log)} project learnings into '{target.name}'!{Colors.RESET}")
+                print(f"  {Colors.GREEN}✔ Successfully injected {len(log)} project learnings index into '{target.name}'!{Colors.RESET}")
             except Exception as e:
                 print(f"  {Colors.RED}❌ Failed to sync to {target}: {e}{Colors.RESET}")
         else:
@@ -638,7 +661,7 @@ def sync_knowledge_rules():
                 except Exception as e:
                     print(f"  {Colors.RED}❌ Failed to initialize {target}: {e}{Colors.RESET}")
 
-    print(f"  {Colors.GREEN}✔ Continuous learning loop sync complete! AI agents are dynamically synchronized. 🚀{Colors.RESET}\n")
+    print(f"  {Colors.GREEN}✔ Continuous learning loop sync complete! AI agents are dynamically synchronized without rule congestion. 🚀{Colors.RESET}\n")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 8. GIT PRE-COMMIT HOOK INSTALLER

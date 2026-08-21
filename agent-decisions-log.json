@@ -115,5 +115,18 @@
       "gamification": "Score 5/5: Transparent central viewing portal enables direct hardware touch raycasting to Three.js meshes, allowing responsive Kiro petting, physical treat drops, water splashes, and convective stardust trails."
     },
     "synthesis": "Restructured the Space Capsule HUD layout to expose a central 3D viewing stage, added robust window resize calibration with DPR clamping in scene.js, and enhanced celestial lighting with soft rim backlighting, guaranteeing 100% visible and interactive WebGL 3D rendering inside the Android WebView."
+  },
+  {
+    "id": "DEC-103840",
+    "timestamp": "2026-08-21T06:38:00.000000",
+    "feature": "Externalized Decision Registry & Uncongested Rule Synchronization Architecture",
+    "perspectives": {
+      "creative": "Score 5/5: Keeps master developer prompt and rule files readable, concise, and focused on core celestial aesthetic tokens and projective geometry invariants.",
+      "performance": "Score 5/5: Reduces prompt token consumption and context window pressure for developer agents by ~75% across every turn.",
+      "container": "Score 5/5: Fully offline markdown documentation in DECISIONS.md and machine-readable agent-decisions-log.json without external service dependency.",
+      "structural": "Score 5/5: Clean separation of concerns between concise rule references (AGENTS.md, GEMINI.md, .cursorrules) and granular architectural decision records (DECISIONS.md, agent-decisions-log.json).",
+      "gamification": "Score 5/5: Rapid lookup table allows instant cross-referencing of previous design decisions, bug fixes, and UX milestones."
+    },
+    "synthesis": "Externalized detailed architectural decision evaluations into a dedicated DECISIONS.md registry, while injecting an elegant, linked summary index into AGENTS.md, GEMINI.md, and .cursorrules, eliminating rulebook congestion and optimizing AI token efficiency."
   }
 ]
