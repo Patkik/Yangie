@@ -1,5 +1,5 @@
 {
-  "version": "1.8.7",
-  "updatedAt": "2026-08-21T17:25:00+08:00",
-  "releaseNotes": "Release V5.6: Fixed 4 root-cause galaxy rendering bugs: (1) galaxy Z-coord corruption causing stars to rotate behind camera — fixed with group rotation.z instead of per-particle Z mutations; (2) THREE.Clock double-call causing nebula shader time uniform to jump; (3) nebula plane too small causing dark edges; (4) warpZStretch pushing stars past frustum far clip in cockpit mode."
+  "version": "1.8.8",
+  "updatedAt": "2026-08-21T17:55:00+08:00",
+  "releaseNotes": "Release V5.7: Resolved runtime TypeError crash in requestAnimationFrame render loop caused by nonexistent gsap.isAnimating call. Implemented robust local lifecycle flags (isPetting, isTelescopeTransitioning) to manage Kiro breathing idle without interrupting active GSAP tweens."
 }

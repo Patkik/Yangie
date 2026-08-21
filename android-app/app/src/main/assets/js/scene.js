@@ -72,6 +72,8 @@ export class KiroSceneManager {
     this._elapsedTime = 0; // Manual accumulator — avoids THREE.Clock double-call bug
     this.animationFrameId = null;
     this.isDisposed = false;
+    this.isPetting = false;
+    this.isTelescopeTransitioning = false;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 1: Foundation & Disposal Registry
@@ -1001,10 +1003,14 @@ export class KiroSceneManager {
       }
 
       if (window.gsap && this.kiroGroup && this.pedestal && this.neonRing) {
+        this.isTelescopeTransitioning = true;
         gsap.to(this.kiroGroup.position, {
           y: isActive ? -4 : 0,
           duration: 1.0,
-          ease: "power2.inOut"
+          ease: "power2.inOut",
+          onComplete: () => {
+            this.isTelescopeTransitioning = false;
+          }
         });
         gsap.to(this.pedestal.position, {
           y: isActive ? -5 : -1.35,
@@ -1046,14 +1052,23 @@ export class KiroSceneManager {
   }
 
   triggerPetReaction() {
-    if (!window.gsap || !this.kiroGroup) return;
+    if (!this.kiroGroup) return;
+    this.isPetting = true;
 
-    const tl = gsap.timeline();
-    tl.to(this.kiroGroup.position, { y: 0.6, duration: 0.25, ease: 'power1.out' })
-      .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.55, ease: 'sine.inOut' }, 0)
-      .to(this.kiroGroup.position, { y: 0, duration: 0.25, ease: 'power1.in' })
-      .to(this.kiroGroup.scale, { y: 0.88, x: 1.12, duration: 0.1, ease: 'power2.out' })
-      .to(this.kiroGroup.scale, { y: 1, x: 1, duration: 0.2, ease: 'elastic.out(1, 0.3)' });
+    if (window.gsap) {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          this.isPetting = false;
+        }
+      });
+      tl.to(this.kiroGroup.position, { y: 0.6, duration: 0.25, ease: 'power1.out' })
+        .to(this.kiroGroup.rotation, { y: this.kiroGroup.rotation.y + Math.PI * 2, duration: 0.55, ease: 'sine.inOut' }, 0)
+        .to(this.kiroGroup.position, { y: 0, duration: 0.25, ease: 'power1.in' })
+        .to(this.kiroGroup.scale, { y: 0.88, x: 1.12, duration: 0.1, ease: 'power2.out' })
+        .to(this.kiroGroup.scale, { y: 1, x: 1, duration: 0.2, ease: 'elastic.out(1, 0.3)' });
+    } else {
+      this.isPetting = false;
+    }
 
     this.spawnHeartParticles();
   }
@@ -1338,11 +1353,11 @@ export class KiroSceneManager {
       this.backgroundCelestialGroup.position.y += (0 - this.backgroundCelestialGroup.position.y) * 0.05;
       this.camera.lookAt(0, 0, 0);
 
-      // Kiro Breathing Idle
+      // Kiro Breathing Idle (only when idle, not during active pet or telescope transitions)
       const isSleeping = KiroState.get('isSleeping');
       const freq = isSleeping ? 0.6 : 2.0;
       const amp = isSleeping ? 0.02 : 0.05;
-      if (this.kiroGroup && (!window.gsap || !gsap.isAnimating(this.kiroGroup.position))) {
+      if (this.kiroGroup && !this.isPetting && !this.isTelescopeTransitioning) {
         this.kiroGroup.position.y = Math.sin(t * freq) * amp;
       }
     }
