@@ -127,11 +127,15 @@ html, body {
   pointer-events: none;
 }
 
+.hero-top-group > * {
+  pointer-events: auto;
+}
+
 .center-sanctuary-stage {
   flex: 1;
   width: 100%;
-  min-height: 140px;
-  pointer-events: none;
+  min-height: 120px;
+  pointer-events: none !important;
 }
 
 .bottom-deck-group {
@@ -141,6 +145,11 @@ html, body {
   gap: 10px;
   width: 100%;
   max-width: 420px;
+  pointer-events: none;
+}
+
+.bottom-deck-group > * {
+  pointer-events: auto;
 }
 
 #app-ui.visible {
@@ -150,10 +159,6 @@ html, body {
 #app-ui.dissipated {
   opacity: 0.12;
   filter: blur(8px);
-}
-
-#app-ui * {
-  pointer-events: auto;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -667,37 +672,40 @@ html, body {
   transform: scale(0.93);
 }
 
-/* Sleep Hold Switch */
-.sleep-switch-wrap {
-  width: 100%;
-  position: relative;
-}
-
+/* Sleep / Wake Pill Button (Hold to Toggle) */
+.sleep-pill,
 .sleep-switch-btn {
   width: 100%;
-  padding: 13px 16px;
-  background: linear-gradient(135deg, rgba(203, 166, 247, 0.16) 0%, rgba(78, 201, 176, 0.12) 100%);
-  border: 1px solid var(--color-border-glass);
-  border-radius: 22px;
-  color: var(--color-cream);
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  cursor: pointer;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(135deg, rgba(203, 166, 247, 0.16) 0%, rgba(78, 201, 176, 0.12) 100%);
+  border: 1px solid var(--color-border-glass);
+  border-radius: 20px;
+  padding: 11px 16px;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(203, 166, 247, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+  pointer-events: auto;
 }
 
+.sleep-pill:hover,
+.sleep-switch-btn:hover {
+  border-color: var(--color-lavender);
+  background: linear-gradient(135deg, rgba(203, 166, 247, 0.26) 0%, rgba(78, 201, 176, 0.2) 100%);
+  transform: translateY(-1px);
+}
+
+.sleep-pill:active,
+.sleep-switch-btn:active {
+  transform: scale(0.97);
+}
+
+.sleep-pill-progress,
 .sleep-switch-progress {
   position: absolute;
   top: 0;
@@ -706,7 +714,60 @@ html, body {
   width: 0%;
   background: linear-gradient(90deg, var(--color-lavender), var(--color-pink-blush));
   opacity: 0.35;
-  transition: width 0.1s linear;
+  transition: width 0.08s linear;
+  pointer-events: none;
+}
+
+.sleep-pill-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-cream);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.sleep-pill-svg {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  display: inline-block;
+  color: var(--color-lavender);
+  stroke: var(--color-lavender);
+  flex-shrink: 0;
+}
+
+.vital-svg {
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  min-height: 13px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.vital-svg.star-candy-svg {
+  color: var(--color-pink-blush);
+  stroke: var(--color-pink-blush);
+}
+
+.vital-svg.water-vital-svg {
+  color: var(--color-mint);
+  stroke: var(--color-mint);
+}
+
+.vital-svg.energy-vital-svg {
+  color: var(--color-lavender);
+  stroke: var(--color-lavender);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

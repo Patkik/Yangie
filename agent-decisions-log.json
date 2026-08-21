@@ -141,5 +141,18 @@
       "gamification": "Score 5/5: Real-time procedural engine thruster synthesizer (55Hz idle hum to 180Hz full burn) dynamically modulated by cockpit joystick steering vectors, physical treat drop collisions, water splashes, and 12-hour PST celestial clock."
     },
     "synthesis": "Successfully executed full V5.0 architectural refactoring of Kiro's Cosmic Haven into a high-performance flat-directory WebGL asset container, implemented real-time procedural engine thruster synthesis with dynamic steering modulation, and passed dual test harness and Gradle build verifications."
+  },
+  {
+    "id": "DEC-125890",
+    "timestamp": "2026-08-21T07:16:00.000000",
+    "feature": "Sleep Pill Geometry Stabilization, SVG Overflow Prevention & 3D Stage Framing Calibration",
+    "perspectives": {
+      "creative": "Score 5/5: Fixed unstyled sleep pill button by applying signature frosted glassmorphic styles, lavender-blush progress slider, and strict 16px SVG moon/sun icons, eliminating browser-default white box inflation.",
+      "performance": "Score 5/5: Calibrated 3D camera elevation to (0, 0.25, 5.8) looking at (0, 0, 0), framing Kiro directly in the open central sanctuary stage without HUD card occlusion.",
+      "container": "Score 5/5: Prevented Android WebView SVG layout expansion and button user-agent stylesheet override bugs. Synchronized SemVer to v1.8.1 (versionCode = 29) to evict stale OTA cache.",
+      "structural": "Score 5/5: Aligned HTML IDs (#sleep-pill-btn, #sleep-pill-progress, #sleep-pill-label) with app.js event listeners and main.css class selectors.",
+      "gamification": "Score 5/5: Restored smooth hold-to-sleep / hold-to-wake interactive micro-interaction with reactive icon morphing and single-identity sleep alerts."
+    },
+    "synthesis": "Resolved hidden layout failure caused by HTML/CSS class mismatch on the sleep pill button, constrained SVG vector scaling to prevent viewport overflow, and calibrated 3D camera framing to position Kiro directly within the central sanctuary viewing stage."
   }
 ]

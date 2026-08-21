@@ -96,10 +96,9 @@ export class KiroSceneManager {
     const width = window.innerWidth || this.container.clientWidth || 360;
     const height = window.innerHeight || this.container.clientHeight || 640;
 
-    // Camera Intrinsics Calibration (fx=fy=3024 pinhole FOV mapping)
-    const fov = 2 * Math.atan((height / 2) / this.FOCAL_LENGTH) * (180 / Math.PI);
-    this.camera = new THREE.PerspectiveCamera(Math.max(42, fov * 4.2), width / height, 0.1, 200);
-    this.camera.position.set(0, 0.6, 7.2);
+    // Camera Intrinsics Calibration (Optimized 45 deg FOV mapping for portrait sanctuary stage)
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
+    this.camera.position.set(0, 0.25, 5.8);
 
     // WebGL Renderer with Fill-Rate Clamping & Performance Budget
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -222,7 +221,7 @@ export class KiroSceneManager {
       metalness: 0.25
     });
     this.pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
-    this.pedestal.position.y = -1.6;
+    this.pedestal.position.y = -1.35;
     this.pedestal.receiveShadow = true;
     this.scene.add(this.pedestal);
 
@@ -234,7 +233,7 @@ export class KiroSceneManager {
     });
     this.neonRing = new THREE.Mesh(ringGeo, ringMat);
     this.neonRing.rotation.x = Math.PI / 2;
-    this.neonRing.position.y = -1.38;
+    this.neonRing.position.y = -1.12;
     this.scene.add(this.neonRing);
   }
 
@@ -475,12 +474,12 @@ export class KiroSceneManager {
           ease: "power2.inOut"
         });
         gsap.to(this.pedestal.position, {
-          y: isActive ? -5 : -1.6,
+          y: isActive ? -5 : -1.35,
           duration: 1.2,
           ease: "power2.inOut"
         });
         gsap.to(this.neonRing.position, {
-          y: isActive ? -5 : -1.38,
+          y: isActive ? -5 : -1.12,
           duration: 1.2,
           ease: "power2.inOut"
         });
@@ -773,7 +772,7 @@ export class KiroSceneManager {
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;
     this.gyro.y += (this.gyro.targetY - this.gyro.y) * 0.08;
     this.camera.position.x = this.gyro.x;
-    this.camera.position.y = 1.6 + this.gyro.y;
+    this.camera.position.y = 0.25 + this.gyro.y;
 
     // 2. Idle Bobbing & Telescope Steering
     const isTelescope = KiroState.get('telescopeActive');

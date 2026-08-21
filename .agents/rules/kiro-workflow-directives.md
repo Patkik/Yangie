@@ -124,3 +124,4 @@ Commands:
 - **[DEC-994180]** 3D WebGL Viewport Re-Architecture & Android WebView Display Resolution
 - **[DEC-103840]** Externalized Decision Registry & Uncongested Rule Synchronization Architecture
 - **[DEC-114920]** Space Capsule V5.0 Full Architectural Refactoring & Procedural Audio Modernization
+- **[DEC-125890]** Sleep Pill Geometry Stabilization, SVG Overflow Prevention & 3D Stage Framing Calibration

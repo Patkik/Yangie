@@ -139,3 +139,15 @@
 
 ---
 
+### [DEC-125890] Sleep Pill Geometry Stabilization, SVG Overflow Prevention & 3D Stage Framing Calibration
+- **Timestamp**: `2026-08-21T07:16:00.000000`
+- **Strategy & Synthesis**: Resolved hidden layout failure caused by HTML/CSS class mismatch on the sleep pill button, constrained SVG vector scaling to prevent viewport overflow, and calibrated 3D camera framing to position Kiro directly within the central sanctuary viewing stage.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Fixed unstyled sleep pill button by applying signature frosted glassmorphic styles, lavender-blush progress slider, and strict 16px SVG moon/sun icons, eliminating browser-default white box inflation.
+  - **Performance**: Score 5/5: Calibrated 3D camera elevation to (0, 0.25, 5.8) looking at (0, 0, 0), framing Kiro directly in the open central sanctuary stage without HUD card occlusion.
+  - **Container**: Score 5/5: Prevented Android WebView SVG layout expansion and button user-agent stylesheet override bugs. Synchronized SemVer to v1.8.1 (versionCode = 29) to evict stale OTA cache.
+  - **Structural**: Score 5/5: Aligned HTML IDs (#sleep-pill-btn, #sleep-pill-progress, #sleep-pill-label) with app.js event listeners and main.css class selectors.
+  - **Gamification**: Score 5/5: Restored smooth hold-to-sleep / hold-to-wake interactive micro-interaction with reactive icon morphing and single-identity sleep alerts.
+
+---
+

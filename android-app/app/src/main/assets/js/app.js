@@ -506,8 +506,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 8. Sleep Mode Long-Press Switch
-  const sleepBtn = document.getElementById('sleep-switch-btn');
-  const sleepProgress = document.getElementById('sleep-switch-progress');
+  const sleepBtn = document.getElementById('sleep-pill-btn') || document.getElementById('sleep-switch-btn');
+  const sleepProgress = document.getElementById('sleep-pill-progress') || document.getElementById('sleep-switch-progress');
   let sleepTimer = null;
   let sleepProgressVal = 0;
 
@@ -521,9 +521,12 @@ document.addEventListener('DOMContentLoaded', () => {
           clearInterval(sleepTimer);
           const isSleeping = !KiroState.get('isSleeping');
           KiroState.setSleep(isSleeping);
-          sleepBtn.querySelector('.btn-text').innerHTML = isSleeping 
-            ? '<svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg> Wake Kiro' 
-            : '<svg class="inline-svg-icon moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.4 10.4 0 0 1-9.6-8.3z"/></svg> Hold to Sleep';
+          const contentEl = sleepBtn.querySelector('.sleep-pill-content') || sleepBtn.querySelector('.btn-text');
+          if (contentEl) {
+            contentEl.innerHTML = isSleeping 
+              ? '<svg class="sleep-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><span id="sleep-pill-label">WAKE KIRO</span>' 
+              : '<svg class="sleep-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="rgba(203, 166, 247, 0.3)"/></svg><span id="sleep-pill-label">HOLD TO SLEEP</span>';
+          }
           document.getElementById('app-ui').classList.toggle('dissipated', isSleeping);
           if (isSleeping) {
             showSleepAlert(KiroState.get('persona') || 'pat');
