@@ -1001,13 +1001,13 @@ export class KiroSceneManager {
     this.kiroGroup.position.set(0, 0, 0);
     this.scene.add(this.kiroGroup);
 
-    // Soft Matte Plushie Materials (Velvety finish, zero harsh specular glare)
+    // Soft Matte Plushie Materials (Velvety finish, cozy Twilight mint & cream)
     const mintMat = new THREE.MeshPhongMaterial({
-      color: 0x58D6B8,
+      color: 0x4EC9B0,
       emissive: 0x112C24,
-      emissiveIntensity: 0.12,
-      specular: 0x224438,
-      shininess: 6
+      emissiveIntensity: 0.14,
+      specular: 0x2A4C40,
+      shininess: 8
     });
     this.registerDisposable(mintMat);
 
@@ -1023,33 +1023,33 @@ export class KiroSceneManager {
     const crestMat = new THREE.MeshPhongMaterial({
       color: 0xFDE08B,
       emissive: 0x332A10,
-      emissiveIntensity: 0.10,
+      emissiveIntensity: 0.12,
       specular: 0x333322,
       shininess: 6
     });
     this.registerDisposable(crestMat);
 
-    // 1. Cute Upright Chubby Dino Body (Plush Velvet Egg/Gumdrop Shape)
+    // 1. Cute Rounded Chubby Spherical Dino Body
     const bodyGeo = new THREE.SphereGeometry(0.85, 36, 36);
     const bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
-    bodyMesh.scale.set(1.02, 1.22, 0.98);
-    bodyMesh.position.set(0, 0.08, 0);
+    bodyMesh.scale.set(1.08, 0.98, 1.04);
+    bodyMesh.position.set(0, 0, 0);
     this.kiroGroup.add(bodyMesh);
     this.registerDisposable(bodyGeo);
 
     // 2. Large Smooth Creamy Belly Patch (#FFF8EB)
-    const bellyGeo = new THREE.SphereGeometry(0.62, 32, 24);
+    const bellyGeo = new THREE.SphereGeometry(0.58, 32, 24);
     const bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
-    bellyMesh.scale.set(0.94, 1.05, 0.45);
-    bellyMesh.position.set(0, -0.06, 0.60);
+    bellyMesh.scale.set(1.04, 0.90, 0.44);
+    bellyMesh.position.set(0, -0.16, 0.65);
     this.kiroGroup.add(bellyMesh);
     this.registerDisposable(bellyGeo);
 
-    // 3. Banana Yellow 3-Lobed Scalloped Head Crest (Crown Spines)
+    // 3. Banana-Yellow 3-Lobed Scalloped Head Crest (Crown Spines)
     const headCrests = [
-      { x: -0.15, y: 1.02, z: 0.02, s: 0.18, sy: 1.15, sz: 0.95 },
-      { x: 0.00, y: 1.10, z: -0.08, s: 0.22, sy: 1.25, sz: 1.05 },
-      { x: 0.16, y: 1.00, z: -0.22, s: 0.18, sy: 1.15, sz: 0.95 }
+      { x: -0.15, y: 0.88, z: 0.04, s: 0.17, sy: 1.15, sz: 0.95 },
+      { x: 0.00, y: 0.95, z: -0.06, s: 0.20, sy: 1.25, sz: 1.05 },
+      { x: 0.15, y: 0.86, z: -0.18, s: 0.17, sy: 1.15, sz: 0.95 }
     ];
     headCrests.forEach(c => {
       const spGeo = new THREE.SphereGeometry(c.s, 16, 16);
@@ -1061,88 +1061,88 @@ export class KiroSceneManager {
     });
 
     // 4. Cute Chubby Dino Tail & Yellow Spines
-    const tailGeo = new THREE.ConeGeometry(0.32, 0.75, 20);
+    const tailGeo = new THREE.ConeGeometry(0.30, 0.72, 20);
     const tailMesh = new THREE.Mesh(tailGeo, mintMat);
-    tailMesh.position.set(0.12, -0.40, -0.78);
-    tailMesh.rotation.set(-Math.PI / 2.5, 0.2, 0);
+    tailMesh.position.set(0, -0.38, -0.80);
+    tailMesh.rotation.set(-Math.PI / 2.6, 0, 0);
     this.kiroGroup.add(tailMesh);
     this.registerDisposable(tailGeo);
 
-    const tailPlateGeo = new THREE.SphereGeometry(0.11, 14, 14);
+    const tailPlateGeo = new THREE.SphereGeometry(0.10, 14, 14);
     const tp1 = new THREE.Mesh(tailPlateGeo, crestMat);
     tp1.scale.set(0.45, 1.1, 0.9);
-    tp1.position.set(0.12, -0.26, -0.72);
+    tp1.position.set(0, -0.25, -0.74);
     this.kiroGroup.add(tp1);
 
     const tp2 = new THREE.Mesh(tailPlateGeo, crestMat);
-    tp2.scale.set(0.40, 0.9, 0.8);
-    tp2.position.set(0.16, -0.36, -1.02);
+    tp2.scale.set(0.38, 0.9, 0.8);
+    tp2.position.set(0, -0.35, -1.02);
     this.kiroGroup.add(tp2);
     this.registerDisposable(tailPlateGeo);
 
     // 5. Two Cute Little Stubby Dinosaur Feet at Base
     const footGeo = new THREE.SphereGeometry(0.18, 16, 16);
     const leftFoot = new THREE.Mesh(footGeo, mintMat);
-    leftFoot.scale.set(1.0, 0.65, 1.35);
-    leftFoot.position.set(-0.38, -0.82, 0.32);
+    leftFoot.scale.set(0.95, 0.60, 1.30);
+    leftFoot.position.set(-0.36, -0.78, 0.30);
     this.kiroGroup.add(leftFoot);
 
     const rightFoot = new THREE.Mesh(footGeo, mintMat);
-    rightFoot.scale.set(1.0, 0.65, 1.35);
-    rightFoot.position.set(0.38, -0.82, 0.32);
+    rightFoot.scale.set(0.95, 0.60, 1.30);
+    rightFoot.position.set(0.36, -0.78, 0.30);
     this.kiroGroup.add(rightFoot);
     this.registerDisposable(footGeo);
 
     // 6. Soulful Obsidian Eyes & Starlight Catchlights
-    const eyeGeo = new THREE.SphereGeometry(0.11, 24, 24);
+    const eyeGeo = new THREE.SphereGeometry(0.125, 24, 24);
     const eyeMat = new THREE.MeshPhongMaterial({
       color: 0x11111B,
       specular: 0x557788,
-      shininess: 60
+      shininess: 70
     });
     this.registerDisposable(eyeGeo);
     this.registerDisposable(eyeMat);
 
     // Left Eye
     this.leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.leftEye.position.set(-0.27, 0.25, 0.72);
+    this.leftEye.position.set(-0.28, 0.16, 0.76);
     this.kiroGroup.add(this.leftEye);
 
     // Right Eye
     this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.rightEye.position.set(0.27, 0.25, 0.72);
+    this.rightEye.position.set(0.28, 0.16, 0.76);
     this.kiroGroup.add(this.rightEye);
 
     // Primary Starlight Specular Highlights (Catchlights)
-    const hlGeo = new THREE.SphereGeometry(0.038, 16, 16);
+    const hlGeo = new THREE.SphereGeometry(0.042, 16, 16);
     const hlMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
     this.registerDisposable(hlGeo);
     this.registerDisposable(hlMat);
 
     this.leftHl = new THREE.Mesh(hlGeo, hlMat);
-    this.leftHl.position.set(-0.24, 0.28, 0.815);
+    this.leftHl.position.set(-0.24, 0.20, 0.87);
     this.kiroGroup.add(this.leftHl);
 
     this.rightHl = new THREE.Mesh(hlGeo, hlMat);
-    this.rightHl.position.set(0.24, 0.28, 0.815);
+    this.rightHl.position.set(0.24, 0.20, 0.87);
     this.kiroGroup.add(this.rightHl);
 
     // Secondary Mini Kawaii Sparkles (#F9E2AF Starlight Gold)
-    const hl2Geo = new THREE.SphereGeometry(0.018, 12, 12);
+    const hl2Geo = new THREE.SphereGeometry(0.020, 12, 12);
     const hl2Mat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
     this.registerDisposable(hl2Geo);
     this.registerDisposable(hl2Mat);
 
     this.leftHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
-    this.leftHl2.position.set(-0.30, 0.20, 0.805);
+    this.leftHl2.position.set(-0.31, 0.11, 0.86);
     this.kiroGroup.add(this.leftHl2);
 
     this.rightHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
-    this.rightHl2.position.set(0.30, 0.20, 0.805);
+    this.rightHl2.position.set(0.31, 0.11, 0.86);
     this.kiroGroup.add(this.rightHl2);
 
     // 7. Sweet Rosy Peach/Pink Blush Cheeks (#FFB6C1)
-    const blushGeo = new THREE.SphereGeometry(0.11, 20, 20);
+    const blushGeo = new THREE.SphereGeometry(0.12, 20, 20);
     const blushMat = new THREE.MeshBasicMaterial({
       color: 0xFFB6C1,
       transparent: true,
@@ -1153,22 +1153,22 @@ export class KiroSceneManager {
 
     this.leftBlush = new THREE.Mesh(blushGeo, blushMat);
     this.leftBlush.scale.set(1.0, 0.75, 0.25);
-    this.leftBlush.position.set(-0.44, 0.10, 0.72);
+    this.leftBlush.position.set(-0.46, -0.02, 0.74);
     this.leftBlush.rotation.set(0.1, -0.2, 0.15);
     this.kiroGroup.add(this.leftBlush);
 
     this.rightBlush = new THREE.Mesh(blushGeo, blushMat);
     this.rightBlush.scale.set(1.0, 0.75, 0.25);
-    this.rightBlush.position.set(0.44, 0.10, 0.72);
+    this.rightBlush.position.set(0.46, -0.02, 0.74);
     this.rightBlush.rotation.set(0.1, 0.2, -0.15);
     this.kiroGroup.add(this.rightBlush);
 
     // 8. Sweet Wide Smile with Tiny Cute Tooth
-    const mouthGeo = new THREE.TorusGeometry(0.055, 0.014, 8, 16, Math.PI);
+    const mouthGeo = new THREE.TorusGeometry(0.050, 0.014, 8, 16, Math.PI);
     const mouthMat = new THREE.MeshBasicMaterial({ color: 0x162432 });
     this.mouth = new THREE.Mesh(mouthGeo, mouthMat);
     this.mouth.rotation.set(0, 0, Math.PI);
-    this.mouth.position.set(0, 0.12, 0.815);
+    this.mouth.position.set(0, 0.02, 0.865);
     this.kiroGroup.add(this.mouth);
     this.registerDisposable(mouthGeo);
     this.registerDisposable(mouthMat);
@@ -1176,48 +1176,48 @@ export class KiroSceneManager {
     const toothGeo = new THREE.ConeGeometry(0.022, 0.035, 10);
     const toothMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
     const tooth = new THREE.Mesh(toothGeo, toothMat);
-    tooth.position.set(0.02, 0.10, 0.825);
+    tooth.position.set(0.02, 0.00, 0.87);
     tooth.rotation.set(Math.PI, 0, 0);
     this.kiroGroup.add(tooth);
     this.registerDisposable(toothGeo);
     this.registerDisposable(toothMat);
 
     // 9. Sleeping Eyes (Peaceful Curved Crescents)
-    const sleepEyeGeo = new THREE.TorusGeometry(0.090, 0.020, 10, 20, Math.PI);
+    const sleepEyeGeo = new THREE.TorusGeometry(0.095, 0.022, 10, 20, Math.PI);
     const sleepEyeMat = new THREE.MeshBasicMaterial({ color: 0x11111B });
     this.registerDisposable(sleepEyeGeo);
     this.registerDisposable(sleepEyeMat);
 
     this.leftSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.leftSleepEye.rotation.set(0, 0, Math.PI);
-    this.leftSleepEye.position.set(-0.27, 0.24, 0.775);
+    this.leftSleepEye.position.set(-0.28, 0.16, 0.82);
     this.leftSleepEye.visible = false;
     this.kiroGroup.add(this.leftSleepEye);
 
     this.rightSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.rightSleepEye.rotation.set(0, 0, Math.PI);
-    this.rightSleepEye.position.set(0.27, 0.24, 0.775);
+    this.rightSleepEye.position.set(0.28, 0.16, 0.82);
     this.rightSleepEye.visible = false;
     this.kiroGroup.add(this.rightSleepEye);
 
     // 10. Cute Little Dino Front Arms Resting on Chest
-    const armGeo = new THREE.SphereGeometry(0.16, 20, 20);
+    const armGeo = new THREE.SphereGeometry(0.18, 20, 20);
     this.leftArm = new THREE.Mesh(armGeo, mintMat);
-    this.leftArm.scale.set(0.65, 1.10, 0.65);
-    this.leftArm.position.set(-0.35, -0.06, 0.68);
-    this.leftArm.rotation.set(0.3, -0.45, 0.55);
+    this.leftArm.scale.set(0.68, 1.15, 0.68);
+    this.leftArm.position.set(-0.46, -0.15, 0.62);
+    this.leftArm.rotation.set(0.25, -0.45, 0.50);
     this.kiroGroup.add(this.leftArm);
 
     this.rightArm = new THREE.Mesh(armGeo, mintMat);
-    this.rightArm.scale.set(0.65, 1.10, 0.65);
-    this.rightArm.position.set(0.35, -0.06, 0.68);
-    this.rightArm.rotation.set(0.3, 0.45, -0.55);
+    this.rightArm.scale.set(0.68, 1.15, 0.68);
+    this.rightArm.position.set(0.46, -0.15, 0.62);
+    this.rightArm.rotation.set(0.25, 0.45, -0.50);
     this.kiroGroup.add(this.rightArm);
     this.registerDisposable(armGeo);
 
     // 11. Sleep Nightcap (Pastel Lavender with Golden Star)
     const capGroup = new THREE.Group();
-    const capGeo = new THREE.ConeGeometry(0.38, 0.90, 24);
+    const capGeo = new THREE.ConeGeometry(0.40, 0.95, 24);
     const capMat = new THREE.MeshPhongMaterial({
       color: 0xCBA6F7,
       emissive: 0x2A1A40,
@@ -1229,13 +1229,13 @@ export class KiroSceneManager {
     capMesh.position.set(0.22, 0.40, 0);
     capGroup.add(capMesh);
 
-    const pomGeo = new THREE.SphereGeometry(0.10, 16, 16);
+    const pomGeo = new THREE.SphereGeometry(0.11, 16, 16);
     const pomMat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
     const pomMesh = new THREE.Mesh(pomGeo, pomMat);
-    pomMesh.position.set(0.62, 0.70, 0);
+    pomMesh.position.set(0.66, 0.72, 0);
     capGroup.add(pomMesh);
 
-    capGroup.position.set(0, 0.88, 0);
+    capGroup.position.set(0, 0.78, 0);
     capGroup.visible = false;
     this.nightcap = capGroup;
     this.kiroGroup.add(this.nightcap);
