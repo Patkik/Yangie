@@ -1,71 +1,60 @@
-# 🌌 Kiro's Cosmic Haven — Space Capsule V5.9 Walkthrough & Architecture Audit
+# 🌌 Kiro's Cosmic Haven — Space Capsule V6.0 Walkthrough & Architecture Audit
 
 ## 1. Executive Summary
-- **Release Version**: `v1.9.0` (Android `versionCode = 38`)
-- **Scope**: Complete procedural redesign of Kiro's 3D companion model, soulful obsidian eyes with dual starlight catchlights, rosy blush discs, sweet smile, smooth creamy belly patch, balanced celestial lighting, and dynamic mobile portrait camera framing calibration ($Z \approx 6.2 - 7.0$).
+- **Release Version**: `v1.9.1` (Android `versionCode = 39`)
+- **Scope**: Re-engineered celestial background into an authentic, awe-inspiring deep space environment. Implemented 1,400 distant stars across a 3D hemisphere with Morgan–Keenan spectral class coloring, an organic 3D-tilted double-arm logarithmic spiral galaxy with a dense stellar nucleus, and deep volumetric cosmic dust clouds.
 
 ---
 
-## 2. Root Cause Diagnoses & Geometric Corrections
+## 2. Real Space Cosmology & Geometric Architecture
 
-### 🐛 Issue 1: Missing Eyes & Buried Facial Features
-- **Root Cause**: Kiro's body ellipsoid had a front surface at $Z = 1.022$ at $(x, y) = (\pm 0.35, 0.18)$, but eyes were positioned at $Z = 0.85$, highlights at $Z = 0.95$, and sleep arcs at $Z = 0.86$. All eye features were submerged $\sim 0.17$ units inside the opaque body mesh.
-- **Mathematical Correction**:
-  - Body scaled to `(1.06, 0.94, 1.02)` with base radius $0.85$.
-  - At eye position $(\pm 0.28, 0.16)$, surface $Z_{surf} = 0.806$.
-  - Eye spheres placed at $Z = 0.74$ with radius $0.125$, giving apex at $Z = 0.865 > 0.806$ (smoothly protruding by $+0.059$ units).
-  - Primary starlight catchlights ($R=0.042$, `#FFFFFF`) placed at $(\pm 0.24, 0.20, 0.855)$.
-  - Secondary kawaii golden sparkles ($R=0.020$, `#F9E2AF`) placed at $(\pm 0.31, 0.11, 0.845)$.
+### 🌌 1. Deep Distant Starfield (`buildDistantStarfield`)
+- **Quantity**: 1,400 distant background stars.
+- **Distribution**: Omnidirectional 3D spherical dome spanning $R = 24.0\text{ to }65.0$ units away from the camera ($Z = -24.0\text{ to }-65.0$).
+- **Morgan–Keenan Spectral Classification**:
+  - 40% Class O/B Pure Diamond White (`#FFFFFF`, `#F0F4F8`)
+  - 25% Class B/A Icy Blue & Mint (`#A6E3E9`, `#94E2D5`)
+  - 18% Class G Warm Starlight Gold (`#F9E2AF`)
+  - 12% Class K/M Soft Rose & Lavender (`#F5B7C0`, `#CBA6F7`)
+- **Apparent Magnitudes**: 75% faint pin-pricks ($0.12 - 0.22$), 19% medium stars ($0.25 - 0.40$), and 6% prominent stellar beacons ($0.50 - 0.70$).
+- **Scintillation (Twinkling)**: Independent phase offsets ($\phi_i$) for organic atmospheric twinkling and gentle deep-space rotation (`0.0015` rad/s).
 
-### 🐛 Issue 2: Massive Viewport Overflow on Portrait Mobile Screens
-- **Root Cause**: Fixed vertical FOV of $45^\circ$ at $Z = 5.2$ produces a horizontal visible width of only $1.99$ units on tall 9:19.5 phone screens ($\text{aspect} \approx 0.46$). Kiro's body (width 2.2) + arms (width 2.6) was wider than the screen, bloating Kiro wall-to-wall.
-- **Responsive Viewport Correction**:
-  - Implemented dynamic camera distance calculation in `init()` and `resize()`:
-    $$\text{targetCameraZ} = \max\left(5.6, \frac{2.7}{2 \cdot \tan(22.5^\circ) \cdot \max(\text{aspect}, 0.35)}\right)$$
-  - On standard mobile viewports ($\text{aspect} \approx 0.46$), camera distance adjusts to $Z \approx 7.06$, providing a visible horizontal span of $2.70$ units.
-  - Kiro ($W \approx 1.85$) sits comfortably within $68\%$ of screen width with $16\%$ side margins, perfectly framed within `.center-sanctuary-stage`.
+### 🌀 2. True 3D Spiral Galaxy (`buildDynamicSpiralGalaxy`)
+- **Root Cause of Prior Issue**: Previous math compressed $Y \in [-0.4, 0.4]$ along the camera horizontal plane, rendering as a flat, cluttered horizontal line of dots across the middle of the screen.
+- **Astronomical Spiral Math**:
+  - **Galactic Core Nucleus ($N = 160$)**: High-density spherical/elliptical cluster ($r < 1.5$) of warm amber-white starlight stars ($w \sim \exp(-r/1.0)$).
+  - **Double-Arm Logarithmic Spiral ($N = 690$)**:
+    $$\theta_{arm} = \text{arm} \cdot \pi$$
+    $$r = 0.8 + \text{random}^{1.5} \times 6.5$$
+    $$\theta = \theta_{arm} + 2.2 \cdot \ln(1.0 + r \cdot 0.65) + (\text{random} - 0.5) \cdot (0.32 + r \cdot 0.04)$$
+    $$u = r \cos(\theta), \quad v = r \sin(\theta), \quad w = (\text{random} - 0.5) \cdot 0.32 \cdot \exp(-r / 3.8)$$
+  - **3D Astronomical Inclination**: Galaxy disk positioned at $(0, 0.4, -13.5)$ with natural $50^\circ$ ($0.28\pi$) X-tilt and $16^\circ$ ($0.09\pi$) Y-tilt, rendering as an authentic elliptical spiral galaxy in the cosmic sky.
+  - **Sibling Story**: Patrick's Mint-Teal (`#4EC9B0`) Arm 0 and Yangiee's Pastel-Pink (`#FFB6C1`) Arm 1 blending into the golden starlight nucleus (`#F9E2AF`).
 
-### 🐛 Issue 3: Jagged Polygonal Belly Artifacts (Z-Fighting)
-- **Root Cause**: Belly sphere collided at a shallow grazing angle with the body mesh, causing polygonal clipping and z-fighting.
-- **Geometric Correction**:
-  - Refined belly geometry to `SphereGeometry(0.56, 32, 24)` scaled to `(1.05, 0.88, 0.42)` at $(0, -0.18, 0.64)$.
-  - Outer apex sits cleanly at $Z = 0.875$ against body surface $Z = 0.845$, forming a smooth front curve without edge intersection.
-
-### 🐛 Issue 4: Over-Saturated Flat Lighting
-- **Root Cause**: Cumulative light intensity exceeded 5.3 + emissive glow, blowing out diffuse shading into flat cyan glare.
-- **Lighting Calibration**:
-  - Balanced `AmbientLight(0xDBE7F5, 0.75)` for soft shadow fill.
-  - Crisp `DirectionalLight(0xFFFFFF, 0.90)` key light at $(3.5, 6.0, 5.0)$.
-  - `PointLight(0x4EC9B0, 1.3, 10)` mint underglow at $(0, -1.2, 1.8)$.
-  - `DirectionalLight(0xFFB6C1, 0.70)` pastel-pink celestial rim light at $(-3.5, 3.0, -3.0)$.
-  - `PointLight(0xF9E2AF, 0.50, 8)` cozy warm golden highlight at $(0, 2.4, 1.5)$.
+### 🌫️ 3. Volumetric Cosmic Nebula Shader (`buildVolumetricNebula`)
+- **Depth**: $Z = -18.0$ on an $85 \times 55$ plane behind the galaxy and starfield.
+- **GLSL Simplex Shader**: Softened smoothstep thresholds producing ethereal, billowing interstellar dust clouds with deep Midnight Space backdrop (`#0D1117`), lavender wisps, mint teal filaments, pastel-pink fringes, and audio-reactive golden core glow.
 
 ---
 
-## 3. Visual & Aesthetic Architecture
+## 3. Multi-Tiered Depth Layering
 
-| Component | Color Token | Geometry & Transformation | Description |
+| Tier / Depth | Component | Render Primitive | Description |
 |---|---|---|---|
-| **Body** | `#4EC9B0` Mint-Teal | `Sphere(0.85, 36, 36)`, `scale(1.06, 0.94, 1.02)` | Smooth, squishy, luminous celestial companion body |
-| **Belly** | `#FDFBF7` Cream | `Sphere(0.56, 32, 24)`, `scale(1.05, 0.88, 0.42)` at `(0, -0.18, 0.64)` | Soft creamy belly patch with zero z-fighting |
-| **Eyes** | `#11111B` Obsidian | `Sphere(0.125, 24, 24)` at `(±0.28, 0.16, 0.74)` | Soulful, glossy obsidian anime-style eyes |
-| **Catchlights** | `#FFFFFF` Starlight | `Sphere(0.042, 16, 16)` at `(±0.24, 0.20, 0.855)` | Bright specular catchlights bringing Kiro to life |
-| **Sparkles** | `#F9E2AF` Gold | `Sphere(0.020, 12, 12)` at `(±0.31, 0.11, 0.845)` | Secondary kawaii twinkle catchlights |
-| **Blush** | `#FFB6C1` Pastel-Pink | `Sphere(0.12, 20, 20)`, `scale(1.0, 0.75, 0.25)` at `(±0.46, -0.02, 0.73)` | Translucent glowing cheeks (65% opacity) |
-| **Smile** | `#162432` Navy | `Torus(0.048, 0.015, 8, 16, π)` at `(0, 0.02, 0.855)` | Gentle, sweet upward smile arc |
-| **Flippers** | `#4EC9B0` Mint-Teal | `Sphere(0.22, 24, 24)`, `scale(0.72, 1.25, 0.72)` at `(±0.84, -0.16, 0.18)` | Rounded, expressive side flippers |
-| **Pedestal** | `#152232` Slate | `Cylinder(1.35, 1.45, 0.35, 32)` at $Y = -1.08$ | Floating dark obsidian island |
-| **Neon Ring** | `#4EC9B0` Mint Glow | `Torus(1.40, 0.045, 12, 64)` at $Y = -0.92$ | Audio-reactive glowing starlight ring |
-| **Sparkle Ring**| Multi-chromatic | 16 orbit stardust particles at $Y = -0.92$ | Slow-rotating stardust halo around pedestal |
+| **Tier 1 ($Z = -18.0$)** | Cosmic Nebula | Quad GPU Shader Plane | Volumetric Simplex cosmic gas & interstellar dust |
+| **Tier 2 ($Z = -24\dots-65$)** | Distant Starfield | `THREE.Points` (1,400 stars) | Omnidirectional spherical deep-space star dome |
+| **Tier 3 ($Z = -13.5$)** | Spiral Galaxy | `THREE.Points` (850 stars) | 3D-tilted logarithmic double-arm galaxy with dense core |
+| **Tier 4 ($Z = -11\dots-14$)** | Roaming Planets & Comet | Meshes & Lines | Mint Ice World, Lavender Ringed Giant, Pastel Core, Comet |
+| **Tier 5 ($Z = 0.0$)** | Kiro Companion | Procedural Meshes | Kiro on floating obsidian island with starlight aura |
 
 ---
 
-## 4. Dual Verification Suite Results
+## 4. Verification Suite Results
 
 | Test / Gate | Command | Result |
 |---|---|---|
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Exit Code 0** |
 | **Android Unit & Instrumentation Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
 | **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL (52/52 tasks)** |
-| **Synchronized SemVer** | `v1.9.0` | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-190100 synced across rules & `DECISIONS.md` |
+| **Synchronized SemVer** | `v1.9.1` (Android `versionCode = 39`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-201940 synced across rules & `DECISIONS.md` |

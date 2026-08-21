@@ -87,13 +87,19 @@ export class KiroSceneManager {
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 2: Celestial Body Subsystems
     // ─────────────────────────────────────────────────────────────────────────
+    // 2.0 Deep Distant Cosmic Starfield (1400 stars across vast 3D hemisphere)
+    this.distantStars = null;
+    this.distantStarCount = 1400;
+    this.distantStarOriginalPositions = [];
+    this.distantStarPhases = [];
+
     // 2.1 Nebula Shader
     this.nebulaMesh = null;
     this.nebulaMaterial = null;
 
     // 2.2 Double-Arm Logarithmic Spiral Galaxy
     this.galaxyPoints = null;
-    this.galaxyCount = 800;
+    this.galaxyCount = 850;
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
     this.starTexture = null;
@@ -239,6 +245,7 @@ export class KiroSceneManager {
 
     // 3. Build All Phase 2 Celestial Subsystems into backgroundCelestialGroup
     this.buildVolumetricNebula();
+    this.buildDistantStarfield();
     this.buildDynamicSpiralGalaxy();
     this.buildRoamingPlanets();
     this.buildMeteorPool();
@@ -288,7 +295,99 @@ export class KiroSceneManager {
      Phase 2: Celestial Body Systems (Children of backgroundCelestialGroup)
      ───────────────────────────────────────────────────────────────────────── */
 
-  // 2.1 Volumetric Procedural Cosmic Nebula Shader (Z = -14.0)
+  // 2.0 Deep Distant Cosmic Starfield (1400 stars across vast 3D hemisphere)
+  buildDistantStarfield() {
+    const starGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(this.distantStarCount * 3);
+    const colors = new Float32Array(this.distantStarCount * 3);
+
+    this.distantStarOriginalPositions = [];
+    this.distantStarPhases = [];
+
+    // Spectral Class Color Palette for Distant Stars
+    const colorWhite = new THREE.Color(0xFFFFFF);      // Pure Diamond White
+    const colorSoftWhite = new THREE.Color(0xF0F4F8);  // Class A White
+    const colorIcyBlue = new THREE.Color(0xA6E3E9);    // Class B Blue
+    const colorMint = new THREE.Color(0x94E2D5);       // Mint Starlight
+    const colorGold = new THREE.Color(0xF9E2AF);       // Class G Warm Gold
+    const colorRose = new THREE.Color(0xF5B7C0);       // Class M Soft Rose
+    const colorLavender = new THREE.Color(0xCBA6F7);   // Lavender Twinkle
+
+    for (let i = 0; i < this.distantStarCount; i++) {
+      // Natural 3D spherical dome distribution across deep cosmic hemisphere
+      // Spanning R = 24.0 to 65.0 units away from camera
+      const theta = Math.random() * Math.PI * 2;
+      const u = Math.random();
+      const phi = Math.acos(1.0 - u * 0.95); // Wide cone in front of camera
+      const dist = 24.0 + Math.pow(Math.random(), 1.4) * 42.0;
+
+      const x = Math.sin(phi) * Math.cos(theta) * dist;
+      const y = Math.sin(phi) * Math.sin(theta) * dist;
+      const z = -Math.cos(phi) * dist; // Strictly negative Z (in front of camera)
+
+      positions[i * 3]     = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      this.distantStarOriginalPositions.push({ x, y, z });
+      this.distantStarPhases.push(Math.random() * Math.PI * 2);
+
+      // Varied Spectral Distribution & Apparent Magnitudes
+      const pick = Math.random();
+      let starColor;
+      if (pick < 0.40) {
+        starColor = colorWhite.clone();
+      } else if (pick < 0.60) {
+        starColor = colorSoftWhite.clone();
+      } else if (pick < 0.75) {
+        starColor = colorIcyBlue.clone().lerp(colorMint, Math.random() * 0.5);
+      } else if (pick < 0.88) {
+        starColor = colorGold.clone();
+      } else if (pick < 0.95) {
+        starColor = colorRose.clone();
+      } else {
+        starColor = colorLavender.clone();
+      }
+
+      // Apparent brightness variation: 75% faint distant pin-pricks, 19% medium, 6% bright beacons
+      let brightness;
+      const bPick = Math.random();
+      if (bPick < 0.75) {
+        brightness = 0.40 + Math.random() * 0.35; // Faint background pin-prick
+      } else if (bPick < 0.94) {
+        brightness = 0.75 + Math.random() * 0.20; // Medium star
+      } else {
+        brightness = 1.0 + Math.random() * 0.35;  // Bright prominent beacon
+      }
+      starColor.multiplyScalar(brightness);
+
+      colors[i * 3]     = starColor.r;
+      colors[i * 3 + 1] = starColor.g;
+      colors[i * 3 + 2] = starColor.b;
+    }
+
+    starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const starMat = new THREE.PointsMaterial({
+      size: 0.38,
+      map: this.starTexture,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.88,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true
+    });
+
+    this.registerDisposable(starGeo);
+    this.registerDisposable(starMat);
+
+    this.distantStars = new THREE.Points(starGeo, starMat);
+    this.backgroundCelestialGroup.add(this.distantStars);
+  }
+
+  // 2.1 Volumetric Procedural Cosmic Nebula Shader (Z = -18.0)
   buildVolumetricNebula() {
     const vertexShader = `
       varying vec2 vUv;
@@ -332,34 +431,35 @@ export class KiroSceneManager {
 
       void main() {
         vec2 uv = vUv * 2.0 - 1.0;
-        float t = u_time * 0.05;
+        float t = u_time * 0.04;
 
-        float n1 = snoise(uv * 1.3 + vec2(t * 0.35, t * 0.2));
-        float n2 = snoise(uv * 2.6 - vec2(t * 0.2, t * 0.4));
+        float n1 = snoise(uv * 1.2 + vec2(t * 0.3, t * 0.15));
+        float n2 = snoise(uv * 2.4 - vec2(t * 0.15, t * 0.35));
         float cloud = (n1 * 0.6 + n2 * 0.4) * 0.5 + 0.5;
 
-        vec3 deepSpace = vec3(0.067, 0.067, 0.106); // #11111B Midnight Navy
-        vec3 lavender  = vec3(0.50, 0.35, 0.80);    // #CBA6F7 Lavender
-        vec3 mint      = vec3(0.31, 0.79, 0.69);    // #4EC9B0 Mint Teal (Patrick)
-        vec3 pink      = vec3(1.00, 0.71, 0.76);    // #FFB6C1 Pastel Pink (Yangiee)
-        vec3 gold      = vec3(0.98, 0.89, 0.69);    // #F9E2AF Warm Gold
+        vec3 deepSpace = vec3(0.055, 0.055, 0.090); // Deep Midnight Space
+        vec3 lavender  = vec3(0.42, 0.28, 0.72);    // #CBA6F7 Lavender Cosmic Dust
+        vec3 mint      = vec3(0.24, 0.68, 0.58);    // #4EC9B0 Mint Teal (Patrick)
+        vec3 pink      = vec3(0.92, 0.58, 0.68);    // #FFB6C1 Pastel Pink (Yangiee)
+        vec3 gold      = vec3(0.95, 0.82, 0.58);    // #F9E2AF Warm Gold Core
 
-        vec3 col = mix(deepSpace, lavender, smoothstep(0.25, 0.75, cloud) * 0.8);
+        // Organic billowing interstellar gas
+        vec3 col = mix(deepSpace, lavender, smoothstep(0.32, 0.78, cloud) * 0.75);
 
         if (uv.x < 0.0) {
-          col = mix(col, mint, smoothstep(0.30, 0.85, cloud) * abs(uv.x) * 0.9);
+          col = mix(col, mint, smoothstep(0.35, 0.85, cloud) * abs(uv.x) * 0.70);
         } else {
-          col = mix(col, pink, smoothstep(0.30, 0.85, cloud) * uv.x * 0.9);
+          col = mix(col, pink, smoothstep(0.35, 0.85, cloud) * uv.x * 0.70);
         }
 
         float centerDist = length(uv);
-        col = mix(col, gold, smoothstep(0.65, 0.0, centerDist) * 0.20 * (1.0 + u_audio * 0.6));
+        col = mix(col, gold, smoothstep(0.70, 0.0, centerDist) * 0.18 * (1.0 + u_audio * 0.5));
 
         gl_FragColor = vec4(col, 1.0);
       }
     `;
 
-    const nebulaGeo = new THREE.PlaneGeometry(80, 50); // Oversized to prevent dark edges under any parallax/gyro offset
+    const nebulaGeo = new THREE.PlaneGeometry(85, 55);
     this.nebulaMaterial = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -374,15 +474,12 @@ export class KiroSceneManager {
     this.registerDisposable(this.nebulaMaterial);
 
     this.nebulaMesh = new THREE.Mesh(nebulaGeo, this.nebulaMaterial);
-    this.nebulaMesh.position.set(0, 0, -14.0);
+    this.nebulaMesh.position.set(0, 0, -18.0);
     this.backgroundCelestialGroup.add(this.nebulaMesh);
   }
 
-  // 2.2 Double-Arm Logarithmic Spiral Galaxy (Z = -12.0)
-  // FIX: Positions stored flat in X/Y plane (Z = 0 local). The Points object
-  //      is offset to position.z = -12 once. Galaxy rotation is applied to the
-  //      GROUP (galaxyPoints.rotation.z) — never to individual Z coordinates.
-  //      This prevents stars from rotating into Z > 0 (behind camera) every cycle.
+  // 2.2 Double-Arm Logarithmic Spiral Galaxy (Z = -13.5)
+  // Tilted in 3D (X-tilt ~50 deg, Y-tilt ~16 deg) so it renders as a natural elliptical spiral galaxy
   buildDynamicSpiralGalaxy() {
     const galaxyGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.galaxyCount * 3);
@@ -391,36 +488,55 @@ export class KiroSceneManager {
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
 
-    const colorTeal = new THREE.Color(0x4EC9B0);   // Mint Teal (Patrick's arm)
-    const colorPink = new THREE.Color(0xFFB6C1);   // Pastel Pink (Yangiee's arm)
-    const colorAmber = new THREE.Color(0xF9E2AF);  // Warm Gold (shared core)
+    const colorTeal = new THREE.Color(0x4EC9B0);      // Mint Teal (Patrick's arm)
+    const colorPink = new THREE.Color(0xFFB6C1);      // Pastel Pink (Yangiee's arm)
+    const colorAmber = new THREE.Color(0xF9E2AF);     // Warm Gold (shared core)
+    const colorCoreWhite = new THREE.Color(0xFFFFFF); // Core nucleus
 
     for (let i = 0; i < this.galaxyCount; i++) {
       const arm = i % 2;
+      const isCore = i < 160; // Dense glowing nucleus
 
-      // Logarithmic density distribution — clusters tightly at core
-      const r = 0.5 + Math.pow(Math.random(), 2.0) * 8.0;
-      const angle = (r * 0.45) + (arm * Math.PI) + (Math.random() - 0.5) * 0.4;
+      let r, angle, u, v, w;
 
-      // CRITICAL FIX: Z = 0 in local space. The galaxyPoints object is placed
-      // at position.z = -12 below. Never store -12 in per-particle Z.
-      const x = Math.cos(angle) * r;
-      const y = (Math.random() - 0.5) * 0.8; // thin galactic disk
-      const z = Math.sin(angle) * r * 0.08;  // near-flat disk, tiny Z variance only
+      if (isCore) {
+        // High density spherical/elliptical galactic nucleus
+        r = Math.pow(Math.random(), 1.6) * 1.5;
+        angle = Math.random() * Math.PI * 2;
+        u = Math.cos(angle) * r;
+        v = Math.sin(angle) * r;
+        w = (Math.random() - 0.5) * 0.45 * Math.exp(-r / 1.0);
+      } else {
+        // Double-arm logarithmic spiral disk
+        r = 0.8 + Math.pow(Math.random(), 1.5) * 6.5;
+        const armAngle = arm * Math.PI;
+        const winding = 2.2 * Math.log(1.0 + r * 0.65);
+        const dispersion = (Math.random() - 0.5) * (0.32 + r * 0.04);
+        angle = armAngle + winding + dispersion;
 
-      positions[i * 3]     = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
+        u = Math.cos(angle) * r;
+        v = Math.sin(angle) * r;
+        // Realistic exponential vertical disk thickness
+        w = (Math.random() - 0.5) * 0.32 * Math.exp(-r / 3.8);
+      }
 
-      this.galaxyOriginalPositions.push({ x, y, z, r, arm });
+      positions[i * 3]     = u;
+      positions[i * 3 + 1] = v;
+      positions[i * 3 + 2] = w;
+
+      this.galaxyOriginalPositions.push({ x: u, y: v, z: w, r, arm, isCore });
       this.galaxyPhases.push(Math.random() * Math.PI * 2);
 
       // Sibling color story
       let starColor;
-      if (arm === 0) {
-        starColor = colorTeal.clone().lerp(colorAmber, Math.random() * 0.5);
+      if (isCore) {
+        starColor = colorCoreWhite.clone().lerp(colorAmber, Math.random() * 0.75);
+      } else if (arm === 0) {
+        const coreMix = Math.max(0, 1.0 - r / 3.2) * 0.55;
+        starColor = colorTeal.clone().lerp(colorAmber, coreMix);
       } else {
-        starColor = colorPink.clone().lerp(colorAmber, Math.random() * 0.5);
+        const coreMix = Math.max(0, 1.0 - r / 3.2) * 0.55;
+        starColor = colorPink.clone().lerp(colorAmber, coreMix);
       }
 
       colors[i * 3]     = starColor.r;
@@ -436,7 +552,7 @@ export class KiroSceneManager {
       map: this.starTexture,
       vertexColors: true,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.92,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       sizeAttenuation: true
@@ -446,8 +562,9 @@ export class KiroSceneManager {
     this.registerDisposable(galaxyMat);
 
     this.galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
-    // CRITICAL FIX: depth offset on the object, not in per-particle Z coords
-    this.galaxyPoints.position.set(0, 0, -12.0);
+    // Position galaxy disk at Z = -13.5, gracefully tilted in 3D (X-tilt 50 deg, Y-tilt 16 deg)
+    this.galaxyPoints.position.set(0, 0.4, -13.5);
+    this.galaxyPoints.rotation.set(Math.PI * 0.28, Math.PI * 0.09, 0);
     this.backgroundCelestialGroup.add(this.galaxyPoints);
   }
 
@@ -636,9 +753,14 @@ export class KiroSceneManager {
       this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
     }
 
-    // 2. Galaxy — Group Rotation + Touch Repulsion (per-particle spring only)
-    // FIX: Galaxy spins as a GROUP (rotation.z), not via per-particle Z coordinate
-    //      mutation. This eliminates stars rotating behind the camera.
+    // 2. Distant Deep Cosmic Starfield (Slow ethereal rotation)
+    if (this.distantStars) {
+      const starRotRate = isSleeping ? 0.0006 : 0.0015;
+      this.distantStars.rotation.y += starRotRate * (delta || 0.016);
+      this.distantStars.rotation.x += (starRotRate * 0.35) * (delta || 0.016);
+    }
+
+    // 3. Double-Arm Tilted Spiral Galaxy (Group in-plane rotation & touch repulsion)
     if (this.galaxyPoints) {
       // Size update for warp mode
       if (this.galaxyPoints.material.size !== this.warpStarSize) {
@@ -646,16 +768,15 @@ export class KiroSceneManager {
         this.galaxyPoints.material.needsUpdate = true;
       }
 
-      // Rotate galaxy group in-plane — zero Z coordinate corruption
-      const rotSpeed = isSleeping ? 0.004 : this.warpSpeed;
+      // Rotate galaxy group in its 3D plane
+      const rotSpeed = isSleeping ? 0.003 : this.warpSpeed;
       this.galaxyPoints.rotation.z += rotSpeed * (delta || 0.016);
 
-      // Touch repulsion: unproject pointer into galaxy's local X/Y plane
-      // (group is at Z=-12, so we project to that world Z)
+      // Touch repulsion: unproject pointer to galaxy disk plane (Z = -13.5)
       if (this.pointerInCanvas) {
         const mouseProj = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5).unproject(this.camera);
         const mouseDir = mouseProj.sub(this.camera.position).normalize();
-        const worldZ = -12.0 + (this.backgroundCelestialGroup.position.z || 0);
+        const worldZ = -13.5 + (this.backgroundCelestialGroup.position.z || 0);
         const mouseDist = (worldZ - this.camera.position.z) / mouseDir.z;
         const mousePlanePos = this.camera.position.clone().add(mouseDir.multiplyScalar(mouseDist));
 
@@ -679,20 +800,18 @@ export class KiroSceneManager {
             positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.03;
           }
 
-          // Twinkle: only Z flicker, stays near 0 in local space
+          // Gentle scintillation
           this.galaxyPhases[i] += 0.005;
-          const twinkle = Math.sin(time * 2.0 + this.galaxyPhases[i]) * 0.08;
-          positions[i * 3 + 2] = orig.z + twinkle;
+          positions[i * 3 + 2] = orig.z + Math.sin(time * 2.0 + this.galaxyPhases[i]) * 0.05;
         }
         this.galaxyPoints.geometry.attributes.position.needsUpdate = true;
       } else {
-        // No touch: just twinkle Z — no full position loop needed
+        // No touch: subtle Z scintillation & relaxation
         const positions = this.galaxyPoints.geometry.attributes.position.array;
         for (let i = 0; i < this.galaxyCount; i++) {
           const orig = this.galaxyOriginalPositions[i];
           this.galaxyPhases[i] += 0.003;
-          positions[i * 3 + 2] = orig.z + Math.sin(time * 1.5 + this.galaxyPhases[i]) * 0.08;
-          // Spring X/Y back to rest (in case of prior touch)
+          positions[i * 3 + 2] = orig.z + Math.sin(time * 1.5 + this.galaxyPhases[i]) * 0.05;
           positions[i * 3]     += (orig.x - positions[i * 3])     * 0.02;
           positions[i * 3 + 1] += (orig.y - positions[i * 3 + 1]) * 0.02;
         }
