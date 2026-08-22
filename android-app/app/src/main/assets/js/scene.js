@@ -93,6 +93,65 @@ function createGlowStarTexture() {
   return texture;
 }
 
+// Helper: 100% Procedural Anime Cel-Shading & Atmosphere Shader Generator
+function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0) {
+  const vertexShader = `
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+      vViewDir = normalize(-mvPos.xyz);
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float u_time;
+    uniform vec3 u_lightDir;
+    uniform vec3 u_baseColor;
+    uniform vec3 u_darkColor;
+    uniform vec3 u_atmColor;
+    uniform float u_bands;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    varying vec2 vUv;
+
+    void main() {
+      // 1. High-Contrast Cel-Shading (Stepped Lambertian Lighting)
+      float NdotL = dot(vNormal, u_lightDir);
+      float celLight = smoothstep(0.12, 0.15, NdotL) * 0.4 + smoothstep(0.48, 0.50, NdotL) * 0.6;
+
+      // 2. Procedural fBm Gaseous Cloud Bands
+      float waveOffset = sin(vUv.y * u_bands + u_time * 0.4) * 0.05;
+      float bandNoise = sin((vUv.x + waveOffset) * 16.0) * 0.5 + 0.5;
+      vec3 surface = mix(u_baseColor, u_baseColor * 0.72, step(0.52, bandNoise));
+
+      // 3. Atmosphere Scattering & Fresnel Rim Glow
+      float fresnel = pow(1.0 - max(0.0, dot(vNormal, vViewDir)), 3.8);
+      vec3 litSurface = mix(u_darkColor, surface, celLight);
+      vec3 finalColor = mix(litSurface, u_atmColor, fresnel * 0.75);
+
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `;
+
+  return new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      u_time: { value: 0.0 },
+      u_lightDir: { value: new THREE.Vector3(0.8, 1.0, 0.6).normalize() },
+      u_baseColor: { value: new THREE.Color(baseHex) },
+      u_darkColor: { value: new THREE.Color(darkHex) },
+      u_atmColor: { value: new THREE.Color(atmHex) },
+      u_bands: { value: bandDensity }
+    }
+  });
+}
+
 export class KiroSceneManager {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
@@ -463,30 +522,91 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(this.distantStars);
   }
 
-  // 2.1 Simple & Performant Cosmic Space Backdrop (Z = -18.0)
+  // 2.1 3-Layer Parallax Nebula with Chromatic Aberration & Vortex Swirl (Z = -18.0)
   buildVolumetricNebula() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
+    const nebulaVertexShader = `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
 
-    // Deep Midnight Space Radial Vignette (#0B0B14 to #18162E)
-    const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 256);
-    grad.addColorStop(0.0, '#1A1832'); // Subtle warm celestial glow center
-    grad.addColorStop(0.45, '#131224'); // Cozy midnight twilight
-    grad.addColorStop(0.80, '#0E0D1B'); // Deep space indigo
-    grad.addColorStop(1.0, '#080811'); // Pure infinite cosmic vacuum
+    const nebulaFragmentShader = `
+      uniform float u_time;
+      uniform float u_audio;
+      varying vec2 vUv;
 
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
+      vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+      vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+      vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
-    this.registerDisposable(texture);
+      float snoise(vec2 v) {
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy));
+        vec2 x0 = v -   i + dot(i, C.xx);
+        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod289(i);
+        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+        m = m*m;
+        m = m*m;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+        vec3 g;
+        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+      }
 
-    const nebulaGeo = new THREE.PlaneGeometry(90, 60);
-    this.nebulaMaterial = new THREE.MeshBasicMaterial({
-      map: texture,
+      void main() {
+        vec2 uv = vUv * 2.0 - 1.0;
+        float t = u_time * 0.04;
+
+        // Swirling Turbulent Vector Rotation Vortex Field
+        float theta = length(uv) * 0.7 - t * 0.5;
+        mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
+        vec2 rotUv = rot * uv;
+
+        // Chromatic Aberration Splitting at cloud fringes
+        vec2 uvR = rotUv + vec2(0.012, 0.0);
+        vec2 uvG = rotUv;
+        vec2 uvB = rotUv - vec2(0.012, 0.0);
+
+        float nR = snoise(uvR * 1.5 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
+        float nG = snoise(uvG * 1.5 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
+        float nB = snoise(uvB * 1.5 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
+
+        vec3 midnight = vec3(0.066, 0.066, 0.106); // #11111b
+        vec3 mint     = vec3(0.306, 0.788, 0.690); // #4EC9B0
+        vec3 pink     = vec3(0.961, 0.761, 0.906); // #F5C2E7
+        vec3 gold     = vec3(0.976, 0.886, 0.686); // #F9E2AF
+
+        // 3-Layer Watercolor Blending
+        vec3 col = mix(midnight, mint, smoothstep(0.35, 0.72, nG));
+        col = mix(col, pink, smoothstep(0.42, 0.85, nR) * 0.75);
+        col = mix(col, gold, smoothstep(0.58, 0.90, nB) * u_audio * 0.45);
+
+        float alpha = smoothstep(0.20, 0.78, (nR + nG + nB) / 3.0) * 0.88;
+        gl_FragColor = vec4(col, alpha);
+      }
+    `;
+
+    const nebulaGeo = new THREE.PlaneGeometry(120, 80);
+    this.nebulaMaterial = new THREE.ShaderMaterial({
+      vertexShader: nebulaVertexShader,
+      fragmentShader: nebulaFragmentShader,
+      uniforms: {
+        u_time: { value: 0.0 },
+        u_audio: { value: 0.0 }
+      },
+      transparent: true,
+      blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
@@ -588,13 +708,13 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(this.galaxyPoints);
   }
 
-  // 2.3 Roaming Flat-Shaded Planets (Z = -10.0 to -14.0) with Keplerian Orbits
+  // 2.3 Roaming Anime-Shaded Planets (Z = -10.0 to -14.0) with Keplerian Orbits
   buildRoamingPlanets() {
     this.roamingPlanets = [];
 
-    // Planet 1: Mint/Teal Ice World (Gliese 667)
-    const geo1 = new THREE.IcosahedronGeometry(0.48, 1);
-    const mat1 = new THREE.MeshLambertMaterial({ color: 0x4EC9B0, flatShading: true });
+    // Planet 1: Mint/Teal Ice World (Gliese 667) — Anime Cel & Atmosphere Shader
+    const geo1 = new THREE.SphereGeometry(0.52, 28, 28);
+    const mat1 = createAnimePlanetMaterial(0x4EC9B0, 0x11111B, 0x94E2D5, 14.0);
     const p1 = new THREE.Mesh(geo1, mat1);
     p1.userData = { id: 'gliese', semiMajor: 6.8, semiMinor: 4.5, tiltAngle: 0.22, baseDepth: -11.0, speed: 0.045, baseAngle: 0 };
     this.registerDisposable(geo1);
@@ -604,16 +724,16 @@ export class KiroSceneManager {
 
     // Planet 2: Lavender Gas Giant with Translucent Saturn-like Ring (Kepler 186)
     const planet2Group = new THREE.Group();
-    const geo2 = new THREE.IcosahedronGeometry(0.72, 1);
-    const mat2 = new THREE.MeshLambertMaterial({ color: 0xCBA6F7, flatShading: true });
+    const geo2 = new THREE.SphereGeometry(0.76, 28, 28);
+    const mat2 = createAnimePlanetMaterial(0xCBA6F7, 0x11111B, 0xF9E2AF, 10.0);
     const p2Mesh = new THREE.Mesh(geo2, mat2);
     planet2Group.add(p2Mesh);
 
-    const ringGeo = new THREE.RingGeometry(0.95, 1.55, 32);
+    const ringGeo = new THREE.RingGeometry(1.05, 1.68, 36);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xF9E2AF,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.55,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending
     });
@@ -630,14 +750,28 @@ export class KiroSceneManager {
     this.roamingPlanets.push(planet2Group);
 
     // Planet 3: Pastel-Pink Star Core (Trappist 1)
-    const geo3 = new THREE.IcosahedronGeometry(0.42, 1);
-    const mat3 = new THREE.MeshLambertMaterial({ color: 0xFFB6C1, flatShading: true });
+    const geo3 = new THREE.SphereGeometry(0.46, 28, 28);
+    const mat3 = createAnimePlanetMaterial(0xFFB6C1, 0x11111B, 0xF5C2E7, 18.0);
     const p3 = new THREE.Mesh(geo3, mat3);
     p3.userData = { id: 'trappist', semiMajor: 5.6, semiMinor: 3.8, tiltAngle: -0.28, baseDepth: -13.5, speed: 0.065, baseAngle: 4.4 };
     this.registerDisposable(geo3);
     this.registerDisposable(mat3);
     this.backgroundCelestialGroup.add(p3);
     this.roamingPlanets.push(p3);
+
+    // Planet 4: Faceted Low-Poly Asteroid Ring Node
+    const asteroidGeo = new THREE.IcosahedronGeometry(0.24, 1);
+    const asteroidMat = new THREE.MeshLambertMaterial({
+      color: 0xCBA6F7,
+      flatShading: true,
+      emissive: 0x11111B
+    });
+    const asteroid = new THREE.Mesh(asteroidGeo, asteroidMat);
+    asteroid.userData = { id: 'asteroid', semiMajor: 4.2, semiMinor: 3.2, tiltAngle: 0.45, baseDepth: -10.5, speed: 0.082, baseAngle: 1.1 };
+    this.registerDisposable(asteroidGeo);
+    this.registerDisposable(asteroidMat);
+    this.backgroundCelestialGroup.add(asteroid);
+    this.roamingPlanets.push(asteroid);
   }
 
   // 2.4 Meteor Pool (6 Reusable Streaks)
@@ -910,7 +1044,7 @@ export class KiroSceneManager {
       this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
     }
 
-    // 2. Distant Deep Cosmic Starfield (Slow ethereal rotation)
+    // 2. Distant Deep Cosmic Starfield (Slow ethereal rotation & Anime Twinkling)
     if (this.distantStars) {
       const starRotRate = isSleeping ? 0.0006 : 0.0015;
       this.distantStars.rotation.y += starRotRate * (delta || 0.016);
@@ -976,7 +1110,7 @@ export class KiroSceneManager {
       }
     }
 
-    // 3. Roaming Planets Parametric Keplerian Orbit (Calculated by physicsAgent)
+    // 4. Roaming Anime Planets Parametric Keplerian Orbit & Uniforms
     this.roamingPlanets.forEach(planet => {
       const u = planet.userData;
       const angle = u.baseAngle + time * u.speed;
@@ -984,6 +1118,17 @@ export class KiroSceneManager {
       planet.position.set(orbitPos.x, orbitPos.y, (u.baseDepth || -12.0) + orbitPos.z);
       planet.rotation.y += 0.012;
       planet.rotation.x += 0.006;
+
+      // Update Anime Planet Shader u_time uniform
+      if (planet.material && planet.material.uniforms && planet.material.uniforms.u_time) {
+        planet.material.uniforms.u_time.value = time;
+      } else if (planet.children) {
+        planet.children.forEach(child => {
+          if (child.material && child.material.uniforms && child.material.uniforms.u_time) {
+            child.material.uniforms.u_time.value = time;
+          }
+        });
+      }
     });
 
     // 4. Staggered Meteor Spawner

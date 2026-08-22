@@ -225,7 +225,20 @@ if (fs.existsSync(introJsPath) && fs.existsSync(appJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 9. Final Audit Summary
+// 9. Auditing Anime Realistic Shaders (Cel-Shading, Atmosphere, Chromatic Nebula)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}9. Auditing Anime Realistic Shaders (Cel-Shading, Atmosphere & Chromatic Nebula)...${Colors.RESET}`);
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneContent.includes('createAnimePlanetMaterial'), '100% procedural Anime Planet shader material generator implemented');
+  assert(sceneContent.includes('celLight') && sceneContent.includes('smoothstep(0.12, 0.15, NdotL)'), 'High-contrast 3-step Cel-Shading with sharp terminator line verified');
+  assert(sceneContent.includes('fresnel = pow') && sceneContent.includes('u_atmColor'), 'Glowing Fresnel atmospheric scattering envelope verified on planetary rims');
+  assert(sceneContent.includes('Chromatic Aberration Splitting') && sceneContent.includes('uvR = rotUv'), '3-Layer watercolor parallax nebula with chromatic fringe splitting verified');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

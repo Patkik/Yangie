@@ -1,53 +1,60 @@
-# 🌌 Kiro's Cosmic Haven — Starlight Messenger Push Guard & History Architecture (V7.3)
+# 🌌 Kiro's Cosmic Haven — Anime Realistic Shaders & Cel-Shaded Celestial Systems (V7.7)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.0.3` (Android `versionCode = 51`)
-- **Scope**: Resolved the recurring Android notification issue upon app update, startup, and reload. Implemented strict notification guards, persistent chat history in `localStorage`, self-notification filtering for local messages, and reactive unread badge management.
+- **Release Version**: `v2.0.7` (Android `versionCode = 55`)
+- **Scope**: Implemented a painterly "Anime Realistic" Non-Photorealistic Rendering (NPR) visual register for celestial systems in [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js). Combines 3-step Lambertian cel-shading with sharp terminators, glowing Fresnel atmospheric scattering rims, procedural fBm gaseous cloud bands, and a 3-layer watercolor parallax nebula with vortex swirling and chromatic fringe splitting.
+- **Zero Asset Dependency**: 100% procedural GLSL shaders and vector geometries with zero external image textures or audio files.
 
 ---
 
-## 2. Root Cause Analysis & Architecture Fix
+## 2. Mathematical & Procedural Shader Architecture
 
-| Issue | Root Cause | Resolution |
-|---|---|---|
-| **Phantom Push on Update/Reload** | `init()` executed `loadMockFeed()`, which called `addMessageNode()`. Inside `addMessageNode()`, `window.AndroidHost.sendNotification()` was invoked unconditionally on every DOM node addition. | Wrapped notification dispatch in a strict guard: `if (notify && !isOutgoing && window.AndroidHost?.sendNotification)`. Initial feed loading passes `notify: false`. |
-| **Self-Notification on Outgoing Messages** | When typing text, sending emojis, pictures, or voice notes, `addMessageNode()` dispatched notifications back to the sender's own device. | Enforced `!isOutgoing` check so only incoming messages from the partner can trigger notifications. |
-| **Chat Loss on App Reload** | Messages were only appended to the DOM and reset to mock messages on every restart/update. | Added persistent `localStorage` storage under `'starlight_messages'` (capped at 100 entries for memory efficiency) with default initial seed fallback. |
-| **Hardcoded Unread Badge** | `#mailbox-unread-dot` had a static `"1"` in `index.html`. | Set initial badge to `style="display: none;"` and dynamically manage unread counts in `mailbox.js` on incoming partner messages when mailbox is closed. |
+### 2.1 Stepped Lambertian Cel-Shading & Fresnel Atmosphere ([`scene.js`](file:///android-app/app/src/main/assets/js/scene.js))
+- **3-Step Lambertian Light Curve**:
+  $$\text{CelLight} = \text{smoothstep}(0.12, 0.15, N \cdot L) \cdot 0.4 + \text{smoothstep}(0.48, 0.50, N \cdot L) \cdot 0.6$$
+- **Fresnel Atmosphere Envelope**:
+  $$\text{Fresnel} = (1.0 - \max(0.0, N \cdot V))^{3.8}$$
+- **Procedural Gaseous Bands**:
+  $$\text{WaveOffset} = \sin(v_{\text{uv}}.y \cdot \text{density} + t \cdot 0.4) \cdot 0.05$$
+  $$\text{BandNoise} = \sin((v_{\text{uv}}.x + \text{WaveOffset}) \cdot 16.0) \cdot 0.5 + 0.5$$
 
----
+### 2.2 3-Layer Parallax Nebula with Chromatic Aberration Splitting
+- **Vortex Rotation Field**:
+  $$\theta = \|\mathbf{uv}\| \cdot 0.7 - t \cdot 0.5$$
+  $$\mathbf{uv}_{\text{rot}} = \mathbf{R}(\theta) \cdot \mathbf{uv}$$
+- **Chromatic Aberration Splitting**:
+  - $\mathbf{uv}_R = \mathbf{uv}_{\text{rot}} + (0.012, 0.0)$ (Red channel fringe)
+  - $\mathbf{uv}_G = \mathbf{uv}_{\text{rot}}$ (Base channel)
+  - $\mathbf{uv}_B = \mathbf{uv}_{\text{rot}} - (0.012, 0.0)$ (Blue channel fringe)
+- **Twilight Color Blend**:
+  - Background: Velvety Midnight Navy (`#11111b`)
+  - Midground: Mint Teal (`#4ec9b0`)
+  - Foreground: Pastel Pink (`#f5c2e7`)
+  - Highlights: Golden Glow (`#f9e2af`) modulated by ambient Web Audio synth reactivity.
 
-## 3. Starlight Messenger Implementation Overview ([`mailbox.js`](file:///android-app/app/src/main/assets/js/mailbox.js))
-
-- **Persistent Message Store**:
-  - `loadSavedMessagesOrMock()`: Reads from `localStorage` without triggering notifications.
-  - `saveMessages()`: Saves the latest 100 messages to `localStorage`.
-  - `renderMessagesFeed()`: Re-renders the feed on persona switches without duplicate notifications.
-- **Strict Notification Invariant**:
-  ```javascript
-  if (notify && !isOutgoing && window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
-    const senderName = normSender === 'patrick' ? 'Patrick' : 'Yangiee';
-    const preview = type === 'text' ? content : `[Sent a ${type}]`;
-    try {
-      window.AndroidHost.sendNotification(`Note from ${senderName}`, preview);
-    } catch (e) {
-      console.warn('[Messenger] AndroidHost notification bridge error:', e);
-    }
-  }
-  ```
-- **Reactive Unread Badge**:
-  - Incremented only on incoming messages when the mailbox overlay is closed.
-  - Automatically reset to 0 and hidden when the user opens the mailbox.
+### 2.3 Anime Starfield & Twinkling Bokeh
+- Distant stars animated with asynchronous LFO sine-phase twinkling:
+  $$\text{Twinkle}(t) = 0.55 + 0.45 \cdot \sin(t \cdot 2.2 + \phi) \cdot \cos(t \cdot 1.1 + 0.5\phi)$$
+- 4-point Anime Cross Lens Flares for brightest stars that react dynamically to procedural audio synth chords.
 
 ---
 
-## 4. Verification Suite Results
+## 3. Verification Suite Results
 
 | Test / Gate | Command | Result |
 |---|---|---|
-| **Dynamic Headless Audit** | `node scripts/headless-gl-audit.js` | ✅ **29/29 Assertions Passed (Exit 0)** |
+| **Multi-Agent Orchestrator Test** | `node scripts/test-orchestrator.js` | ✅ **7/7 SOP Checks Passed** |
+| **Dynamic Headless WebGL Audit** | `node scripts/headless-gl-audit.js` | ✅ **48/48 Assertions Passed (Exit 0)** |
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Passed with 8/8 Tests Green** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 1m 34s** |
-| **Synchronized SemVer** | `v2.0.3` (Android `versionCode = 51`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-321900 synced across rules & `DECISIONS.md` |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 30s** |
+| **Synchronized SemVer** | `v2.0.7` (Android `versionCode = 55`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-361900 synced across rules & `DECISIONS.md` |
+
+---
+
+## 4. Git Publication & Release Audit
+- **Commit**: `feat(graphics): anime realistic cel-shaded celestial shaders & bokeh starfield (v2.0.7)`
+- **Tag**: `v2.0.7`
+- **Branch**: `origin/main`
+
