@@ -56,10 +56,10 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.3',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.4',
       isOtaActive: false,
 
-      // Wellbeing & Real-time Vitals
+      // Unified Tri-Vital System (V8.2)
       wellbeing: 100,
       food: 100,
       water: 100,
@@ -72,11 +72,41 @@ class KiroStateManager extends StateEmitter {
       mood: 'thriving', // 'thriving' | 'happy' | 'okay' | 'sleeping'
       isSleeping: false,
       hasWellRestedBuff: false,
+      wellRestedBuffExpiresAt: 0,
+      sleepSessionStartTime: null,
 
-      // Dual-Currency Economic Framework (V5.0)
-      stardustShards: parseInt(localStorage.getItem('kiro_stardust_shards') || '120', 10),
+      // Dual-Currency Economic Framework & Shared Vault
+      stardustShards: parseInt(localStorage.getItem('kiro_stardust_shards') || '350', 10),
       cosmicEssence: parseInt(localStorage.getItem('kiro_cosmic_essence') || '10', 10),
       essenceCap: 100, // Boosted to 600 by Crab Pulsar milestone
+
+      vault: {
+        stardustShards: parseInt(localStorage.getItem('kiro_stardust_shards') || '350', 10),
+        cosmicEssence: parseInt(localStorage.getItem('kiro_cosmic_essence') || '10', 10)
+      },
+
+      // Kepler-186 Outpost Shop & Shared Inventory Stockpile
+      inventory: {
+        star: 2,   // Stock Cap: 5 (Scarce)
+        donut: 8,  // Stock Cap: 15
+        water: 12  // Stock Cap: 20
+      },
+      inventoryLimits: {
+        star: 5,
+        donut: 15,
+        water: 20
+      },
+      itemBaseCosts: {
+        water: 15,
+        donut: 25,
+        star: 120
+      },
+      itemRestorations: {
+        donut: { food: 40, water: -5, energy: 0 },
+        water: { food: 0, water: 35, energy: 0 },
+        star:  { food: 0, water: 0, energy: 30 }
+      },
+      lastStarCandyRestockTimestamp: parseInt(localStorage.getItem('kiro_last_star_restock') || String(Date.now()), 10),
 
       // Exoplanet Progression Milestones (7 Celestial Destinations)
       currentPlanet: localStorage.getItem('kiro_current_planet') || 'gliese',
@@ -136,7 +166,9 @@ class KiroStateManager extends StateEmitter {
     };
 
     this.loadPersistedVitals();
+    this.loadPersistedInventory();
     this.refreshMilestoneCaps();
+    this.checkStarCandyDailyRestock();
     this.startPassiveStardustTick();
   }
 
@@ -159,10 +191,26 @@ class KiroStateManager extends StateEmitter {
     }
   }
 
-  refreshMilestoneCaps() {
-    if (this.hasMilestone('crab')) {
-      this.state.essenceCap = 600;
+  loadPersistedInventory() {
+    try {
+      const savedInv = localStorage.getItem('kiro_inventory');
+      if (savedInv) {
+        const parsed = JSON.parse(savedInv);
+        this.state.inventory.star = parsed.star ?? 2;
+        this.state.inventory.donut = parsed.donut ?? 8;
+        this.state.inventory.water = parsed.water ?? 12;
+      }
+    } catch (e) {
+      console.warn('Failed loading persisted inventory:', e);
     }
+  }
+
+  saveInventory() {
+    try {
+      localStorage.setItem('kiro_inventory', JSON.stringify(this.state.inventory));
+      localStorage.setItem('kiro_stardust_shards', String(this.state.stardustShards));
+      localStorage.setItem('kiro_cosmic_essence', String(this.state.cosmicEssence));
+    } catch (e) {}
   }
 
   startPassiveStardustTick() {
@@ -306,8 +354,11 @@ class KiroStateManager extends StateEmitter {
     const waterLevel = this.state.water ?? 100;
     const waterMultiplier = waterLevel < 30 ? 0.7 : (waterLevel > 70 ? 1.15 : 1.0);
 
+    // Well-Rested Golden Buff: 1.5x score and stardust multiplier
+    const wellRestedMultiplier = this.hasWellRestedBuffActive() ? 1.5 : 1.0;
+
     const calculatedPayout = Math.max(1, Math.round(
-      (baseScore + baseDifficulty) * comboMultiplier * wellbeingModifier * squishBonus * sombreroMultiplier * waterMultiplier
+      (baseScore + baseDifficulty) * comboMultiplier * wellbeingModifier * squishBonus * sombreroMultiplier * waterMultiplier * wellRestedMultiplier
     ));
     
     return {
@@ -321,6 +372,8 @@ class KiroStateManager extends StateEmitter {
       squishBonus,
       sombreroMultiplier,
       waterMultiplier,
+      wellRestedMultiplier,
+      hasWellRestedBuff: this.hasWellRestedBuffActive(),
       totalPayout: calculatedPayout
     };
   }
@@ -331,9 +384,27 @@ class KiroStateManager extends StateEmitter {
 
   getPhysicsDrag() {
     const energy = this.state.energy ?? 100;
-    if (energy < 30) return 1.6; // Sluggish physics (increased drag & input latency)
-    if (this.state.hasWellRestedBuff || energy > 85) return 0.85; // Agile fast physics
+    if (energy < 30) return 1.65; // Sluggish physics (increased drag & input latency)
+    if (this.hasWellRestedBuffActive() || energy > 85) return 0.85; // Agile fast physics
     return 1.0;
+  }
+
+  getViscoelasticParameters() {
+    const energy = this.state.energy ?? 100;
+    if (energy < 30) {
+      return {
+        viscosity: 0.72,
+        elasticity: 0.012,
+        isCrisis: true,
+        dragMultiplier: 1.65
+      };
+    }
+    return {
+      viscosity: 0.93,
+      elasticity: 0.045,
+      isCrisis: false,
+      dragMultiplier: this.hasWellRestedBuffActive() ? 0.85 : 1.0
+    };
   }
 
   getShardRadiusMultiplier() {
@@ -346,6 +417,104 @@ class KiroStateManager extends StateEmitter {
   getShardMultiplier() {
     const water = this.state.water ?? 100;
     return water < 30 ? 0.7 : 1.0;
+  }
+
+  hasWellRestedBuffActive() {
+    return Boolean(this.state.hasWellRestedBuff && Date.now() < (this.state.wellRestedBuffExpiresAt || 0));
+  }
+
+  checkStarCandyDailyRestock() {
+    const now = Date.now();
+    const last = this.state.lastStarCandyRestockTimestamp || 0;
+    const DAY_MS = 24 * 3600 * 1000;
+    if (now - last >= DAY_MS) {
+      if ((this.state.inventory.star || 0) < (this.state.inventoryLimits.star || 5)) {
+        this.state.inventory.star = Math.min(this.state.inventoryLimits.star || 5, (this.state.inventory.star || 0) + 1);
+        this.saveInventory();
+        this.emit('inventory:change', { itemId: 'star', count: this.state.inventory.star, inventory: this.state.inventory });
+      }
+      this.state.lastStarCandyRestockTimestamp = now;
+      try {
+        localStorage.setItem('kiro_last_star_restock', String(now));
+      } catch (e) {}
+    }
+  }
+
+  getItemCost(itemId) {
+    const base = this.state.itemBaseCosts[itemId] || 25;
+    const count = this.state.inventory[itemId] || 0;
+    const limit = this.state.inventoryLimits[itemId] || 15;
+    // Cost-Scarcity Index: Cost Factor = Base Cost * (1.0 + Current Inventory Count / Inventory Limit)
+    return Math.round(base * (1.0 + (count / limit)));
+  }
+
+  buyItem(itemId) {
+    const count = this.state.inventory[itemId] || 0;
+    const limit = this.state.inventoryLimits[itemId] || 15;
+    if (count >= limit) {
+      return { success: false, reason: `Stock cap reached (${limit} max).` };
+    }
+    const cost = this.getItemCost(itemId);
+    if (this.state.stardustShards < cost) {
+      return { success: false, reason: `Requires ${cost} Shards (You have ${this.state.stardustShards}).` };
+    }
+
+    this.spendStardust(cost, `buy_${itemId}`);
+    this.state.inventory[itemId] = count + 1;
+    this.saveInventory();
+    this.emit('inventory:change', { itemId, count: this.state.inventory[itemId], inventory: this.state.inventory });
+    this.emit('change:inventory', { newValue: this.state.inventory });
+    return { success: true, count: this.state.inventory[itemId], cost };
+  }
+
+  consumeItem(itemId) {
+    const count = this.state.inventory[itemId] || 0;
+    if (count <= 0) {
+      return { success: false, reason: `No ${itemId} in inventory! Visit Kepler-186 Outpost Shop.` };
+    }
+
+    this.state.inventory[itemId] = count - 1;
+    this.saveInventory();
+
+    const rest = this.state.itemRestorations[itemId] || { food: 15, water: 0, energy: 0 };
+    this.state.food = Math.min(100, Math.max(0, this.state.food + (rest.food || 0)));
+    this.state.water = Math.min(100, Math.max(0, this.state.water + (rest.water || 0)));
+    this.state.energy = Math.min(100, Math.max(0, this.state.energy + (rest.energy || 0)));
+    this.state.vitals.food = this.state.food;
+    this.state.vitals.water = this.state.water;
+    this.state.vitals.energy = this.state.energy;
+
+    this.state.wellbeing = Math.min(100, Math.round((this.state.food + this.state.water + this.state.energy) / 3));
+    this.state.mood = this.state.wellbeing > 80 ? 'thriving' : (this.state.wellbeing > 50 ? 'happy' : 'okay');
+    this.saveVitals();
+
+    this.emit('inventory:change', { itemId, count: this.state.inventory[itemId], inventory: this.state.inventory });
+    this.emit('change:inventory', { newValue: this.state.inventory });
+    this.emit('vital:consume', { itemId, vitals: this.state.vitals, wellbeing: this.state.wellbeing, delta: rest });
+    this.emit('change:vitals', { newValue: this.state.vitals });
+    this.emit('change:wellbeing', { newValue: this.state.wellbeing });
+
+    if (itemId === 'water') {
+      this.emit('vital:water', { water: this.state.water, wellbeing: this.state.wellbeing });
+    } else {
+      this.emit('vital:feed', { type: itemId, food: this.state.food, wellbeing: this.state.wellbeing });
+    }
+
+    return { success: true, count: this.state.inventory[itemId], vitals: this.state.vitals };
+  }
+
+  applyMinigameVitalTax() {
+    this.state.food = Math.max(0, this.state.food - 10);
+    this.state.water = Math.max(0, this.state.water - 15);
+    this.state.energy = Math.max(0, this.state.energy - 12);
+    this.state.vitals.food = this.state.food;
+    this.state.vitals.water = this.state.water;
+    this.state.vitals.energy = this.state.energy;
+    this.state.wellbeing = Math.min(100, Math.round((this.state.food + this.state.water + this.state.energy) / 3));
+    this.state.mood = this.state.wellbeing > 80 ? 'thriving' : (this.state.wellbeing > 50 ? 'happy' : 'okay');
+    this.saveVitals();
+    this.emit('change:vitals', { newValue: this.state.vitals });
+    this.emit('change:wellbeing', { newValue: this.state.wellbeing });
   }
 
   saveVitals() {
@@ -419,6 +588,14 @@ class KiroStateManager extends StateEmitter {
       this.state.energy = value;
       this.state.vitals.energy = value;
     }
+    if (path === 'vault.stardustShards' || path === 'stardustShards') {
+      this.state.stardustShards = value;
+      this.state.vault.stardustShards = value;
+    }
+    if (path === 'vault.cosmicEssence' || path === 'cosmicEssence') {
+      this.state.cosmicEssence = value;
+      this.state.vault.cosmicEssence = value;
+    }
 
     // Emit granular change event and generalized change event
     this.emit(`change:${path}`, { newValue: value, oldValue });
@@ -466,42 +643,37 @@ class KiroStateManager extends StateEmitter {
   }
 
   feed(candyType = 'star') {
-    const boost = candyType === 'star' ? 15 : (candyType === 'donut' ? 12 : 8);
-    this.state.food = Math.min(100, this.state.food + boost);
-    this.state.vitals.food = this.state.food;
-    this.state.wellbeing = Math.min(100, Math.round((this.state.food + this.state.water + this.state.energy) / 3));
-    this.state.mood = this.state.wellbeing > 80 ? 'thriving' : 'happy';
-
-    this.saveVitals();
-    this.emit('vital:feed', { type: candyType, food: this.state.food, wellbeing: this.state.wellbeing });
-    this.emit('change:wellbeing', { newValue: this.state.wellbeing });
-    this.emit('wellbeing:change', this.state.wellbeing);
+    return this.consumeItem(candyType);
   }
 
   drinkWater() {
-    this.state.water = Math.min(100, this.state.water + 14);
-    this.state.vitals.water = this.state.water;
-    this.state.wellbeing = Math.min(100, Math.round((this.state.food + this.state.water + this.state.energy) / 3));
-    this.state.mood = this.state.wellbeing > 80 ? 'thriving' : 'happy';
-
-    this.saveVitals();
-    this.emit('vital:water', { water: this.state.water, wellbeing: this.state.wellbeing });
-    this.emit('change:wellbeing', { newValue: this.state.wellbeing });
-    this.emit('wellbeing:change', this.state.wellbeing);
+    return this.consumeItem('water');
   }
 
   setSleep(isSleeping) {
-    this.state.isSleeping = isSleeping;
+    const wasSleeping = this.state.isSleeping;
+    this.state.isSleeping = Boolean(isSleeping);
     this.state.mood = isSleeping ? 'sleeping' : (this.state.wellbeing > 80 ? 'thriving' : 'happy');
-    if (!isSleeping) {
-      this.state.energy = 100;
-      this.state.vitals.energy = 100;
-      this.state.hasWellRestedBuff = true;
+
+    if (isSleeping) {
+      this.state.sleepSessionStartTime = Date.now();
+    } else if (wasSleeping) {
+      const sleepDurationMs = this.state.sleepSessionStartTime ? (Date.now() - this.state.sleepSessionStartTime) : 0;
+      const sleepHours = sleepDurationMs / (3600 * 1000);
+      
+      // 6-hour complete sleep block awards 3-hour Well-Rested Buff (1.5x multiplier)
+      if (sleepHours >= 6.0) {
+        this.state.hasWellRestedBuff = true;
+        this.state.wellRestedBuffExpiresAt = Date.now() + (3 * 3600 * 1000);
+        this.emit('buff:well_rested', { durationHours: 3, multiplier: 1.5 });
+      }
+      this.state.sleepSessionStartTime = null;
       this.state.wellbeing = Math.min(100, Math.round((this.state.food + this.state.water + this.state.energy) / 3));
     }
+
     this.saveVitals();
-    this.emit('sleep:change', { isSleeping, hasWellRestedBuff: this.state.hasWellRestedBuff });
-    this.emit('change:isSleeping', { newValue: isSleeping });
+    this.emit('sleep:change', { isSleeping: this.state.isSleeping, hasWellRestedBuff: this.hasWellRestedBuffActive() });
+    this.emit('change:isSleeping', { newValue: this.state.isSleeping });
     this.emit('wellbeing:change', this.state.wellbeing);
   }
 

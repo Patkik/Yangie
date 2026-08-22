@@ -2619,12 +2619,19 @@ export class KiroSceneManager {
   }
 
   triggerViscoelasticSquish(amplitude = 0.18, frequency = 14.0, decay = 3.2) {
+    const params = (typeof KiroState !== 'undefined' && KiroState.getViscoelasticParameters)
+      ? KiroState.getViscoelasticParameters()
+      : { viscosity: 0.93, elasticity: 0.045, isCrisis: false };
+    
+    // Sluggish viscous oscillation (gamma=0.72, k=0.012) takes twice as long to pop back
+    const effFreq = params.isCrisis ? frequency * 0.60 : frequency;
+    const effDecay = params.isCrisis ? 1.4 : decay;
     this.viscousWobble = {
       active: true,
       startTime: performance.now(),
-      amplitude,
-      frequency,
-      decay
+      amplitude: params.isCrisis ? amplitude * 1.35 : amplitude,
+      frequency: effFreq,
+      decay: effDecay
     };
   }
 
@@ -3522,10 +3529,14 @@ export class KiroSceneManager {
       this.pedestalSparkles.rotation.y += 0.006;
     }
 
-    if (this.goldenAura && this.goldenAura.visible) {
-      const auraBreath = 1.0 + Math.sin(t * 1.5) * 0.06 + audioLevel * 0.2;
-      this.goldenAura.scale.set(auraBreath, auraBreath, auraBreath);
-      this.goldenAura.material.opacity = 0.20 + audioLevel * 0.18;
+    const hasBuff = (typeof KiroState !== 'undefined' && KiroState.hasWellRestedBuffActive) ? KiroState.hasWellRestedBuffActive() : false;
+    if (this.goldenAura) {
+      this.goldenAura.visible = hasBuff;
+      if (hasBuff) {
+        const auraBreath = 1.0 + Math.sin(t * 1.5) * 0.06 + audioLevel * 0.2;
+        this.goldenAura.scale.set(auraBreath, auraBreath, auraBreath);
+        this.goldenAura.material.opacity = 0.26 + audioLevel * 0.22;
+      }
     }
 
     // 6. Update Local Particle Systems & Physics

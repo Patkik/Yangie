@@ -655,7 +655,41 @@ if (fs.existsSync(appJsAuditPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 22. Final Audit Summary
+// 22. Auditing Unified Tri-Vital System & Kepler-186 Outpost Shop (V8.2)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}22. Auditing Unified Tri-Vital System & Kepler-186 Outpost Shop (V8.2)...${Colors.RESET}`);
+
+const stateJsAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/state.js');
+const orchJsAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/orchestrator.js');
+
+if (fs.existsSync(stateJsAuditPath)) {
+  const stateCode = fs.readFileSync(stateJsAuditPath, 'utf8');
+  assert(stateCode.includes('inventoryLimits') && stateCode.includes('getItemCost') && stateCode.includes('buyItem'), 'Kepler-186 Outpost Shop Cost-Scarcity Index and buyItem logic verified in state.js');
+  assert(stateCode.includes('consumeItem') && stateCode.includes('applyMinigameVitalTax'), 'Consumables core matrix (donut/water/star) and minigame vital tax verified in state.js');
+  assert(stateCode.includes('hasWellRestedBuffActive') && stateCode.includes('getViscoelasticParameters'), 'Well-Rested Buff tracking and viscoelastic crisis parameters verified in state.js');
+}
+
+if (fs.existsSync(orchJsAuditPath)) {
+  const orchCode = fs.readFileSync(orchJsAuditPath, 'utf8');
+  assert(orchCode.includes('deltaEDrag') && orchCode.includes('hungerPenalty') && orchCode.includes('thirstPenalty'), 'Metabolic Crisis Drag interrelated decay differential equation verified in orchestrator.js');
+  assert(orchCode.includes('isTelescope') && orchCode.includes('energyRatePerHour') && orchCode.includes('energy < 10.0'), 'Shuttle pilot steering exhaustion & console collapse mechanics verified in orchestrator.js');
+}
+
+if (fs.existsSync(minigamesAuditPath)) {
+  const miniCode = fs.readFileSync(minigamesAuditPath, 'utf8');
+  assert(miniCode.includes('applyMinigameVitalTax') && miniCode.includes('getViscoelasticParameters'), 'Minigame entry tax and viscoelastic Pong degradation physics verified in minigames.js');
+  assert(miniCode.includes('wellRestedMultiplier') || miniCode.includes('Well-Rested Aura'), 'Well-Rested Golden Buff payout formula display verified in minigames.js');
+}
+
+if (fs.existsSync(indexHtmlAuditPath) && fs.existsSync(mainCssAuditPath)) {
+  const htmlCode = fs.readFileSync(indexHtmlAuditPath, 'utf8');
+  const cssCode = fs.readFileSync(mainCssAuditPath, 'utf8');
+  assert(htmlCode.includes('badge-stock-star') && htmlCode.includes('kepler-shop-modal'), 'Care petal stock badges and Kepler-186 shop modal markup verified in index.html');
+  assert(cssCode.includes('.petal-badge') && cssCode.includes('.shop-card'), 'Kepler shop glassmorphic styling and stock badge tokens verified in main.css');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 23. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

@@ -169,14 +169,16 @@
     <footer class="satellite-orbital-dock" id="satellite-orbital-dock">
       <!-- Ephemeral Fan-Out Petals (Tier 2) -->
       <div class="satellite-petal-rack" id="rack-care-petals" style="display: none;">
-        <button class="satellite-petal-btn treat-petal" id="btn-feed-star" title="Drop Star Candy">
+        <button class="satellite-petal-btn treat-petal" id="btn-feed-star" title="Drop Star Candy (+30% Energy)">
+          <div class="petal-badge" id="badge-stock-star">2</div>
           <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(249, 226, 175, 0.3)" stroke="#F9E2AF"/>
           </svg>
           <span class="petal-label">Star</span>
         </button>
 
-        <button class="satellite-petal-btn treat-petal" id="btn-feed-donut" title="Drop Galaxy Donut">
+        <button class="satellite-petal-btn treat-petal" id="btn-feed-donut" title="Drop Galaxy Donut (+40% Food, -5% Hydration)">
+          <div class="petal-badge" id="badge-stock-donut">8</div>
           <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9" stroke="#F5B7C0"/>
             <circle cx="12" cy="12" r="3.5" fill="rgba(245, 183, 192, 0.3)" stroke="#F5B7C0"/>
@@ -184,11 +186,19 @@
           <span class="petal-label">Donut</span>
         </button>
 
-        <button class="satellite-petal-btn treat-petal" id="btn-feed-water" title="Give Starlight Water">
+        <button class="satellite-petal-btn treat-petal" id="btn-feed-water" title="Give Starlight Water (+35% Hydration)">
+          <div class="petal-badge" id="badge-stock-water">12</div>
           <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="rgba(78, 201, 176, 0.3)" stroke="#4EC9B0"/>
           </svg>
           <span class="petal-label">Water</span>
+        </button>
+
+        <button class="satellite-petal-btn treat-petal shop-petal" id="btn-open-kepler-shop" title="Kepler-186 Outpost Shop">
+          <svg class="petal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="#CBA6F7"/><line x1="3" y1="6" x2="21" y2="6" stroke="#CBA6F7"/><path d="M16 10a4 4 0 0 1-8 0" stroke="#CBA6F7"/>
+          </svg>
+          <span class="petal-label" style="color:#CBA6F7;">Shop</span>
         </button>
       </div>
 
@@ -669,12 +679,12 @@
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
               Software Updates
             </span>
-            <span id="settings-current-ver-badge" class="settings-version-badge">v2.4.3</span>
+            <span id="settings-current-ver-badge" class="settings-version-badge">v2.4.4</span>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: #A6ADC8;">
             <span>Installed Version:</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.4.3</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.4.4</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>
@@ -799,6 +809,99 @@
           <span class="hud-metric-label">BATTERY</span>
           <span id="hud-stat-battery" class="hud-metric-val" style="color: #4EC9B0;">100% ⚡</span>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kepler-186 Outpost Shop Modal -->
+  <div id="kepler-shop-modal" class="shop-overlay" style="display: none;">
+    <div class="shop-card">
+      <div class="shop-header">
+        <div class="shop-title-row">
+          <svg class="shop-header-icon" viewBox="0 0 24 24" fill="none" stroke="#CBA6F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+          </svg>
+          <div>
+            <h2 class="shop-title">Kepler-186 Outpost Shop</h2>
+            <div class="shop-subtitle">Galactic Consumables &amp; Shared Stockpile Depot</div>
+          </div>
+        </div>
+        <button class="shop-close-btn" id="shop-close-btn" aria-label="Close Shop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Shared Vault Header Pill -->
+      <div class="shop-vault-row">
+        <div class="shop-vault-pill">
+          <span class="vault-label">SHARED VAULT:</span>
+          <span class="vault-val" id="shop-vault-shards" style="color: #F9E2AF;">350 ✦</span>
+        </div>
+        <div class="shop-scarcity-hint">Cost scales with inventory count</div>
+      </div>
+
+      <!-- Item Catalog Cards -->
+      <div class="shop-catalog-grid">
+        <!-- 1. Water Gulp -->
+        <div class="shop-item-card" data-item="water">
+          <div class="item-icon-box water-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4EC9B0" stroke-width="2">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="rgba(78, 201, 176, 0.25)"/>
+            </svg>
+          </div>
+          <div class="item-info">
+            <div class="item-name">Water Gulp</div>
+            <div class="item-effect">+35% Hydration • Splash Refresh</div>
+            <div class="item-stock">Stock: <span id="shop-stock-water">12</span> / 20</div>
+          </div>
+          <button class="shop-buy-btn" id="btn-buy-water" data-item="water">
+            <span class="buy-price" id="shop-cost-water">15 ✦</span>
+            <span class="buy-action">BUY</span>
+          </button>
+        </div>
+
+        <!-- 2. Galaxy Donut -->
+        <div class="shop-item-card" data-item="donut">
+          <div class="item-icon-box donut-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F5B7C0" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="3.5" fill="rgba(245, 183, 192, 0.25)"/>
+            </svg>
+          </div>
+          <div class="item-info">
+            <div class="item-name">Galaxy Donut</div>
+            <div class="item-effect">+40% Food (Dryness: -5% H)</div>
+            <div class="item-stock">Stock: <span id="shop-stock-donut">8</span> / 15</div>
+          </div>
+          <button class="shop-buy-btn" id="btn-buy-donut" data-item="donut">
+            <span class="buy-price" id="shop-cost-donut">25 ✦</span>
+            <span class="buy-action">BUY</span>
+          </button>
+        </div>
+
+        <!-- 3. Star Candy -->
+        <div class="shop-item-card" data-item="star">
+          <div class="item-icon-box star-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F9E2AF" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(249, 226, 175, 0.25)"/>
+            </svg>
+          </div>
+          <div class="item-info">
+            <div class="item-name">Star Candy <span class="scarce-badge">SCARCE</span></div>
+            <div class="item-effect">+30% Energy • Instant Rest</div>
+            <div class="item-stock">Stock: <span id="shop-stock-star">2</span> / 5</div>
+          </div>
+          <button class="shop-buy-btn star-buy-btn" id="btn-buy-star" data-item="star">
+            <span class="buy-price" id="shop-cost-star">120 ✦</span>
+            <span class="buy-action">BUY</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="shop-footer-note">
+        ✦ Star Candy restocks +1 every 24h • Shared inventory synced across all terminals
       </div>
     </div>
   </div>

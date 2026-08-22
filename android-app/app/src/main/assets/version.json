@@ -1,10 +1,10 @@
 {
-  "version": "2.4.3",
-  "build": 81,
+  "version": "2.4.4",
+  "build": 82,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.1 — Precision Reticle NDC Focal Alignment & Minigame Engine Sound Silencing",
+  "description": "Space Capsule V8.2 — Unified Care & Vitals Core, Kepler-186 Outpost Shop & Viscoelastic Physics Degradation",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.1: Fixed celestial target acquisition bug by replacing raw world-unit offsets with precision 3D camera NDC projection to the cockpit reticle center pip, ensuring only stars directly centered in the reticle are locked on. Silenced shuttle engine thruster sound automatically across all active minigames."
+  "changelog": "V8.2: Implemented the biological & psychological Unidirectional Tri-Vital System (Food, Hydration, Energy) with exact differential decay equations, Metabolic Crisis Drag, minigame vital tax (-10% F, -15% H, -12% E), viscoelastic Pong/character physics degradation (gamma=0.72, k=0.012), 6-hour sleep Well-Rested Buff (1.5x golden payout), Kepler-186 Outpost Shop with Cost-Scarcity Index pricing and care petal stock counters."
 }
 

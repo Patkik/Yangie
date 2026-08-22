@@ -102,6 +102,9 @@ export class KiroMinigameEngine {
     KiroState.set('minigameActive', true);
     synthEngine.stopThruster(0.05);
 
+    // Apply Unified Tri-Vital Tax: Food -10%, Hydration -15%, Energy -12%
+    KiroState.applyMinigameVitalTax();
+
     const gameCatalog = {
       tetris: { title: 'Celestial Tetris', sub: 'Gliese / Helix System • Squish Star-Candies' },
       pong:   { title: 'Starlight Pong', sub: 'Trappist / Crab System • Elastic Kiro Rebound' },
@@ -310,6 +313,12 @@ export class KiroMinigameEngine {
               <div class="formula-item">
                 <span class="f-lbl">Helix Squish Buff:</span>
                 <span class="f-val" style="color:#94E2D5;">${payoutResult.squishBonus}x Active</span>
+              </div>
+            ` : ''}
+            ${payoutResult.wellRestedMultiplier > 1.0 ? `
+              <div class="formula-item">
+                <span class="f-lbl">Well-Rested Aura:</span>
+                <span class="f-val" style="color:#F9E2AF;">1.5x Golden Buff</span>
               </div>
             ` : ''}
             ${payoutResult.sombreroMultiplier > 1.0 ? `
@@ -650,14 +659,16 @@ class StarlightPong {
   }
 
   update(dt) {
-    // Dynamic Drag from Kiro's energy level
-    const drag = KiroState.getPhysicsDrag();
-    this.ballX += this.ballVx * dt / drag;
-    this.ballY += this.ballVy * dt / drag;
+    // Dynamic Viscoelastic Damping & Spring Parameters from Kiro's energy level
+    const params = KiroState.getViscoelasticParameters();
+    const drag = params.dragMultiplier;
+    this.ballX += (this.ballVx * dt) / drag;
+    this.ballY += (this.ballVy * dt) / drag;
 
-    // Recover squish elasticity smoothly over time
-    this.squishX += (1.0 - this.squishX) * dt * 10;
-    this.squishY += (1.0 - this.squishY) * dt * 10;
+    // Recover squish elasticity smoothly over time: k_elasticity determines recovery rate (sluggish when crisis)
+    const recoveryRate = params.isCrisis ? 4.5 : 10.0;
+    this.squishX += (1.0 - this.squishX) * dt * recoveryRate;
+    this.squishY += (1.0 - this.squishY) * dt * recoveryRate;
 
     const w = this.engine.displayWidth;
     const h = this.engine.displayHeight;
@@ -666,14 +677,14 @@ class StarlightPong {
     if (this.ballX - this.ballRadius <= 0) {
       this.ballX = this.ballRadius;
       this.ballVx = Math.abs(this.ballVx);
-      this.squishX = 0.65;
-      this.squishY = 1.35;
+      this.squishX = params.isCrisis ? 0.45 : 0.65;
+      this.squishY = params.isCrisis ? 1.55 : 1.35;
       synthEngine.playPongBounce(this.combo);
     } else if (this.ballX + this.ballRadius >= w) {
       this.ballX = w - this.ballRadius;
       this.ballVx = -Math.abs(this.ballVx);
-      this.squishX = 0.65;
-      this.squishY = 1.35;
+      this.squishX = params.isCrisis ? 0.45 : 0.65;
+      this.squishY = params.isCrisis ? 1.55 : 1.35;
       synthEngine.playPongBounce(this.combo);
     }
 
@@ -681,8 +692,8 @@ class StarlightPong {
     if (this.ballY - this.ballRadius <= 0) {
       this.ballY = this.ballRadius;
       this.ballVy = Math.abs(this.ballVy);
-      this.squishY = 0.65;
-      this.squishX = 1.35;
+      this.squishY = params.isCrisis ? 0.45 : 0.65;
+      this.squishX = params.isCrisis ? 1.55 : 1.35;
       synthEngine.playPongBounce(this.combo);
     }
 
@@ -695,13 +706,14 @@ class StarlightPong {
       this.ballX <= this.paddleX + this.paddleW &&
       this.ballVy > 0
     ) {
-      this.ballVy = -Math.abs(this.ballVy) * 1.05; // Accelerate slightly
+      const bounceMult = params.isCrisis ? 0.75 : 1.05; // 40% loss of rebound velocity in crisis
+      this.ballVy = -Math.abs(this.ballVy) * bounceMult;
       // Apply paddle angle deflection
       const hitOffset = (this.ballX - (this.paddleX + this.paddleW / 2)) / (this.paddleW / 2);
-      this.ballVx = hitOffset * 220;
+      this.ballVx = hitOffset * (params.isCrisis ? 140 : 220);
 
-      this.squishY = 0.55;
-      this.squishX = 1.45;
+      this.squishY = params.isCrisis ? 0.35 : 0.55; // Heavily deform like wet clay in crisis
+      this.squishX = params.isCrisis ? 1.65 : 1.45;
       this.combo += 1;
       this.score += 50 * this.combo;
 

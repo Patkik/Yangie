@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-611900] Unified Care & Vitals Core, Kepler-186 Outpost Shop & Viscoelastic Physics Degradation V8.2
+- **Timestamp**: `2026-08-22T22:02:00.000000`
+- **Strategy & Synthesis**: Implemented the biological & psychological Unidirectional Tri-Vital System (Food, Hydration, Energy) with exact differential decay equations, Metabolic Crisis Drag, minigame vital tax, viscoelastic Pong/character physics degradation, 6-hour sleep Well-Rested Buff, Kepler-186 Outpost Shop with Cost-Scarcity Index pricing and care petal stock counters.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Space Capsule luxury care experience featuring live stock count badges on the floating satellite dock, a dedicated Kepler-186 Outpost Shop modal with glassmorphic Twilight cards, and dynamic Well-Rested golden aura synesthesia.
+  - **Performance**: Score 5/5: Implemented differential 5s decay evaluation in orchestrator with zero main-thread GC allocations, using pre-allocated scratch state and high-frequency delta time mathematics.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.4.4 (Build 82) across version.json, index.html, state.js, and build.gradle.kts to purge stale WebView cache and update asset bindings.
+  - **Structural**: Score 5/5: Clean mathematical state modeling with centralized inventory capacity limits, Cost-Scarcity Index pricing formula, interlocked Metabolic Crisis Drag, minigame vital tax, and sleep cycle tracking.
+  - **Gamification**: Score 5/5: Deep virtual companion mechanics: Kiro reacts to food and hydration state with distinct physical responses, suffers sluggish clay-like viscoelastic physics degradation when energy drops below 30%, and grants a 1.5x score & stardust multiplier after 6 hours of sleep.
+
+---
+
 ### [DEC-601900] Precision Reticle NDC Focal Alignment & Minigame Engine Sound Silencing V8.1
 - **Timestamp**: `2026-08-22T21:42:00.000000`
 - **Strategy & Synthesis**: Fixed exoplanet target acquisition by projecting celestial targets and reticle center pip into camera NDC space with tight focal cone thresholds and single-target lock selection, and completely silenced shuttle engine thruster audio during active minigames.

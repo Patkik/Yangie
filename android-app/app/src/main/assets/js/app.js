@@ -423,26 +423,102 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Ephemeral Care Treat Petal Buttons
+  // Ephemeral Care Treat Petal Buttons & Inventory Badges
   const feedStarBtn = document.getElementById('btn-feed-star');
   const feedDonutBtn = document.getElementById('btn-feed-donut');
   const drinkWaterBtn = document.getElementById('btn-feed-water');
+  const openKeplerShopBtn = document.getElementById('btn-open-kepler-shop');
+  const keplerShopModal = document.getElementById('kepler-shop-modal');
+  const shopCloseBtn = document.getElementById('shop-close-btn');
 
-  if (feedStarBtn) {
-    feedStarBtn.addEventListener('click', () => {
-      orchestrator.executeFeedingSOP('star');
+  const updateInventoryBadges = () => {
+    const inv = KiroState.get('inventory') || { star: 2, donut: 8, water: 12 };
+    const starEl = document.getElementById('badge-stock-star');
+    const donutEl = document.getElementById('badge-stock-donut');
+    const waterEl = document.getElementById('badge-stock-water');
+    if (starEl) starEl.textContent = inv.star ?? 0;
+    if (donutEl) donutEl.textContent = inv.donut ?? 0;
+    if (waterEl) waterEl.textContent = inv.water ?? 0;
+
+    // Kepler-186 Shop Numbers
+    const shopStarStock = document.getElementById('shop-stock-star');
+    const shopDonutStock = document.getElementById('shop-stock-donut');
+    const shopWaterStock = document.getElementById('shop-stock-water');
+    const shopCostStar = document.getElementById('shop-cost-star');
+    const shopCostDonut = document.getElementById('shop-cost-donut');
+    const shopCostWater = document.getElementById('shop-cost-water');
+    const shopVaultShards = document.getElementById('shop-vault-shards');
+
+    if (shopStarStock) shopStarStock.textContent = inv.star ?? 0;
+    if (shopDonutStock) shopDonutStock.textContent = inv.donut ?? 0;
+    if (shopWaterStock) shopWaterStock.textContent = inv.water ?? 0;
+
+    if (shopCostStar) shopCostStar.textContent = `${KiroState.getItemCost('star')} ✦`;
+    if (shopCostDonut) shopCostDonut.textContent = `${KiroState.getItemCost('donut')} ✦`;
+    if (shopCostWater) shopCostWater.textContent = `${KiroState.getItemCost('water')} ✦`;
+
+    if (shopVaultShards) shopVaultShards.textContent = `${KiroState.get('stardustShards') ?? 350} ✦`;
+  };
+
+  updateInventoryBadges();
+  KiroState.on('change:inventory', () => updateInventoryBadges());
+  KiroState.on('inventory:change', () => updateInventoryBadges());
+  KiroState.on('change:stardustShards', () => updateInventoryBadges());
+
+  const openShop = () => {
+    if (keplerShopModal) {
+      updateInventoryBadges();
+      keplerShopModal.style.display = 'flex';
+      synthEngine.playPetChime(660);
+    }
+  };
+
+  const closeShop = () => {
+    if (keplerShopModal) {
+      keplerShopModal.style.display = 'none';
+    }
+  };
+
+  if (openKeplerShopBtn) openKeplerShopBtn.addEventListener('click', openShop);
+  if (shopCloseBtn) shopCloseBtn.addEventListener('click', closeShop);
+  if (keplerShopModal) {
+    keplerShopModal.addEventListener('pointerdown', (e) => {
+      if (e.target === keplerShopModal) closeShop();
     });
   }
-  if (feedDonutBtn) {
-    feedDonutBtn.addEventListener('click', () => {
-      orchestrator.executeFeedingSOP('donut');
+
+  // Shop Buy Buttons
+  document.querySelectorAll('.shop-buy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const itemId = btn.getAttribute('data-item');
+      if (!itemId) return;
+      const result = KiroState.buyItem(itemId);
+      if (result.success) {
+        synthEngine.playAuraFlare();
+        updateInventoryBadges();
+      } else {
+        synthEngine.playSadWhimper();
+        if (typeof window !== 'undefined' && window.KiroApp && typeof window.KiroApp.spawnNetworkAlertBanner === 'function') {
+          window.KiroApp.spawnNetworkAlertBanner(`⚠️ ${result.reason}`);
+        }
+      }
     });
-  }
-  if (drinkWaterBtn) {
-    drinkWaterBtn.addEventListener('click', () => {
-      orchestrator.executeFeedingSOP('water');
-    });
-  }
+  });
+
+  const handleFeed = (type) => {
+    const inv = KiroState.get('inventory') || {};
+    if ((inv[type] ?? 0) <= 0) {
+      synthEngine.playSadWhimper();
+      openShop();
+      return;
+    }
+    orchestrator.executeFeedingSOP(type);
+    updateInventoryBadges();
+  };
+
+  if (feedStarBtn) feedStarBtn.addEventListener('click', () => handleFeed('star'));
+  if (feedDonutBtn) feedDonutBtn.addEventListener('click', () => handleFeed('donut'));
+  if (drinkWaterBtn) drinkWaterBtn.addEventListener('click', () => handleFeed('water'));
 
   // Comms Hub Navigation Buttons
   const mailboxNavBtn = document.getElementById('btn-nav-mailbox');
