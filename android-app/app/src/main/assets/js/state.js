@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.1.4',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.1.5',
       isOtaActive: false,
 
       // Wellbeing & Real-time Vitals
@@ -87,6 +87,12 @@ class KiroStateManager extends StateEmitter {
 
       // Synthesizer & Sensor Preferences
       gyroEnabled: true,
+      audioSettings: {
+        masterVolume: parseFloat(localStorage.getItem('kiro_audio_master') || '0.85'),
+        sfxVolume: parseFloat(localStorage.getItem('kiro_audio_sfx') || '0.90'),
+        ambientVolume: parseFloat(localStorage.getItem('kiro_audio_ambient') || '0.75'),
+        pitchMultiplier: parseFloat(localStorage.getItem('kiro_audio_pitch') || '1.0')
+      },
       soundVolumes: {
         rain: 0,
         ocean: 0,
@@ -287,6 +293,28 @@ class KiroStateManager extends StateEmitter {
       this.emit('sound:volume', { channel, volume: this.state.soundVolumes[channel] });
       this.emit('change:soundVolumes', { channel, volume: this.state.soundVolumes[channel] });
     }
+  }
+
+  setAudioSetting(key, val) {
+    if (!this.state.audioSettings) this.state.audioSettings = {};
+    const parsed = parseFloat(val) || 0;
+    this.state.audioSettings[key] = parsed;
+
+    const storageKeys = {
+      masterVolume: 'kiro_audio_master',
+      sfxVolume: 'kiro_audio_sfx',
+      ambientVolume: 'kiro_audio_ambient',
+      pitchMultiplier: 'kiro_audio_pitch'
+    };
+
+    if (storageKeys[key]) {
+      try {
+        localStorage.setItem(storageKeys[key], parsed.toString());
+      } catch (e) {}
+    }
+
+    this.emit(`audio:${key}`, parsed);
+    this.emit('change:audioSettings', { key, value: parsed });
   }
 
   setGyro(enabled) {

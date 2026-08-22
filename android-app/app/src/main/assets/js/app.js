@@ -513,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (verBadge) verBadge.textContent = cur.startsWith('v') ? cur : `v${cur}`;
       if (verVal) verVal.textContent = cur.startsWith('v') ? cur : `v${cur}`;
       updatePersonaProfile();
+      syncSoundSettingsUI();
       if (settingsModal) settingsModal.classList.add('open');
     });
   }
@@ -555,6 +556,112 @@ document.addEventListener('DOMContentLoaded', () => {
       gyroToggleBtn.textContent = !current ? 'ON' : 'OFF';
     });
   }
+
+  // 6.1 Sound & Vocal Matrix Handlers (3-Bus Mixer & Vocal Soundboard)
+  const masterVolSlider = document.getElementById('slider-master-vol');
+  const sfxVolSlider = document.getElementById('slider-sfx-vol');
+  const ambientVolSlider = document.getElementById('slider-ambient-vol');
+  const pitchMultSlider = document.getElementById('slider-pitch-mult');
+
+  const lblMasterVol = document.getElementById('lbl-val-master-vol');
+  const lblSfxVol = document.getElementById('lbl-val-sfx-vol');
+  const lblAmbientVol = document.getElementById('lbl-val-ambient-vol');
+  const lblPitchMult = document.getElementById('lbl-val-pitch-mult');
+
+  const updatePitchLabel = (val) => {
+    if (!lblPitchMult) return;
+    const num = val / 100;
+    let label = 'Normal';
+    if (num < 0.65) label = 'Deep Beast';
+    else if (num < 0.90) label = 'Playful Dino';
+    else if (num <= 1.15) label = 'Normal';
+    else if (num <= 1.65) label = 'Cute Alien';
+    else label = 'Squeaky Baby';
+
+    lblPitchMult.textContent = `${num.toFixed(1)}x (${label})`;
+  };
+
+  const syncSoundSettingsUI = () => {
+    const audio = KiroState.get('audioSettings') || {};
+    const master = Math.round((audio.masterVolume ?? 0.85) * 100);
+    const sfx = Math.round((audio.sfxVolume ?? 0.90) * 100);
+    const ambient = Math.round((audio.ambientVolume ?? 0.75) * 100);
+    const pitch = Math.round((audio.pitchMultiplier ?? 1.0) * 100);
+
+    if (masterVolSlider) masterVolSlider.value = master;
+    if (lblMasterVol) lblMasterVol.textContent = `${master}%`;
+
+    if (sfxVolSlider) sfxVolSlider.value = sfx;
+    if (lblSfxVol) lblSfxVol.textContent = `${sfx}%`;
+
+    if (ambientVolSlider) ambientVolSlider.value = ambient;
+    if (lblAmbientVol) lblAmbientVol.textContent = `${ambient}%`;
+
+    if (pitchMultSlider) pitchMultSlider.value = pitch;
+    updatePitchLabel(pitch);
+  };
+
+  syncSoundSettingsUI();
+
+  if (masterVolSlider) {
+    masterVolSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (lblMasterVol) lblMasterVol.textContent = `${val}%`;
+      KiroState.setAudioSetting('masterVolume', val / 100);
+    });
+  }
+
+  if (sfxVolSlider) {
+    sfxVolSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (lblSfxVol) lblSfxVol.textContent = `${val}%`;
+      KiroState.setAudioSetting('sfxVolume', val / 100);
+    });
+  }
+
+  if (ambientVolSlider) {
+    ambientVolSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (lblAmbientVol) lblAmbientVol.textContent = `${val}%`;
+      KiroState.setAudioSetting('ambientVolume', val / 100);
+    });
+  }
+
+  if (pitchMultSlider) {
+    pitchMultSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      updatePitchLabel(val);
+      KiroState.setAudioSetting('pitchMultiplier', val / 100);
+    });
+  }
+
+  // Vocal Soundboard Buttons
+  document.querySelectorAll('.soundboard-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      synthEngine.init();
+      synthEngine.resume();
+      const sound = btn.getAttribute('data-sound');
+      switch (sound) {
+        case 'chirp': synthEngine.playHappyChirp(); break;
+        case 'purr': synthEngine.playPurr(1.4); break;
+        case 'candy': synthEngine.playEatingCandy(); break;
+        case 'water': synthEngine.playWaterGulp(); break;
+        case 'yawn': synthEngine.playSleepyYawn(); break;
+        case 'aura': synthEngine.playAuraFlare(); break;
+        case 'jump': synthEngine.playJoyfulJump(); break;
+        case 'whimper': synthEngine.playSadWhimper(); break;
+        case 'giggle': synthEngine.playGiggle(); break;
+        case 'whoosh': synthEngine.playStarTrailWhoosh(); break;
+        default: synthEngine.playHappyChirp(); break;
+      }
+    });
+  });
+
+  // Stardust Trail Whoosh Event Listener
+  KiroState.on('audio:whoosh', () => {
+    synthEngine.playStarTrailWhoosh();
+  });
 
   // 7. Ephemeral Vibe Soundscape Petals
   const soundOceanBtn = document.getElementById('btn-audio-waves') || document.getElementById('btn-sound-ocean');

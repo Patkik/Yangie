@@ -1,77 +1,77 @@
-# 🌌 Kiro's Cosmic Haven — Reactive Target Lock Cleanup & Celestial Systems Guide (V8.4)
+# 🌌 Kiro's Cosmic Haven — Procedural Vocal SFX Soundboard & 3-Bus Audio Mixer (V8.5)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.1.4` (Android `versionCode = 62`)
+- **Release Version**: `v2.1.5` (Android `versionCode = 63`)
 - **Scope**:
-  1. **Playable Stars & Planetary Systems Catalog**:
-     - Documented all 7 playable cosmic star systems, exoplanets, and deep-space astronomical bodies with Keplerian orbital parameters, physical distances, visual shader profiles, and interactive mini-game mechanics.
-  2. **Target Acquired UI & Holographic Reticle Lifecycle Fix**:
-     - Implemented global reactive subscriber for `change:telescopeActive` across [`app.js`](file:///android-app/app/src/main/assets/js/app.js) and [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js).
-     - Ensured that whenever the user exits the Space Shuttle telescope/cockpit POV (via navigation button, back action, or state change), the `#telescope-aligned-screen` target card is immediately hidden (`display = 'none'`), `cockpitSteering.aligned` and `cockpitSteering.currentTarget` are cleanly reset to `false` and `null`, and 3D targeting reticles/L-brackets return to unaligned resting state.
-- **Zero Asset Dependency**: 100% mathematical procedural GLSL shaders, inline vector SVGs, and Web Audio synthesis.
+  1. **10 Mathematically Mapped Cute Procedural Vocal Sounds**:
+     - Synthesized on-the-fly using the Web Audio API without any downloaded audio files (`.mp3`/`.wav`).
+     - Includes: `playHappyChirp()`, `playPurr()`, `playEatingCandy()`, `playWaterGulp()`, `playSleepyYawn()`, `playAuraFlare()`, `playJoyfulJump()`, `playSadWhimper()`, `playGiggle()`, and `playStarTrailWhoosh()`.
+  2. **3-Bus Sub-Gain Master Mixer Architecture**:
+     - `masterGain` -> `analyser` -> destination
+     - `sfxGain` -> `masterGain` (Kiro vocals and tactile sound FX)
+     - `ambientGain` -> `masterGain` (Background space ambiance loops and thrusters)
+     - `cutenessPitchMultiplier` (0.4x to 2.4x) dynamically bends vocal frequency formants from deep monster rumbles to squeaky baby squeaks.
+  3. **Vocal SFX Soundboard & Sound Settings HUD**:
+     - Real-time sliders in Settings modal for Master Volume (0-100%), Kiro SFX Volume (0-100%), Ambiance Volume (0-100%), and Cuteness Vocal Pitch (0.4x - 2.4x) with reactive descriptors (`Playful Dino`, `Deep Beast`, `Squeaky Baby`).
+     - Interactive 10-button Vocal SFX Soundboard grid in Settings modal.
+  4. **Companion Lifecycle SOP Audio Integrations**:
+     - Bedtime SOP -> `playSleepyYawn()` / `playPurr(1.4)`
+     - Wakeup SOP -> `playHappyChirp()`
+     - Feeding SOP -> `playEatingCandy()`
+     - Hydration SOP -> `playWaterGulp()`
+     - Petting SOP -> `playGiggle()` / `playPurr(1.2)`
+     - Low vitals (<35%) -> throttled `playSadWhimper()`
+     - High vitals (>85%) -> throttled `playPurr(1.0)`
+     - Stardust canvas dragging -> throttled `playStarTrailWhoosh()` (320ms interval).
+- **Zero Asset Dependency**: 100% offline mathematical procedural audio synthesis and GLSL shaders.
 
 ---
 
-## 2. Playable Celestial Systems Breakdown
+## 2. The 10 Distinct Cute Procedural Sounds of Kiro
 
-| Target ID | Celestial Body & Designation | Classification | Astrogation Distance | Visual Register / Shading | Interactive Mini-Game / Feature |
-|---|---|---|---|---|---|
-| `gliese` | **Mint Ice World (Gliese 667)** | `EXOPLANET SANCTUARY` | **23.6 light-years** | Mint-Teal (`#4EC9B0`) Anime cel-shaded cryo-atmosphere with glowing cyan Fresnel scattering envelope & inverted-hull outline | **Frozen Stardust** (Ice crystal navigation) |
-| `trappist` | **Pastel Star Sanctuary (Trappist 1)** | `RED DWARF HABITAT` | **39.6 light-years** | Rose Blush Pastel Pink (`#FFB6C1`) warm dwarf atmosphere with Shinkai rayleigh scattering rim | **Starlight Catch** (Catching falling solar flares & stardust) |
-| `kepler` | **Lavender Ring Giant (Kepler 186)** | `RINGED GAS GIANT` | **582 light-years** | Lavender Cone (`#CBA6F7`) gaseous cloud bands + translucent anime ice particle ring at 42° inclination | **Orbital Rings** (Navigating ring gaps & gravitational loops) |
-| `helix` | **Eye of Helix Nebula (NGC 7293)** | `IONIZED NEBULA` | **655 light-years** | Ionized Emerald Neon (`#94E2D5`) gaseous envelope with chromatic fringe splitting | **Celestial Bounce** (Wave bouncing through ionized starlight rings) |
-| `butterfly` | **Butterfly Galaxy (NGC 6302)** | `GALACTIC SANCTUARY` | **3.80 kilo-light-years** | Bipolar Starburst Wings with radiant Pastel Pink (`#F5C2E7`) & rose violet gas streamers | **Nebula Dodge** (Fast-paced celestial navigation dodging ionized jets) |
-| `crab` | **Crab Pulsar Core (M1)** | `NEUTRON PULSAR` | **6.50 kilo-light-years** | Rhythmic Lavender Violet (`#CBA6F7`) strobe core with magnetic field lines | **Supernova Blast** (Pulsar shockwave energy defense) |
-| `sombrero` | **Sombrero Vortex (M104)** | `SPIRAL CORE` | **29.3 Million light-years** | Dense Golden Starlight Nucleus (`#F9E2AF`) with dark interstellar dust lane ring | **Cosmic Chimes** (Resonance harmony chime activation) |
-
----
-
-## 3. Background Living Cosmological Entities
-
-1. **The Twin Arm Spiral Galaxy (Z = -13.5)**:
-   - Double-arm logarithmic spiral ($r = A \cdot e^{B\theta}$) with 800 stars partitioned between Patrick's Mint Arm (`#4EC9B0`) and Yangiee's Pink Arm (`#F5C2E7`).
-   - Symmetrically spins around the central Golden Starlight Core (`#F9E2AF`).
-2. **The Living Multi-Tail Astronomical Comet (Z = -14.0)**:
-   - High-density glowing white/cyan ion coma with 6 individual plasma tail filaments reacting to solar winds.
-   - Sweeping curved golden-pink stardust plume tracking orbital inertia.
-3. **Deep Gaussian Bokeh Starfield (Z = -24 to -65)**:
-   - 1,400 distant stars with Morgan-Keenan spectral temperatures (diamond white, icy cyan, warm gold, pastel pink, lavender) with analytic Gaussian decay (`exp(-3.8 * r^2)`).
+| # | Vocal Sound | Trigger SOP / Lifecycle | Mathematical Synthesis Profile |
+|---|---|---|---|
+| 1 | **Happy Chirp** (`playHappyChirp`) | Wakeup / Greet / Normal Click | Overlapping sine sweeps starting at 480Hz & 620Hz exponentially rising by 2.1x in 80ms |
+| 2 | **Cozy Purr** (`playPurr`) | Deep Satisfaction / Thriving | 65Hz base triangle oscillator + 140Hz lowpass filter modulated by 8.5Hz AM LFO on gain node |
+| 3 | **Candy Chew** (`playEatingCandy`) | Star Candy / Donut Feeding | 3-beat triangle sequence (150Hz -> 360Hz -> 75Hz) + bandpassed pink noise sparkle crunch |
+| 4 | **Water Gulp** (`playWaterGulp`) | Water Droplet Hydration | Escalating cascade of 4 sine pops (180Hz, 230Hz, 290Hz, 360Hz) with fast attack/decay |
+| 5 | **Sleepy Yawn** (`playSleepyYawn`) | Bedtime Hold Toggle | Triangle wave 260Hz -> 110Hz + lowpass filter sweeping 500Hz -> 160Hz over 1.4s |
+| 6 | **Aura Flare** (`playAuraFlare`) | Golden Aura Pulse | Sequential C-Major chord sweep (329Hz, 392Hz, 523Hz, 659Hz, 783Hz, 1046Hz) delayed by 75ms |
+| 7 | **Joyful Jump** (`playJoyfulJump`) | High Happiness / Minigame | Rubbery cartoon bounce slide: smooth sine wave sweeping 220Hz -> 680Hz in 350ms |
+| 8 | **Sad Whimper** (`playSadWhimper`) | Low Vitals (<35%) Neglect | High 410Hz sine wave bending to 290Hz modulated by 12Hz shivering tremolo oscillator |
+| 9 | **Tickle Giggle** (`playGiggle`) | Tactile Companion Petting | 4 rapid staccato sine wave bursts (720Hz - 880Hz, 60ms each) |
+| 10 | **Stardust Whoosh** (`playStarTrailWhoosh`) | Canvas Stardust Particle Drag | White noise buffer through sharp bandpass filter (Q=15) sweeping 1400Hz -> 4500Hz in 0.5s |
 
 ---
 
-## 4. Target Acquired UI & Reticle Lifecycle Fix
+## 3. 3-Bus Gain Routing Diagram
 
-```javascript
-// app.js — Reactive Telescope Mode & Target Card Synchronization
-KiroState.on('change:telescopeActive', ({ newValue }) => {
-  const active = Boolean(newValue);
-  if (shuttleSteerBtn) shuttleSteerBtn.classList.toggle('active', active);
-  if (joystickHud) joystickHud.style.display = active ? 'flex' : 'none';
-  if (!active && telescopeAlignedScreen) {
-    telescopeAlignedScreen.style.display = 'none';
-    KiroState.set('cockpitSteering.aligned', false);
-    KiroState.set('cockpitSteering.currentTarget', null);
-  }
-});
+```
+ [Ambient Loops: Rain, Ocean, Lofi, Thruster] ──> ambientGain ──┐
+                                                                ├──> masterGain ──> AnalyserNode ──> Destination
+ [Kiro Vocal SFX: 10 Sounds, Chimes, Chords] ───> sfxGain ─────┘
+                                  ▲
+                                  └─── (Cuteness Pitch Multiplier: 0.4x - 2.4x)
 ```
 
 ---
 
-## 5. Verification Suite Results
+## 4. Verification Suite Results
 
 | Test / Gate | Command | Result |
 |---|---|---|
 | **Multi-Agent Orchestrator Test** | `node scripts/test-orchestrator.js` | ✅ **7/7 SOP Checks Passed** |
-| **Dynamic Headless WebGL Audit** | `node scripts/headless-gl-audit.js` | ✅ **54/54 Assertions Passed (Exit 0)** |
+| **Dynamic Headless WebGL & WebAudio Audit** | `node scripts/headless-gl-audit.js` | ✅ **64/64 Assertions Passed (Exit 0)** |
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **8/8 Tests Green (Exit 0)** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 13s** |
-| **Synchronized SemVer** | `v2.1.4` (Android `versionCode = 62`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-431900 recorded |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 14s** |
+| **Synchronized SemVer** | `v2.1.5` (Android `versionCode = 63`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-441900 recorded |
 
 ---
 
-## 6. Git Publication & Release Audit
-- **Commit**: `feat(astrogation): target acquired ui lifecycle cleanup & playable celestial systems catalog (v2.1.4)`
-- **Tag**: `v2.1.4`
+## 5. Git Publication & Release Audit
+- **Commit**: `feat(audio): procedural vocal soundboard, 10 cute sounds & 3-bus mixer architecture (v2.1.5)`
+- **Tag**: `v2.1.5`
 - **Branch**: `origin/main`
+

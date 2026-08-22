@@ -18,10 +18,19 @@ export class CosmicSynthEngine {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
+    this.sfxGain = null;
+    this.ambientGain = null;
     this.analyser = null;
     this.analyserData = null;
     this.isPlaying = false;
     this.atmosphereActive = false;
+
+    // Sub-Gain Master Volume Levels
+    const savedAudio = KiroState.get('audioSettings') || {};
+    this.masterVolume = savedAudio.masterVolume ?? 0.85;
+    this.sfxVolume = savedAudio.sfxVolume ?? 0.90;
+    this.ambientVolume = savedAudio.ambientVolume ?? 0.75;
+    this.cutenessPitchMultiplier = savedAudio.pitchMultiplier ?? 1.0;
 
     // Ambient Channels
     this.channels = {
@@ -59,6 +68,11 @@ export class CosmicSynthEngine {
       this.setVolume(channel, volume);
     });
 
+    KiroState.on('audio:masterVolume', (val) => this.setMasterVolume(val));
+    KiroState.on('audio:sfxVolume', (val) => this.setSfxVolume(val));
+    KiroState.on('audio:ambientVolume', (val) => this.setAmbientVolume(val));
+    KiroState.on('audio:pitchMultiplier', (val) => this.setCutenessPitchMultiplier(val));
+
     KiroState.on('cockpitSteering:change', (steering) => {
       if (steering) {
         const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
@@ -83,9 +97,19 @@ export class CosmicSynthEngine {
 
     this.ctx = new AudioContextClass();
 
-    // Master Gain Node
+    // 1. Master Gain Node
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+    this.masterGain.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
+
+    // 2. SFX Sub-Gain Node (Kiro vocals & SFX)
+    this.sfxGain = this.ctx.createGain();
+    this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
+    this.sfxGain.connect(this.masterGain);
+
+    // 3. Ambient Sub-Gain Node (Background space ambiance loops)
+    this.ambientGain = this.ctx.createGain();
+    this.ambientGain.gain.setValueAtTime(this.ambientVolume, this.ctx.currentTime);
+    this.ambientGain.connect(this.masterGain);
 
     // Audio-Reactive Analyser Node for 3D Synesthesia (Aura & Ring Pulsing)
     this.analyser = this.ctx.createAnalyser();
@@ -103,6 +127,31 @@ export class CosmicSynthEngine {
     this.initLofi();
 
     this.isPlaying = true;
+  }
+
+  setMasterVolume(val) {
+    this.masterVolume = Math.max(0, Math.min(1.0, parseFloat(val) || 0));
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setTargetAtTime(this.masterVolume, this.ctx.currentTime, 0.05);
+    }
+  }
+
+  setSfxVolume(val) {
+    this.sfxVolume = Math.max(0, Math.min(1.0, parseFloat(val) || 0));
+    if (this.sfxGain && this.ctx) {
+      this.sfxGain.gain.setTargetAtTime(this.sfxVolume, this.ctx.currentTime, 0.05);
+    }
+  }
+
+  setAmbientVolume(val) {
+    this.ambientVolume = Math.max(0, Math.min(1.0, parseFloat(val) || 0));
+    if (this.ambientGain && this.ctx) {
+      this.ambientGain.gain.setTargetAtTime(this.ambientVolume, this.ctx.currentTime, 0.05);
+    }
+  }
+
+  setCutenessPitchMultiplier(val) {
+    this.cutenessPitchMultiplier = Math.max(0.4, Math.min(2.4, parseFloat(val) || 1.0));
   }
 
   resume() {
@@ -207,7 +256,7 @@ export class CosmicSynthEngine {
     this.thruster.sawOsc.connect(this.thruster.filterNode);
     this.thruster.triOsc.connect(this.thruster.filterNode);
     this.thruster.filterNode.connect(this.thruster.gainNode);
-    this.thruster.gainNode.connect(this.masterGain);
+    this.thruster.gainNode.connect(this.ambientGain || this.masterGain);
 
     this.thruster.sawOsc.start(now);
     this.thruster.triOsc.start(now);
@@ -284,7 +333,7 @@ export class CosmicSynthEngine {
 
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.ambientGain || this.masterGain);
 
     source.start(0);
     this.channels.rain.node = source;
@@ -315,7 +364,7 @@ export class CosmicSynthEngine {
 
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.ambientGain || this.masterGain);
 
     lfo.start(0);
     source.start(0);
@@ -327,7 +376,7 @@ export class CosmicSynthEngine {
   initThunder() {
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, this.ctx.currentTime);
-    gain.connect(this.masterGain);
+    gain.connect(this.ambientGain || this.masterGain);
 
     this.channels.thunder.gainNode = gain;
     this.scheduleThunder();
@@ -367,7 +416,7 @@ export class CosmicSynthEngine {
   initForest() {
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, this.ctx.currentTime);
-    gain.connect(this.masterGain);
+    gain.connect(this.ambientGain || this.masterGain);
 
     this.channels.forest.gainNode = gain;
     this.scheduleBirdChirp();
@@ -404,7 +453,7 @@ export class CosmicSynthEngine {
   initLofi() {
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, this.ctx.currentTime);
-    gain.connect(this.masterGain);
+    gain.connect(this.ambientGain || this.masterGain);
 
     this.channels.lofi.gainNode = gain;
     this.startLofiBeat();
@@ -728,7 +777,7 @@ export class CosmicSynthEngine {
 
     noiseSource.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain || this.masterGain);
 
     noiseSource.start(now);
     noiseSource.stop(now + duration + 0.05);
@@ -751,7 +800,7 @@ export class CosmicSynthEngine {
     subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     subOsc.connect(subGain);
-    subGain.connect(this.masterGain);
+    subGain.connect(this.sfxGain || this.masterGain);
 
     subOsc.start(now);
     subOsc.stop(now + duration + 0.1);
@@ -777,7 +826,7 @@ export class CosmicSynthEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 2.2);
 
       osc.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now + delay);
       osc.stop(now + delay + 2.3);
@@ -809,7 +858,7 @@ export class CosmicSynthEngine {
 
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now + i * 0.03);
       osc.stop(now + i * 0.03 + 1.5);
@@ -835,7 +884,7 @@ export class CosmicSynthEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.03 + 1.6);
 
       osc.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now + i * 0.03);
       osc.stop(now + i * 0.03 + 1.7);
@@ -860,7 +909,7 @@ export class CosmicSynthEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
 
       osc.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now);
       osc.stop(now + 0.85);
@@ -879,97 +928,423 @@ export class CosmicSynthEngine {
 
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain || this.masterGain);
 
     noise.start(now);
     noise.stop(now + 0.95);
   }
 
-  playChewSound() {
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. The 10 Distinct Cute Procedural Sounds of Kiro
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * 1. Happy Chirp (playHappyChirp)
+   * The Sound: High-frequency, sweet ascending double-chirps of an alien chick.
+   * The Math: Synthesizes two rapid, overlapping sine wave frequency sweeps
+   * (starting at 480Hz and 620Hz) that exponentially multiply upward by a factor of 2.1 in 80ms.
+   */
+  playHappyChirp() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
     const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const chirps = [
+      { startFreq: 480 * mult, delay: 0.00 },
+      { startFreq: 620 * mult, delay: 0.085 }
+    ];
 
-    // 1. Cartoon Munch / Chomp (Triangle wave pitch sweep downward)
-    for (let c = 0; c < 3; c++) {
-      const delay = c * 0.11;
+    chirps.forEach(({ startFreq, delay }) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
+      const t = now + delay;
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(320 + Math.random() * 40, now + delay);
-      osc.frequency.exponentialRampToValueAtTime(110, now + delay + 0.08);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, t);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 2.1, t + 0.08);
 
-      gain.gain.setValueAtTime(0, now + delay);
-      gain.gain.linearRampToValueAtTime(0.18, now + delay + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.09);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.20, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
 
       osc.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
-      osc.start(now + delay);
-      osc.stop(now + delay + 0.10);
-    }
-
-    // 2. Crunchy Sparkle Crunch (Filtered noise burst)
-    const crunch = this.ctx.createBufferSource();
-    crunch.buffer = this.createPinkNoiseBuffer();
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(2200, now);
-    filter.Q.setValueAtTime(4.0, now);
-
-    const cGain = this.ctx.createGain();
-    cGain.gain.setValueAtTime(0.12, now);
-    cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-    crunch.connect(filter);
-    filter.connect(cGain);
-    cGain.connect(this.masterGain);
-
-    crunch.start(now);
-    crunch.stop(now + 0.36);
+      osc.start(t);
+      osc.stop(t + 0.085);
+    });
   }
 
-  playPurrSound(duration = 1.4) {
+  /**
+   * 2. Cozy Purr (playPurr)
+   * The Sound: A rhythmic, comforting, vibrating hum representing deep satisfaction.
+   * The Math: Combines a warm 65Hz base triangle oscillator with a low-pass filter (set to 140Hz)
+   * and connects an LFO running at 8.5Hz directly into the gain node to simulate a pulsing purr.
+   */
+  playPurr(duration = 1.4) {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
     const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
 
-    // Feline Purr Carrier (52Hz low rumble) + AM Tremolo Modulation (28Hz LFO)
     const carrier = this.ctx.createOscillator();
-    carrier.type = 'sine';
-    carrier.frequency.setValueAtTime(52, now);
-
-    const lfo = this.ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(28, now);
-
-    const lfoGain = this.ctx.createGain();
-    lfoGain.gain.setValueAtTime(0.08, now);
+    carrier.type = 'triangle';
+    carrier.frequency.setValueAtTime(65 * mult, now);
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(220, now);
+    filter.frequency.setValueAtTime(Math.min(1000, 140 * mult), now);
+    filter.Q.setValueAtTime(2.0, now);
 
     const purrGain = this.ctx.createGain();
     purrGain.gain.setValueAtTime(0.001, now);
-    purrGain.gain.linearRampToValueAtTime(0.16, now + 0.2);
+    purrGain.gain.linearRampToValueAtTime(0.22, now + 0.15);
     purrGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    const lfo = this.ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(8.5, now);
+
+    const lfoGain = this.ctx.createGain();
+    lfoGain.gain.setValueAtTime(0.12, now);
 
     lfo.connect(lfoGain);
     lfoGain.connect(purrGain.gain);
 
     carrier.connect(filter);
     filter.connect(purrGain);
-    purrGain.connect(this.masterGain);
+    purrGain.connect(this.sfxGain || this.masterGain);
 
     carrier.start(now);
     lfo.start(now);
     carrier.stop(now + duration + 0.05);
     lfo.stop(now + duration + 0.05);
+  }
+
+  /**
+   * 3. Candy Chew (playEatingCandy)
+   * The Sound: A multi-step, wet-crunchy swallowing noise when Kiro eats Star Candies.
+   * The Math: A three-beat sequence of triangle wave pitch sweeps starting at 150Hz,
+   * peaking linearly to 360Hz, and decaying exponentially to 75Hz with a rapid gain-decay envelope.
+   */
+  playEatingCandy() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+
+    for (let i = 0; i < 3; i++) {
+      const delay = i * 0.11;
+      const t = now + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(150 * mult, t);
+      osc.frequency.linearRampToValueAtTime(360 * mult, t + 0.035);
+      osc.frequency.exponentialRampToValueAtTime(75 * mult, t + 0.095);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.20, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.10);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.11);
+    }
+
+    // Sparkle crunch burst
+    const crunch = this.ctx.createBufferSource();
+    crunch.buffer = this.createPinkNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2400 * Math.min(2.0, mult), now);
+    filter.Q.setValueAtTime(5.0, now);
+
+    const cGain = this.ctx.createGain();
+    cGain.gain.setValueAtTime(0.14, now);
+    cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+    crunch.connect(filter);
+    filter.connect(cGain);
+    cGain.connect(this.sfxGain || this.masterGain);
+
+    crunch.start(now);
+    crunch.stop(now + 0.33);
+  }
+
+  /**
+   * 4. Water Gulp (playWaterGulp)
+   * The Sound: Rising, gurgly bubbles representing Kiro quenching his thirst.
+   * The Math: An escalating cascade of four sine wave pops (pitched at 180Hz, 230Hz, 290Hz, and 360Hz)
+   * with ultra-fast attack/decay times.
+   */
+  playWaterGulp() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const pitches = [180, 230, 290, 360];
+
+    pitches.forEach((baseFreq, i) => {
+      const delay = i * 0.075;
+      const t = now + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq * mult, t);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5 * mult, t + 0.06);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.075);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.08);
+    });
+  }
+
+  /**
+   * 5. Sleepy Yawn (playSleepyYawn)
+   * The Sound: A tired, long, sighing low-pass sweep when tucked into bed.
+   * The Math: A sleepy triangle oscillator starting at 260Hz and sliding exponentially down
+   * to 110Hz over 1.4 seconds, coupled with a low-pass filter that sweeps downwards from 500Hz to 160Hz.
+   */
+  playSleepyYawn() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+
+    const osc = this.ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(260 * mult, now);
+    osc.frequency.exponentialRampToValueAtTime(110 * mult, now + 1.4);
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(500 * mult, now);
+    filter.frequency.exponentialRampToValueAtTime(160 * mult, now + 1.4);
+    filter.Q.setValueAtTime(3.0, now);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.20, now + 0.35);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 1.50);
+  }
+
+  /**
+   * 6. Aura Flare (playAuraFlare)
+   * The Sound: A brilliant, magical, shimmering arpeggio when Kiro's golden glow pulses.
+   * The Math: Triggers a sequential C-Major chord sweep (329Hz, 392Hz, 523Hz, 659Hz, 783Hz, 1046Hz)
+   * delayed by 75ms per note with highly resonating sine waves.
+   */
+  playAuraFlare() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const chordFrequencies = [329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+
+    chordFrequencies.forEach((freq, idx) => {
+      const delay = idx * 0.075;
+      const t = now + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq * mult, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.02 * mult, t + 0.45);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.12, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.65);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.70);
+    });
+  }
+
+  /**
+   * 7. Joyful Jump (playJoyfulJump)
+   * The Sound: An elastic, rubbery, cartoon-style bounce slide.
+   * The Math: A smooth sine wave that sweeps exponentially upwards from 220Hz to 680Hz in 350 milliseconds.
+   */
+  playJoyfulJump() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+
+    const osc = this.ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220 * mult, now);
+    osc.frequency.exponentialRampToValueAtTime(680 * mult, now + 0.35);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.22, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.40);
+  }
+
+  /**
+   * 8. Sad Whimper (playSadWhimper)
+   * The Sound: A microtonally trembling, shivering cry when neglected or hungry.
+   * The Math: A high 410Hz sine wave bending down to 290Hz, modulated on the frequency bus
+   * by a secondary 12Hz shivering tremolo oscillator.
+   */
+  playSadWhimper() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+
+    const carrier = this.ctx.createOscillator();
+    carrier.type = 'sine';
+    carrier.frequency.setValueAtTime(410 * mult, now);
+    carrier.frequency.exponentialRampToValueAtTime(290 * mult, now + 0.85);
+
+    const tremolo = this.ctx.createOscillator();
+    tremolo.type = 'sine';
+    tremolo.frequency.setValueAtTime(12.0, now);
+
+    const tremoloGain = this.ctx.createGain();
+    tremoloGain.gain.setValueAtTime(18.0 * mult, now);
+
+    tremolo.connect(tremoloGain);
+    tremoloGain.connect(carrier.frequency);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.90);
+
+    carrier.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    carrier.start(now);
+    tremolo.start(now);
+    carrier.stop(now + 0.95);
+    tremolo.stop(now + 0.95);
+  }
+
+  /**
+   * 9. Tickle Giggle (playGiggle)
+   * The Sound: High-pitched, rapid giggles when Kiro is petted.
+   * The Math: Four rapid, staccato sine wave bursts rising between 720Hz and 880Hz, lasting only 60 milliseconds each.
+   */
+  playGiggle() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+
+    for (let i = 0; i < 4; i++) {
+      const delay = i * 0.07;
+      const t = now + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      const startF = (720 + i * 40) * mult;
+      const endF = (880 + i * 30) * mult;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startF, t);
+      osc.frequency.exponentialRampToValueAtTime(endF, t + 0.055);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.16, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.065);
+    }
+  }
+
+  /**
+   * 10. Stardust Whoosh (playStarTrailWhoosh)
+   * The Sound: A soft, magical brush whoosh when dragging stardust trail particles.
+   * The Math: Generates a raw white noise buffer, passes it through a sharp bandpass filter
+   * (Q factor of 15), and sweeps the frequency exponentially from 1400Hz to 4500Hz in a half-second swell.
+   */
+  playStarTrailWhoosh() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.createWhiteNoiseBuffer();
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(4500, now + 0.48);
+    filter.Q.setValueAtTime(15.0, now);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.18);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.50);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    noise.start(now);
+    noise.stop(now + 0.52);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Backward-Compatibility Aliases
+  // ─────────────────────────────────────────────────────────────────────────────
+  playChewSound() {
+    this.playEatingCandy();
+  }
+
+  playCrunchSound() {
+    this.playEatingCandy();
+  }
+
+  playPurrSound(duration = 1.4) {
+    this.playPurr(duration);
+  }
+
+  playWaterSound() {
+    this.playWaterGulp();
   }
 
   playPetChime(baseFreq = 660) {
@@ -992,7 +1367,7 @@ export class CosmicSynthEngine {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.8);
 
       osc.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now + delay);
       osc.stop(now + delay + 0.85);
@@ -1020,7 +1395,7 @@ export class CosmicSynthEngine {
 
     osc.connect(gain);
     oscHarmonic.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain || this.masterGain);
 
     osc.start(now);
     oscHarmonic.start(now);
@@ -1056,7 +1431,7 @@ export class CosmicSynthEngine {
 
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(tStart);
       osc.stop(tStart + 0.30);
@@ -1072,37 +1447,9 @@ export class CosmicSynthEngine {
     subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
 
     subOsc.connect(subGain);
-    subGain.connect(this.masterGain);
+    subGain.connect(this.sfxGain || this.masterGain);
     subOsc.start(now + 0.16);
     subOsc.stop(now + 0.60);
-  }
-
-  playWaterSound() {
-    if (!this.ctx) this.init();
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-
-    const now = this.ctx.currentTime;
-
-    // Crystal water droplet swooshes
-    for (let d = 0; d < 4; d++) {
-      const delay = d * 0.07;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880 + d * 180, now + delay);
-      osc.frequency.exponentialRampToValueAtTime(1760 + d * 220, now + delay + 0.08);
-
-      gain.gain.setValueAtTime(0, now + delay);
-      gain.gain.linearRampToValueAtTime(0.12, now + delay + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.35);
-
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-
-      osc.start(now + delay);
-      osc.stop(now + delay + 0.38);
-    }
   }
 
   startCosmicAtmosphere() {
@@ -1131,7 +1478,7 @@ export class CosmicSynthEngine {
     this.humLfo.connect(this.humLfoGain);
     this.humLfoGain.connect(this.humGain.gain);
     this.humOsc.connect(this.humGain);
-    this.humGain.connect(this.masterGain);
+    this.humGain.connect(this.ambientGain || this.masterGain);
 
     this.humOsc.start(now);
     this.humLfo.start(now);
@@ -1161,7 +1508,7 @@ export class CosmicSynthEngine {
 
     this.windSource.connect(this.windFilter);
     this.windFilter.connect(this.windGain);
-    this.windGain.connect(this.masterGain);
+    this.windGain.connect(this.ambientGain || this.masterGain);
 
     this.windSource.start(now);
     this.windLfo.start(now);

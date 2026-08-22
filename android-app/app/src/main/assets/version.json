@@ -1,6 +1,9 @@
 {
-  "version": "2.1.4",
+  "version": "2.1.5",
+  "build": 63,
   "name": "Kiro's Cosmic Haven",
   "description": "Space Capsule V5.0 — Reactive Target Lock Cleanup & Celestial System Catalog",
-  "minApkVersion": "1.0.0"
+  "releaseDate": "2026-08-22",
+  "minApkVersion": 1,
+  "changelog": "V8.5: High-fidelity procedural SFX soundboard & 3-bus sub-gain mixer with cuteness pitch scaling."
 }

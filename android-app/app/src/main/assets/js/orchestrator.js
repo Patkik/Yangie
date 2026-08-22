@@ -94,9 +94,13 @@ export class KiroAgenticOrchestrator {
     // 3. Astrogation & 3D scene adjustments
     this.astrogationAgent.applySleepCosmology(true);
 
-    // 4. Trigger procedural purr
-    if (this.synth && this.synth.playPurrSound) {
-      this.synth.playPurrSound(1.2);
+    // 4. Trigger procedural sleepy yawn & purr
+    if (this.synth) {
+      if (typeof this.synth.playSleepyYawn === 'function') {
+        this.synth.playSleepyYawn();
+      } else if (typeof this.synth.playPurrSound === 'function') {
+        this.synth.playPurrSound(1.4);
+      }
     }
   }
 
@@ -117,9 +121,13 @@ export class KiroAgenticOrchestrator {
     // 3. Astrogation & 3D scene adjustments
     this.astrogationAgent.applySleepCosmology(false);
 
-    // 4. Play morning wakeup chime
-    if (this.synth && this.synth.playPetChime) {
-      this.synth.playPetChime();
+    // 4. Play morning wakeup chirp
+    if (this.synth) {
+      if (typeof this.synth.playHappyChirp === 'function') {
+        this.synth.playHappyChirp();
+      } else if (typeof this.synth.playPetChime === 'function') {
+        this.synth.playPetChime();
+      }
     }
   }
 
@@ -132,25 +140,44 @@ export class KiroAgenticOrchestrator {
 
     if (treatType === 'star') {
       if (this.scene && this.scene.dropCandy) this.scene.dropCandy('star');
-      if (this.synth && this.synth.playChewSound) this.synth.playChewSound();
+      if (this.synth) {
+        if (typeof this.synth.playEatingCandy === 'function') this.synth.playEatingCandy();
+        else if (typeof this.synth.playChewSound === 'function') this.synth.playChewSound();
+      }
       KiroState.feed('star');
     } else if (treatType === 'donut') {
       if (this.scene && this.scene.dropCandy) this.scene.dropCandy('donut');
-      if (this.synth && this.synth.playChewSound) this.synth.playChewSound();
+      if (this.synth) {
+        if (typeof this.synth.playEatingCandy === 'function') this.synth.playEatingCandy();
+        else if (typeof this.synth.playChewSound === 'function') this.synth.playChewSound();
+      }
       KiroState.feed('donut');
     } else if (treatType === 'water') {
       if (this.scene && this.scene.splashWater) this.scene.splashWater();
-      if (this.synth && this.synth.playWaterSound) this.synth.playWaterSound();
+      if (this.synth) {
+        if (typeof this.synth.playWaterGulp === 'function') this.synth.playWaterGulp();
+        else if (typeof this.synth.playWaterSound === 'function') this.synth.playWaterSound();
+      }
       KiroState.drinkWater();
     }
   }
 
   /**
-   * Petting SOP: Direct touch tactile deformation and purr synthesis
+   * Petting SOP: Direct touch tactile deformation and purr/giggle synthesis
    */
   executePettingSOP() {
     this.workingMemory.petCountSession++;
     this.vitalsAgent.boostHappiness(8);
+
+    if (this.synth) {
+      if (this.workingMemory.petCountSession % 2 === 0 && typeof this.synth.playGiggle === 'function') {
+        this.synth.playGiggle();
+      } else if (typeof this.synth.playPurr === 'function') {
+        this.synth.playPurr(1.2);
+      } else if (typeof this.synth.playPetChime === 'function') {
+        this.synth.playPetChime();
+      }
+    }
 
     if (this.scene && this.scene.triggerPetReaction) {
       this.scene.triggerPetReaction();
@@ -166,6 +193,7 @@ class VitalsSpecialist {
   constructor(orchestrator) {
     this.orchestrator = orchestrator;
     this.intervalId = null;
+    this.lastSoundAlert = 0;
   }
 
   startLoop() {
@@ -179,8 +207,26 @@ class VitalsSpecialist {
       // Natural slow decay of hunger and hydration
       const currentHunger = KiroState.get('hunger') || 85;
       const currentThirst = KiroState.get('hydration') || 90;
-      KiroState.set('hunger', Math.max(10, currentHunger - 1));
-      KiroState.set('hydration', Math.max(10, currentThirst - 1));
+      const newHunger = Math.max(10, currentHunger - 1);
+      const newThirst = Math.max(10, currentThirst - 1);
+      KiroState.set('hunger', newHunger);
+      KiroState.set('hydration', newThirst);
+
+      const now = Date.now();
+      const avgVitals = (newHunger + newThirst) / 2;
+
+      // Throttled Vocal Feedback
+      if (avgVitals < 35 && now - this.lastSoundAlert > 60000) {
+        if (this.orchestrator.synth && typeof this.orchestrator.synth.playSadWhimper === 'function') {
+          this.orchestrator.synth.playSadWhimper();
+          this.lastSoundAlert = now;
+        }
+      } else if (avgVitals > 85 && Math.random() < 0.25 && now - this.lastSoundAlert > 90000) {
+        if (this.orchestrator.synth && typeof this.orchestrator.synth.playPurr === 'function') {
+          this.orchestrator.synth.playPurr(1.0);
+          this.lastSoundAlert = now;
+        }
+      }
     }
   }
 

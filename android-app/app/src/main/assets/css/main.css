@@ -959,6 +959,154 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   9.1 Sound & Vocal Matrix (3-Bus Mixer & Vocal Soundboard)
+   ══════════════════════════════════════════════════════════════════════════ */
+.sound-settings-group {
+  border: 1px solid rgba(148, 226, 213, 0.22);
+  background: rgba(17, 17, 27, 0.55);
+}
+
+.sound-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.sound-slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #cdd6f4;
+}
+
+.sound-slider-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-mint);
+}
+
+.sound-range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.10);
+  outline: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sound-range-slider:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sound-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-mint);
+  box-shadow: 0 0 10px rgba(78, 201, 176, 0.6);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sound-range-slider::-webkit-slider-thumb:hover,
+.sound-range-slider::-webkit-slider-thumb:active {
+  transform: scale(1.25);
+  box-shadow: 0 0 14px rgba(78, 201, 176, 0.9);
+}
+
+.sound-range-slider.pitch-slider::-webkit-slider-thumb {
+  background: #F9E2AF;
+  box-shadow: 0 0 10px rgba(249, 226, 175, 0.7);
+}
+
+.sound-range-slider.pitch-slider::-webkit-slider-thumb:hover,
+.sound-range-slider.pitch-slider::-webkit-slider-thumb:active {
+  transform: scale(1.25);
+  box-shadow: 0 0 16px rgba(249, 226, 175, 1.0);
+}
+
+/* Soundboard UI */
+.soundboard-container {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(10, 10, 18, 0.65);
+  border: 1px dashed rgba(249, 226, 175, 0.25);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.soundboard-header {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-align: center;
+  color: #F9E2AF;
+  text-shadow: 0 0 8px rgba(249, 226, 175, 0.4);
+}
+
+.soundboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.soundboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  background: rgba(30, 30, 46, 0.65);
+  border: 1px solid rgba(205, 214, 244, 0.12);
+  border-radius: 10px;
+  color: #CDD6F4;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.soundboard-btn:hover {
+  background: rgba(78, 201, 176, 0.15);
+  border-color: var(--color-mint);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(78, 201, 176, 0.25);
+}
+
+.soundboard-btn:active {
+  transform: scale(0.95);
+  background: rgba(78, 201, 176, 0.30);
+}
+
+.soundboard-btn .sb-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.soundboard-btn .sb-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    10. Inline Vector SVGs & Icons
    ══════════════════════════════════════════════════════════════════════════ */
 .inline-svg-icon {

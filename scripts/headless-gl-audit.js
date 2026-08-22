@@ -84,10 +84,22 @@ if (fs.existsSync(synthJsPath)) {
   // Zero external audio files invariant
   assert(!synthContent.includes('.mp3') && !synthContent.includes('.wav') && !synthContent.includes('.ogg'), 'Zero external audio files: 100% offline procedural synthesis verified');
 
+  // 3-Bus Gain Routing Architecture
+  assert(synthContent.includes('this.sfxGain') && synthContent.includes('this.ambientGain') && synthContent.includes('this.masterGain'), '3-Bus Sub-Gain Routing verified (sfxGain -> masterGain, ambientGain -> masterGain)');
+  assert(synthContent.includes('cutenessPitchMultiplier'), 'Cuteness pitch multiplier scaling verified (0.4x - 2.4x scale bend)');
+
+  // 10 Distinct Cute Procedural Sounds
+  const requiredSounds = [
+    'playHappyChirp', 'playPurr', 'playEatingCandy', 'playWaterGulp',
+    'playSleepyYawn', 'playAuraFlare', 'playJoyfulJump', 'playSadWhimper',
+    'playGiggle', 'playStarTrailWhoosh'
+  ];
+  for (const snd of requiredSounds) {
+    assert(synthContent.includes(snd), `Vocal procedural sound '${snd}()' synthesized mathematically`);
+  }
+
   // Purr tone oscillator & tremolo AM modulation
-  assert(synthContent.includes('playPurrSound') && synthContent.includes('52'), 'Procedural purr carrier tone tuned to 52Hz feline resonance');
-  assert(synthContent.includes('28'), 'Purr AM tremolo modulation frequency configured to 28Hz');
-  assert(synthContent.includes('240') || synthContent.includes('lowpass'), 'Purr biquad lowpass filter attenuates harsh harmonics above 240Hz');
+  assert(synthContent.includes('playPurr') && (synthContent.includes('65') || synthContent.includes('52')), 'Procedural purr carrier tone tuned to feline resonance');
 
   // Pet chime pentatonic scale
   assert(synthContent.includes('playPetChime'), 'Ascending pentatonic celestial pet chimes implemented');

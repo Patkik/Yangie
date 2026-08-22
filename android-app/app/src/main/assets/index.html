@@ -276,13 +276,13 @@
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
             Updates
           </span>
-          <span id="settings-current-ver-badge" class="settings-version-badge">v2.1.4</span>
+          <span id="settings-current-ver-badge" class="settings-version-badge">v2.1.5</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #A6ADC8;">
           <div style="display: flex; justify-content: space-between;">
             <span>Installed Version</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.1.4</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.1.5</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>
@@ -313,6 +313,105 @@
           </svg>
           <span>Check for Updates</span>
         </button>
+      </div>
+
+      <!-- Sound & Vocal Matrix Section (3-Bus Mixer & Vocal Soundboard) -->
+      <div class="settings-group sound-settings-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+            <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#94E2D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            Sound & Vocal Matrix
+          </span>
+          <span id="settings-audio-status-badge" class="settings-version-badge" style="background: rgba(148, 226, 213, 0.15); border-color: rgba(148, 226, 213, 0.35); color: #94E2D5;">3-BUS MIXER</span>
+        </div>
+
+        <!-- Master Volume Slider -->
+        <div class="sound-slider-row">
+          <div class="sound-slider-label-row">
+            <span>Master Volume</span>
+            <span id="lbl-val-master-vol" class="sound-slider-val">85%</span>
+          </div>
+          <input type="range" id="slider-master-vol" min="0" max="100" value="85" class="sound-range-slider">
+        </div>
+
+        <!-- Kiro SFX Volume Slider -->
+        <div class="sound-slider-row">
+          <div class="sound-slider-label-row">
+            <span>Kiro SFX Vocals</span>
+            <span id="lbl-val-sfx-vol" class="sound-slider-val">90%</span>
+          </div>
+          <input type="range" id="slider-sfx-vol" min="0" max="100" value="90" class="sound-range-slider">
+        </div>
+
+        <!-- Ambiance Volume Slider -->
+        <div class="sound-slider-row">
+          <div class="sound-slider-label-row">
+            <span>Ambiance & Space Loop</span>
+            <span id="lbl-val-ambient-vol" class="sound-slider-val">75%</span>
+          </div>
+          <input type="range" id="slider-ambient-vol" min="0" max="100" value="75" class="sound-range-slider">
+        </div>
+
+        <!-- Cuteness Pitch Multiplier Slider -->
+        <div class="sound-slider-row">
+          <div class="sound-slider-label-row">
+            <span>Cuteness Vocal Pitch</span>
+            <span id="lbl-val-pitch-mult" class="sound-slider-val" style="color: #F9E2AF;">1.0x (Normal)</span>
+          </div>
+          <input type="range" id="slider-pitch-mult" min="40" max="240" value="100" class="sound-range-slider pitch-slider">
+        </div>
+
+        <!-- Vocal SFX Test Soundboard (10 Cute Sounds) -->
+        <div class="soundboard-container">
+          <div class="soundboard-header">
+            <span>✦ KIRO VOCAL SOUNDBOARD ✦</span>
+          </div>
+          <div class="soundboard-grid">
+            <button class="soundboard-btn" data-sound="chirp" title="Happy Chirp">
+              <span class="sb-icon">🐥</span>
+              <span class="sb-text">Happy Chirp</span>
+            </button>
+            <button class="soundboard-btn" data-sound="purr" title="Cozy Purr">
+              <span class="sb-icon">🐱</span>
+              <span class="sb-text">Cozy Purr</span>
+            </button>
+            <button class="soundboard-btn" data-sound="candy" title="Candy Chew">
+              <span class="sb-icon">🍬</span>
+              <span class="sb-text">Candy Chew</span>
+            </button>
+            <button class="soundboard-btn" data-sound="water" title="Water Gulp">
+              <span class="sb-icon">💧</span>
+              <span class="sb-text">Water Gulp</span>
+            </button>
+            <button class="soundboard-btn" data-sound="yawn" title="Sleepy Yawn">
+              <span class="sb-icon">🥱</span>
+              <span class="sb-text">Sleepy Yawn</span>
+            </button>
+            <button class="soundboard-btn" data-sound="aura" title="Aura Flare">
+              <span class="sb-icon">✨</span>
+              <span class="sb-text">Aura Flare</span>
+            </button>
+            <button class="soundboard-btn" data-sound="jump" title="Joyful Jump">
+              <span class="sb-icon">🦘</span>
+              <span class="sb-text">Joyful Jump</span>
+            </button>
+            <button class="soundboard-btn" data-sound="whimper" title="Sad Whimper">
+              <span class="sb-icon">🥺</span>
+              <span class="sb-text">Sad Whimper</span>
+            </button>
+            <button class="soundboard-btn" data-sound="giggle" title="Tickle Giggle">
+              <span class="sb-icon">🤭</span>
+              <span class="sb-text">Tickle Giggle</span>
+            </button>
+            <button class="soundboard-btn" data-sound="whoosh" title="Stardust Whoosh">
+              <span class="sb-icon">🌠</span>
+              <span class="sb-text">Star Whoosh</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Preferences Section -->

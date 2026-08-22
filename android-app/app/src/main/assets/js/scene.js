@@ -1978,6 +1978,12 @@ export class KiroSceneManager {
         const dist = (0 - this.camera.position.z) / mouseDir.z;
         const worldPos = this.camera.position.clone().add(mouseDir.multiplyScalar(dist));
         this.spawnStardustParticle(worldPos.x, worldPos.y, worldPos.z);
+
+        const now = Date.now();
+        if (!this.lastStardustWhoosh || now - this.lastStardustWhoosh > 320) {
+          this.lastStardustWhoosh = now;
+          KiroState.emit('audio:whoosh');
+        }
       }
     };
 
