@@ -98,6 +98,9 @@ export class KiroMinigameEngine {
     this.combo = 0;
     this.shardsEarned = 0;
 
+    // Trigger locked 120 FPS minigame rendering optimization (pauses background celestial calculations)
+    KiroState.set('minigameActive', true);
+
     const gameCatalog = {
       tetris: { title: 'Celestial Tetris', sub: 'Gliese / Helix System • Squish Star-Candies' },
       pong:   { title: 'Starlight Pong', sub: 'Trappist / Crab System • Elastic Kiro Rebound' },
@@ -324,11 +327,12 @@ export class KiroMinigameEngine {
 
         <div class="payout-actions">
           <button class="payout-btn play-again-btn" id="payout-replay-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-            Play Again
+            <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            <span>Play Again</span>
           </button>
           <button class="payout-btn return-btn" id="payout-return-btn">
-            Return to Sanctuary
+            <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Return to Sanctuary</span>
           </button>
         </div>
       </div>
@@ -358,6 +362,9 @@ export class KiroMinigameEngine {
     }
     this.activeGame = null;
     if (this.modal) this.modal.style.display = 'none';
+
+    // Restore full-fidelity background celestial rendering
+    KiroState.set('minigameActive', false);
   }
 }
 

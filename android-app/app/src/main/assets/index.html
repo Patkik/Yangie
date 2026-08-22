@@ -60,8 +60,12 @@
               <span id="partner-status-name" class="beacon-partner-name">Patrick</span>
               <span class="beacon-sep">•</span>
               <span id="partner-status-location" class="beacon-location-name">Malaybalay</span>
+              <span id="beacon-weather-badge" class="beacon-weather-badge">24°C ⛅</span>
             </div>
-            <span class="sanctuary-live-clock" id="live-clock">--:--:-- PST</span>
+            <div class="beacon-secondary-row">
+              <span class="sanctuary-live-clock" id="live-clock">--:--:-- PST</span>
+              <span id="beacon-umbrella-pill" class="beacon-umbrella-pill" style="display: none;">☂️ Rain in 2h</span>
+            </div>
           </div>
         </div>
 
@@ -319,6 +323,46 @@
               <div id="settings-persona-station" style="font-size: 10px; color: #A6ADC8;">Location: Malaybalay</div>
             </div>
             <button id="settings-switch-persona-btn" class="settings-toggle-btn">SWITCH</button>
+          </div>
+        </div>
+
+        <!-- Twin Sanctuary Weather & Rain Radar Section -->
+        <div class="settings-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+              <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M8 19v2M12 19v2M16 19v2"/></svg>
+              Twin Weather & Rain Radar
+            </span>
+            <span class="settings-version-badge" style="background: rgba(78, 201, 176, 0.15); border-color: rgba(78, 201, 176, 0.35); color: #4EC9B0;">LIVE RADAR</span>
+          </div>
+
+          <!-- Side-by-Side Malaybalay & Capas Weather Grid -->
+          <div class="twin-weather-grid">
+            <!-- Patrick (Malaybalay) -->
+            <div class="weather-station-card" id="weather-card-pat">
+              <div class="ws-header">
+                <span class="ws-name">PATRICK • MALAYBALAY</span>
+                <span class="ws-badge" id="pat-weather-badge">24°C 🌧️</span>
+              </div>
+              <div class="ws-condition" id="pat-weather-cond">Rain Showers • Highland</div>
+              <div class="ws-umbrella-status" id="pat-umbrella-status">
+                <span class="umbrella-icon">☂️</span>
+                <span id="pat-umbrella-text">Rain Expected • Bring Umbrella!</span>
+              </div>
+            </div>
+
+            <!-- Yangiee (Capas) -->
+            <div class="weather-station-card" id="weather-card-yang">
+              <div class="ws-header">
+                <span class="ws-name">YANGIEE • CAPAS</span>
+                <span class="ws-badge" id="yang-weather-badge" style="color: #F5C2E7; border-color: rgba(245, 194, 231, 0.35); background: rgba(245, 194, 231, 0.12);">29°C ⛅</span>
+              </div>
+              <div class="ws-condition" id="yang-weather-cond">Partly Cloudy • Plains</div>
+              <div class="ws-umbrella-status" id="yang-umbrella-status">
+                <span class="umbrella-icon">☂️</span>
+                <span id="yang-umbrella-text">Clear Skies</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -626,12 +670,12 @@
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
               Software Updates
             </span>
-            <span id="settings-current-ver-badge" class="settings-version-badge">v2.3.7</span>
+            <span id="settings-current-ver-badge" class="settings-version-badge">v2.3.8</span>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: #A6ADC8;">
             <span>Installed Version:</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.3.7</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.3.8</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>

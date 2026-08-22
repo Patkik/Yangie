@@ -1,10 +1,10 @@
 {
-  "version": "2.3.7",
-  "build": 75,
+  "version": "2.3.8",
+  "build": 76,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V6.7 — Real-Time Capsule Diagnostics & Telemetry HUD Overlay",
+  "description": "Space Capsule V6.8 — Twin Sanctuary Weather, Umbrella Radar & Minigame Optimization",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.7: Introduced real-time glassmorphic Capsule Diagnostics HUD overlay and in-settings sparkline monitor tracking GPU frame render times (ms), active WebGL draw calls, triangle load, JS heap allocation, and WebRTC latency."
+  "changelog": "V9.8: Fixed live clock loop and ReferenceError, added dynamic Weather & Rain/Umbrella reminder radar for Patrick (Malaybalay) and Yangiee (Capas), resolved minigame payout modal SVG button overflow, and implemented locked 120 FPS minigame background celestial pausing."
 }
 

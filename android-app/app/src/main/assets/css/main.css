@@ -304,12 +304,108 @@ html, body {
   font-weight: 600;
 }
 
+.beacon-weather-badge {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #F9E2AF;
+  background: rgba(249, 226, 175, 0.15);
+  border: 1px solid rgba(249, 226, 175, 0.35);
+  border-radius: 6px;
+  padding: 1px 4px;
+}
+
+.beacon-secondary-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.beacon-umbrella-pill {
+  font-family: var(--font-heading);
+  font-size: 8px;
+  font-weight: 700;
+  color: #94E2D5;
+  background: rgba(148, 226, 213, 0.18);
+  border: 1px solid rgba(148, 226, 213, 0.40);
+  border-radius: 6px;
+  padding: 1px 5px;
+  animation: rainPulse 2s ease-in-out infinite;
+}
+
+@keyframes rainPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 4px #94E2D5); }
+}
+
 .sanctuary-live-clock {
   font-family: var(--font-heading);
   font-size: 9px;
   font-weight: 600;
   color: var(--color-mint);
   letter-spacing: 0.5px;
+}
+
+/* Twin Sanctuary Weather & Rain Radar */
+.twin-weather-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.weather-station-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-sizing: border-box;
+}
+
+.ws-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ws-name {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #CDD6F4;
+  letter-spacing: 0.4px;
+}
+
+.ws-badge {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  font-weight: 700;
+  color: #4EC9B0;
+  background: rgba(78, 201, 176, 0.15);
+  border: 1px solid rgba(78, 201, 176, 0.35);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.ws-condition {
+  font-size: 10px;
+  color: #CDD6F4;
+}
+
+.ws-umbrella-status {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #F9E2AF;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 /* Right Token: Unified Comms Hub Cluster */
@@ -1980,40 +2076,58 @@ body.pointer-locked * {
 .payout-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .payout-btn {
   width: 100%;
-  height: 38px;
-  border-radius: 10px;
+  height: 42px;
+  border-radius: 12px;
   font-family: var(--font-heading);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: transform 0.15s ease, background 0.15s ease;
+  gap: 8px;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.payout-btn svg {
+  width: 16px;
+  height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .play-again-btn {
-  background: linear-gradient(135deg, rgba(78, 201, 176, 0.35), rgba(148, 226, 213, 0.25));
-  border: 1px solid #4EC9B0;
+  background: linear-gradient(135deg, rgba(78, 201, 176, 0.40), rgba(148, 226, 213, 0.25));
+  border: 1.5px solid #4EC9B0;
   color: #CDD6F4;
+  box-shadow: 0 4px 14px rgba(78, 201, 176, 0.25);
 }
 
 .play-again-btn:hover {
-  background: linear-gradient(135deg, rgba(78, 201, 176, 0.5), rgba(148, 226, 213, 0.4));
+  background: linear-gradient(135deg, rgba(78, 201, 176, 0.55), rgba(148, 226, 213, 0.40));
   transform: translateY(-1px);
 }
 
 .return-btn {
   background: rgba(205, 214, 244, 0.08);
-  border: 1px solid rgba(205, 214, 244, 0.15);
+  border: 1px solid rgba(205, 214, 244, 0.20);
   color: #CDD6F4;
+}
+
+.return-btn:hover {
+  background: rgba(205, 214, 244, 0.15);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

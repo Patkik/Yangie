@@ -593,7 +593,42 @@ if (fs.existsSync(sceneJsAuditPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 20. Final Audit Summary
+// 20. Auditing Twin Weather Radar, Rain & Umbrella Alerts, and Minigame Background Pausing
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}20. Auditing Twin Weather Radar, Rain & Umbrella Alerts, and Minigame Pausing...${Colors.RESET}`);
+
+if (fs.existsSync(indexHtmlAuditPath)) {
+  const htmlContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
+  assert(htmlContent.includes('beacon-weather-badge') && htmlContent.includes('beacon-umbrella-pill'), 'Top cockpit beacon weather badge and umbrella pill verified in index.html');
+  assert(htmlContent.includes('weather-card-pat') && htmlContent.includes('weather-card-yang'), 'Twin Sanctuary Weather & Rain Radar cards verified in Profile Settings');
+}
+
+if (fs.existsSync(appJsAuditPath)) {
+  const appJsCode = fs.readFileSync(appJsAuditPath, 'utf8');
+  assert(appJsCode.includes('getSanctuaryWeather') && appJsCode.includes('Malaybalay') && appJsCode.includes('Capas'), 'Dynamic Sanctuary Weather Engine for Patrick & Yangiee verified in app.js');
+  assert(appJsCode.includes('needsUmbrella') && appJsCode.includes('beacon-umbrella-pill'), 'Rain detection and umbrella reminder logic verified in app.js');
+}
+
+if (fs.existsSync(sceneJsAuditPath)) {
+  const sceneJsCode = fs.readFileSync(sceneJsAuditPath, 'utf8');
+  assert(sceneJsCode.includes('this.minigameActive') && sceneJsCode.includes('setMinigameActive'), 'Minigame active state and background celestial pausing method verified in scene.js');
+}
+
+const minigamesAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/minigames.js');
+if (fs.existsSync(minigamesAuditPath)) {
+  const miniCode = fs.readFileSync(minigamesAuditPath, 'utf8');
+  assert(miniCode.includes("KiroState.set('minigameActive', true)") && miniCode.includes("KiroState.set('minigameActive', false)"), 'Minigame lifecycle dispatches minigameActive state to pause background graphics');
+}
+
+const mainCssAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/css/main.css');
+if (fs.existsSync(mainCssAuditPath)) {
+  const cssCode = fs.readFileSync(mainCssAuditPath, 'utf8');
+  assert(cssCode.includes('.payout-btn svg') && cssCode.includes('max-width: 16px'), 'Payout modal replay button SVG size constraint verified in main.css');
+  assert(cssCode.includes('.beacon-umbrella-pill') && cssCode.includes('.twin-weather-grid'), 'Weather badge, umbrella pill, and twin weather grid styles verified in main.css');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 21. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

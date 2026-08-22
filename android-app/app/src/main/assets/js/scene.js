@@ -561,6 +561,7 @@ export class KiroSceneManager {
     this.baseCameraZ = 6.2;
     this.perspectiveRotationActive = false;
     this.manualRotationOffset = 0;
+    this.minigameActive = false;
 
     // Astrogation & Celestial Physics Agent
     this.physicsAgent = new KiroPhysicsAgent(this.PINHOLE_FOCAL_PX, 1080, 1920);
@@ -637,6 +638,10 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup = new THREE.Group();
     this.backgroundCelestialGroup.position.set(0, 0, 0);
     this.scene.add(this.backgroundCelestialGroup);
+
+    KiroState.on('change:minigameActive', ({ newValue }) => {
+      this.setMinigameActive(Boolean(newValue));
+    });
 
     // 2. Offscreen Star Texture Map
     this.starTexture = createGlowStarTexture();
@@ -3037,6 +3042,13 @@ export class KiroSceneManager {
     return this.manualRotationOffset;
   }
 
+  setMinigameActive(active) {
+    this.minigameActive = Boolean(active);
+    if (this.backgroundCelestialGroup) {
+      this.backgroundCelestialGroup.visible = !this.minigameActive;
+    }
+  }
+
   updatePhysics() {
     for (let i = this.activeCandies.length - 1; i >= 0; i--) {
       const candy = this.activeCandies[i];
@@ -3204,6 +3216,15 @@ export class KiroSceneManager {
       const currentFps = Math.round(1000 / (avgMs || 16.6));
       const tierId = ARTEngine ? ARTEngine.currentTier.id : 'OPTIMAL';
       this.devFpsBadge.textContent = `${currentFps} FPS | ${avgMs.toFixed(1)}ms [ART: ${tierId}]`;
+    }
+
+    // 0. High-Efficiency Early Exit for Active Minigames (Locked 120 FPS Background Pausing)
+    if (this.minigameActive) {
+      if (this.kiroGroup) {
+        this.kiroGroup.position.y = 0.05 * Math.sin(now * 0.002);
+      }
+      this.renderer.render(this.scene, this.camera);
+      return;
     }
 
     // 1. Gyro Parallax Smooth Interpolation

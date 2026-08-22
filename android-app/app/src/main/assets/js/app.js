@@ -209,21 +209,80 @@ document.addEventListener('DOMContentLoaded', () => {
   // 0. Boot Kiro's Agentic Orchestration Engine (Supervisor-Specialist MAS)
   const orchestrator = new KiroAgenticOrchestrator(synthEngine, sceneManager);
 
-  // 1. Dynamic Single-Identity Profile Architecture (Twin Sanctuary Beacon)
+  // 1. Dynamic Single-Identity Profile Architecture & Weather System
+  function getSanctuaryWeather() {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const pst = new Date(utc + (3600000 * 8));
+    const hour = pst.getHours();
+
+    // Patrick in Malaybalay, Bukidnon (Highland tropical climate, elevation 600m)
+    const isMalaybalayRain = (hour >= 13 && hour <= 19) || (hour >= 21 && hour <= 23);
+    const malaybalayTemp = hour >= 10 && hour <= 16 ? 26 : (hour >= 6 && hour <= 9 ? 22 : 20);
+    const malaybalayRainInHours = isMalaybalayRain ? 0 : (hour < 13 ? 13 - hour : 21 - hour);
+
+    // Yangiee in Capas, Tarlac (Central Luzon plain, warm sunshine)
+    const isCapasRain = (hour >= 16 && hour <= 18);
+    const capasTemp = hour >= 10 && hour <= 16 ? 32 : (hour >= 6 && hour <= 9 ? 28 : 26);
+    const capasRainInHours = isCapasRain ? 0 : (hour < 16 ? 16 - hour : 24 - hour + 16);
+
+    return {
+      pat: {
+        location: 'Malaybalay',
+        name: 'Patrick',
+        temp: `${malaybalayTemp}°C`,
+        condition: isMalaybalayRain ? 'Rain Showers 🌧️' : (hour >= 6 && hour <= 17 ? 'Partly Cloudy ⛅' : 'Starry Night ✨'),
+        isRaining: isMalaybalayRain,
+        rainInHours: malaybalayRainInHours,
+        rainAlert: isMalaybalayRain ? 'Raining now • Bring Umbrella!' : (malaybalayRainInHours <= 3 ? `Rain in ${malaybalayRainInHours}h • Bring Umbrella!` : 'Clear Skies (No Rain)'),
+        needsUmbrella: isMalaybalayRain || malaybalayRainInHours <= 3
+      },
+      yang: {
+        location: 'Capas',
+        name: 'Yangiee',
+        temp: `${capasTemp}°C`,
+        condition: isCapasRain ? 'Rain Showers 🌧️' : (hour >= 6 && hour <= 17 ? 'Sunny Clouds ⛅' : 'Clear Twilight 🌙'),
+        isRaining: isCapasRain,
+        rainInHours: capasRainInHours,
+        rainAlert: isCapasRain ? 'Raining now • Bring Umbrella!' : (capasRainInHours <= 3 ? `Rain in ${capasRainInHours}h • Bring Umbrella!` : 'Clear Skies (No Rain)'),
+        needsUmbrella: isCapasRain || capasRainInHours <= 3
+      }
+    };
+  }
+
   function updatePersonaProfile() {
     const rawPersona = KiroState.get('persona') || 'pat';
     const persona = (rawPersona === 'yang' || rawPersona === 'yangiee') ? 'yang' : 'pat';
     const partner = persona === 'pat' ? 'yang' : 'pat';
     const personaName = persona === 'pat' ? 'Patrick' : 'Yangiee';
     const partnerName = persona === 'pat' ? 'Yangiee' : 'Patrick';
+    const personaLocation = persona === 'pat' ? 'Malaybalay' : 'Capas';
     const partnerLocation = partner === 'yang' ? 'Capas' : 'Malaybalay';
 
-    // A. Update Top Header Sanctuary Beacon (Displays ACTIVE USER)
+    const weatherData = getSanctuaryWeather();
+    const activeWeather = weatherData[persona];
+
+    // A. Update Top Header Sanctuary Beacon (Displays ACTIVE USER & WEATHER)
     const partnerNameEl = document.getElementById('partner-status-name');
     const partnerLocEl = document.getElementById('partner-status-location');
     const beaconPulseEl = document.getElementById('partner-beacon-pulse');
+    const weatherBadgeEl = document.getElementById('beacon-weather-badge');
+    const umbrellaPillEl = document.getElementById('beacon-umbrella-pill');
+
     if (partnerNameEl) partnerNameEl.textContent = personaName;
     if (partnerLocEl) partnerLocEl.textContent = personaLocation;
+    if (weatherBadgeEl && activeWeather) {
+      weatherBadgeEl.textContent = `${activeWeather.temp} ${activeWeather.isRaining ? '🌧️' : '⛅'}`;
+    }
+    if (umbrellaPillEl && activeWeather) {
+      if (activeWeather.needsUmbrella) {
+        umbrellaPillEl.style.display = 'inline-flex';
+        umbrellaPillEl.textContent = activeWeather.isRaining ? '☂️ Raining • Umbrella' : `☂️ Rain in ${activeWeather.rainInHours}h`;
+      } else {
+        umbrellaPillEl.style.display = 'none';
+      }
+    }
+
     if (beaconPulseEl) {
       const coreDot = beaconPulseEl.querySelector('.beacon-core-dot');
       const ringWave = beaconPulseEl.querySelector('.beacon-ring-wave');
@@ -237,29 +296,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // B. Update Weather/Telemetry Hub if present
-    const localStationEl = document.getElementById('telemetry-local-station');
-    const partnerStationEl = document.getElementById('telemetry-partner-station');
-    if (localStationEl) {
-      localStationEl.innerHTML = `
-        <svg class="inline-svg-icon ${persona === 'pat' ? 'galaxy-icon' : 'moon-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          ${persona === 'pat' 
-            ? '<circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>' 
-            : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'}
-        </svg>
-        <span style="font-weight:700; color:var(--color-mint);">${persona === 'pat' ? 'Malaybalay (You)' : 'Capas (You)'} • ${persona === 'pat' ? '24°C' : '28°C'}</span>
-      `;
-    }
-    if (partnerStationEl) {
-      partnerStationEl.innerHTML = `
-        <svg class="inline-svg-icon ${partner === 'pat' ? 'galaxy-icon' : 'moon-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          ${partner === 'pat' 
-            ? '<circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>' 
-            : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'}
-        </svg>
-        <span>${partner === 'pat' ? 'Malaybalay (Patrick)' : 'Capas (Yangiee)'} • ${partner === 'pat' ? '24°C' : '28°C'}</span>
-      `;
-    }
+    // B. Update Twin Weather Radar Cards in Settings
+    const patBadge = document.getElementById('pat-weather-badge');
+    const patCond = document.getElementById('pat-weather-cond');
+    const patUmbrella = document.getElementById('pat-umbrella-text');
+    const yangBadge = document.getElementById('yang-weather-badge');
+    const yangCond = document.getElementById('yang-weather-cond');
+    const yangUmbrella = document.getElementById('yang-umbrella-text');
+
+    if (patBadge && weatherData.pat) patBadge.textContent = `${weatherData.pat.temp} ${weatherData.pat.isRaining ? '🌧️' : '⛅'}`;
+    if (patCond && weatherData.pat) patCond.textContent = `${weatherData.pat.condition} • Highland`;
+    if (patUmbrella && weatherData.pat) patUmbrella.textContent = weatherData.pat.rainAlert;
+
+    if (yangBadge && weatherData.yang) yangBadge.textContent = `${weatherData.yang.temp} ${weatherData.yang.isRaining ? '🌧️' : '⛅'}`;
+    if (yangCond && weatherData.yang) yangCond.textContent = `${weatherData.yang.condition} • Plains`;
+    if (yangUmbrella && weatherData.yang) yangUmbrella.textContent = weatherData.yang.rainAlert;
 
     // C. Update Settings Modal Persona Card
     const settingsBadge = document.getElementById('settings-current-persona-badge');
@@ -272,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       settingsBadge.style.background = persona === 'pat' ? 'rgba(78, 201, 176, 0.15)' : 'rgba(245, 183, 192, 0.15)';
     }
     if (settingsTitle) settingsTitle.textContent = personaName;
-    if (settingsStation) settingsStation.textContent = `Location: ${persona === 'pat' ? 'Malaybalay' : 'Capas'}`;
+    if (settingsStation) settingsStation.textContent = `Location: ${personaLocation} (${activeWeather ? activeWeather.temp : '24°C'})`;
   }
 
   updatePersonaProfile();
@@ -302,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateClockAndGreeting();
   setInterval(updateClockAndGreeting, 1000);
+  setInterval(updatePersonaProfile, 30000); // Periodic weather sync every 30s
 
   // 3. Satellite Orbital Dock (2-Tier Spatial Hierarchy Interactions)
   const masterCareBtn = document.getElementById('btn-master-care');
@@ -528,6 +580,18 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePersonaProfile();
       syncSoundSettingsUI();
       if (settingsModal) settingsModal.classList.add('open');
+    });
+  }
+
+  const beaconPillBtn = document.getElementById('partner-beacon-pill');
+  if (beaconPillBtn && settingsModal) {
+    beaconPillBtn.addEventListener('click', () => {
+      updatePersonaProfile();
+      syncSoundSettingsUI();
+      settingsModal.classList.add('open');
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(640);
+      }
     });
   }
 
