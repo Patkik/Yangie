@@ -1547,9 +1547,199 @@ export class CosmicSynthEngine {
         if (this.windSource) { this.windSource.stop(); this.windSource.disconnect(); }
         if (this.windLfo) { this.windLfo.stop(); this.windLfo.disconnect(); }
       } catch (e) {
-        // Already stopped
-      }
-    }, fadeDuration * 1000 + 100);
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3.5. Minigame Procedural Audio Suite & Non-Blocking Bandpass Synthesizers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Non-Blocking Native BiquadFilterNode Bandpass Sweep (Q=2.5, 100Hz–1500Hz)
+   * 0% Main-Thread Overhead via native Web Audio graph scheduling
+   */
+  playBandpassSweep(startFreq = 100, endFreq = 1500, q = 2.5, duration = 0.28) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(340, now + duration);
+
+    filter.type = 'bandpass';
+    filter.Q.setValueAtTime(q, now);
+    filter.frequency.setValueAtTime(Math.max(10, startFreq), now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(10, endFreq), now + duration);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+  }
+
+  /**
+   * Celestial Tetris: Viscoelastic Squish Sound
+   * Line clearance soft squish pop with modulated LFO sweep
+   */
+  playTetrisSquish(isHelixBonus = false) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const duration = isHelixBonus ? 0.35 : 0.22;
+
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(320 * mult, now);
+    osc.frequency.linearRampToValueAtTime(480 * mult, now + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(90 * mult, now + duration);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900 * mult, now);
+    filter.Q.setValueAtTime(4.0, now);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.22, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+
+    // Also fire a crisp bandpass sweep
+    this.playBandpassSweep(150, 1400, 2.5, duration);
+  }
+
+  /**
+   * Starlight Pong: Elastic Body Bounce
+   * Ascending chime scaled by the current rally combo streak
+   */
+  playPongBounce(combo = 0) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const baseFreq = (440 + Math.min(12, combo) * 35) * mult;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.6, now + 0.14);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.20, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.18);
+  }
+
+  /**
+   * Nebula Dodge: Protective Shield Shockwave Deflection
+   */
+  playShieldDeflect() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+
+    // Dual-harmonic chime + resonant bandpass burst
+    [587.33, 880.00, 1174.66].forEach((freq, idx) => {
+      const t = now + idx * 0.04;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq * mult, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.08 * mult, t + 0.25);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.14, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.38);
+    });
+
+    this.playBandpassSweep(200, 1800, 3.0, 0.35);
+  }
+
+  /**
+   * Stardust Shard Pickup (Cosmic Runner / Catch)
+   */
+  playShardPickup() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const freq = (1200 + Math.random() * 400) * mult;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.08);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.10);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.11);
+  }
+
+  /**
+   * Minigame Victory / Stage Clear Chime
+   */
+  playMinigameVictory() {
+    this.playAuraFlare();
+    setTimeout(() => this.playHappyChirp(), 350);
+  }
+
+  /**
+   * Minigame Game Over / Soft Whimper
+   */
+  playMinigameGameOver() {
+    this.playSadWhimper();
+  }
+
+  /**
+   * Dynamic Wellbeing-Driven LFO Rate Modulation
+   * Slower rates (4Hz) during neglect, high-frequency purring (12Hz) when thriving
+   */
+  getWellbeingLfoRate() {
+    const wellbeing = KiroState.get('wellbeing') ?? 100;
+    return 4.0 + (wellbeing / 100) * 8.5; // 4.0Hz to 12.5Hz
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

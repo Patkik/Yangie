@@ -60,6 +60,19 @@
         </div>
       </div>
 
+      <!-- Center Token: Sanctuary Economy Hub (✦ Stardust Shards & ⬡ Cosmic Essence) -->
+      <div class="sanctuary-currency-pill" id="sanctuary-currency-pill" title="Tap to view Exoplanet Milestones & Arcade">
+        <div class="currency-item shard-item">
+          <span class="currency-glyph">✦</span>
+          <span id="topbar-stardust-val" class="currency-amount">120</span>
+        </div>
+        <div class="currency-divider"></div>
+        <div class="currency-item essence-item">
+          <span class="currency-glyph essence-glyph">⬡</span>
+          <span id="topbar-essence-val" class="currency-amount">10</span>
+        </div>
+      </div>
+
       <!-- Right Token: Unified Comms Hub Cluster -->
       <div class="comms-hub-cluster">
         <!-- Starlight Mailbox -->
@@ -276,13 +289,13 @@
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
             Updates
           </span>
-          <span id="settings-current-ver-badge" class="settings-version-badge">v2.1.6</span>
+          <span id="settings-current-ver-badge" class="settings-version-badge">v2.2.0</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #A6ADC8;">
           <div style="display: flex; justify-content: space-between;">
             <span>Installed Version</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.1.6</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.2.0</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>
@@ -499,6 +512,41 @@
       </div>
     </div>
   </div>
+
+  <!-- Exoplanet Sanctuary & Milestones Modal -->
+  <div id="exoplanet-modal" class="exoplanet-overlay" style="display: none;">
+    <div class="exoplanet-card">
+      <div class="exoplanet-header">
+        <div class="exoplanet-title-group">
+          <span class="exoplanet-badge">✦ CELESTIAL EXPEDITIONS ✦</span>
+          <h2 class="exoplanet-title">Exoplanet Milestones</h2>
+          <div class="exoplanet-subtitle">Discover celestial sanctuaries to unlock permanent multipliers</div>
+        </div>
+        <button class="exoplanet-close-btn" id="exoplanet-close-btn" aria-label="Close Expeditions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Live Currency Inventory Pill -->
+      <div class="exoplanet-vault-pill">
+        <div class="vault-currency-col">
+          <span class="vault-lbl">STARDUST SHARDS</span>
+          <span class="vault-val" id="vault-stardust-val">✦ 120</span>
+        </div>
+        <div class="vault-sep"></div>
+        <div class="vault-currency-col">
+          <span class="vault-lbl">COSMIC ESSENCE</span>
+          <span class="vault-val" id="vault-essence-val" style="color: #F5C2E7;">⬡ 10 / 100</span>
+        </div>
+      </div>
+
+      <!-- 7 Exoplanet Destination Cards Grid -->
+      <div class="exoplanet-systems-grid" id="exoplanet-systems-grid"></div>
+    </div>
+  </div>
+
+  <!-- Global Pointer Interaction Shield (UX Guard against Multi-Click Jank) -->
+  <div id="pointer-shield" class="pointer-shield"></div>
 
   <!-- Master ES6 Module Entry Point -->
   <script type="module" src="js/app.js"></script>

@@ -1385,9 +1385,694 @@ html, body {
 }
 
 .art-signal-sub {
-  font-family: var(--font-body);
-  font-size: 9px;
+/* ═══════════════════════════════════════════════════════════════════════════
+   13. Sanctuary Economy Hub & Currency Pill
+   ══════════════════════════════════════════════════════════════════════════ */
+.sanctuary-currency-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 30, 46, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(148, 226, 213, 0.28);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sanctuary-currency-pill:hover {
+  transform: scale(1.03);
+  border-color: rgba(148, 226, 213, 0.55);
+  box-shadow: 0 6px 20px rgba(78, 201, 176, 0.25);
+}
+
+.sanctuary-currency-pill:active {
+  transform: scale(0.96);
+}
+
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.shard-item {
+  color: #F9E2AF;
+}
+
+.shard-item .currency-glyph {
+  color: #F9E2AF;
+  font-size: 13px;
+  filter: drop-shadow(0 0 4px rgba(249, 226, 175, 0.6));
+}
+
+.essence-item {
+  color: #F5C2E7;
+}
+
+.essence-glyph {
+  color: #F5C2E7;
+  font-size: 12px;
+  filter: drop-shadow(0 0 4px rgba(245, 194, 231, 0.6));
+}
+
+.currency-amount {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.currency-divider {
+  width: 1px;
+  height: 12px;
+  background: rgba(205, 214, 244, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   14. Global Pointer Interaction Shield
+   ══════════════════════════════════════════════════════════════════════════ */
+.pointer-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: rgba(17, 17, 27, 0.0);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.pointer-shield.active {
+  pointer-events: auto !important;
+  opacity: 1;
+}
+
+body.pointer-locked * {
+  cursor: wait !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   15. Cozy Minigame Suite Modal & Skeleton UI
+   ══════════════════════════════════════════════════════════════════════════ */
+.minigame-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(17, 17, 27, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.minigame-card {
+  width: 100%;
+  max-width: 380px;
+  height: min(90vh, 640px);
+  background: rgba(30, 30, 46, 0.85);
+  border: 1px solid rgba(148, 226, 213, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(78, 201, 176, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.minigame-skeleton-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: #11111b;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  transition: opacity 0.25s ease;
+}
+
+.skeleton-shimmer-bar {
+  height: 24px;
+  width: 60%;
+  background: linear-gradient(90deg, rgba(30, 30, 46, 0.6) 0%, rgba(78, 201, 176, 0.2) 50%, rgba(30, 30, 46, 0.6) 100%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: skeletonShimmer 1.2s infinite;
+}
+
+.skeleton-hud-row {
+  display: flex;
+  gap: 10px;
+}
+
+.skeleton-pill {
+  flex: 1;
+  height: 36px;
+  background: rgba(30, 30, 46, 0.8);
+  border-radius: 10px;
+}
+
+.skeleton-canvas-box {
+  flex: 1;
+  background: rgba(30, 30, 46, 0.4);
+  border-radius: 14px;
+  border: 1px dashed rgba(148, 226, 213, 0.15);
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.minigame-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(205, 214, 244, 0.08);
+}
+
+.minigame-badge {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 0.8px;
+}
+
+.minigame-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: #CDD6F4;
+}
+
+.minigame-subtitle {
+  font-size: 9.5px;
   color: #cdd6f4;
+}
+
+.minigame-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.minigame-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(205, 214, 244, 0.06);
+  border: 1px solid rgba(205, 214, 244, 0.12);
+  color: #CDD6F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.minigame-action-btn:hover {
+  background: rgba(205, 214, 244, 0.15);
+  transform: scale(1.05);
+}
+
+.minigame-action-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.minigame-hud-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(17, 17, 27, 0.4);
+}
+
+.minigame-stat-pill {
+  flex: 1;
+  background: rgba(30, 30, 46, 0.6);
+  border: 1px solid rgba(205, 214, 244, 0.08);
+  border-radius: 8px;
+  padding: 5px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-family: var(--font-heading);
+  font-size: 8px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: #CDD6F4;
+}
+
+.minigame-canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minigame-canvas-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.minigame-controls-bar {
+  padding: 10px 16px;
+  border-top: 1px solid rgba(205, 214, 244, 0.08);
+  display: flex;
+  justify-content: center;
+}
+
+.tetris-controls-cluster,
+.runner-controls-cluster {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.arcade-touch-btn {
+  flex: 1;
+  height: 42px;
+  background: rgba(78, 201, 176, 0.12);
+  border: 1px solid rgba(78, 201, 176, 0.35);
+  border-radius: 10px;
+  color: #CDD6F4;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.arcade-touch-btn:active {
+  transform: scale(0.94);
+  background: rgba(78, 201, 176, 0.28);
+}
+
+.action-drop-btn {
+  background: rgba(249, 226, 175, 0.15);
+  border-color: rgba(249, 226, 175, 0.4);
+  color: #F9E2AF;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   16. Mathematical Payout Overlay & Celebration Card
+   ══════════════════════════════════════════════════════════════════════════ */
+.minigame-payout-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(17, 17, 27, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.payout-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.payout-sparkle {
+  color: #F9E2AF;
+  font-size: 18px;
+  letter-spacing: 4px;
+  margin-bottom: 4px;
+}
+
+.payout-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: #CDD6F4;
+  letter-spacing: 0.5px;
+}
+
+.payout-game-name {
+  font-family: var(--font-heading);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.payout-formula-box {
+  width: 100%;
+  background: rgba(30, 30, 46, 0.7);
+  border: 1px solid rgba(148, 226, 213, 0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.formula-header {
+  font-family: var(--font-heading);
+  font-size: 8px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.formula-code {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: #F9E2AF;
+  margin-bottom: 8px;
+}
+
+.formula-breakdown-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  text-align: left;
+}
+
+.formula-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.f-lbl {
+  color: #cdd6f4;
+}
+
+.f-val {
+  font-weight: 600;
+  color: #CDD6F4;
+}
+
+.payout-total-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(78, 201, 176, 0.15);
+  border: 1.5px solid rgba(78, 201, 176, 0.45);
+  border-radius: 14px;
+  padding: 8px 24px;
+  margin-bottom: 14px;
+}
+
+.total-label {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 0.6px;
+}
+
+.total-value {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: #F9E2AF;
+}
+
+.payout-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.payout-btn {
+  width: 100%;
+  height: 38px;
+  border-radius: 10px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.play-again-btn {
+  background: linear-gradient(135deg, rgba(78, 201, 176, 0.35), rgba(148, 226, 213, 0.25));
+  border: 1px solid #4EC9B0;
+  color: #CDD6F4;
+}
+
+.play-again-btn:hover {
+  background: linear-gradient(135deg, rgba(78, 201, 176, 0.5), rgba(148, 226, 213, 0.4));
+  transform: translateY(-1px);
+}
+
+.return-btn {
+  background: rgba(205, 214, 244, 0.08);
+  border: 1px solid rgba(205, 214, 244, 0.15);
+  color: #CDD6F4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   17. Exoplanet Milestones Sanctuary Modal
+   ══════════════════════════════════════════════════════════════════════════ */
+.exoplanet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(17, 17, 27, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.exoplanet-card {
+  width: 100%;
+  max-width: 420px;
+  max-height: 88vh;
+  background: rgba(30, 30, 46, 0.88);
+  border: 1px solid rgba(148, 226, 213, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.exoplanet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(205, 214, 244, 0.08);
+}
+
+.exoplanet-badge {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #F9E2AF;
+  letter-spacing: 0.8px;
+}
+
+.exoplanet-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: #CDD6F4;
+}
+
+.exoplanet-subtitle {
+  font-size: 10px;
+  color: #cdd6f4;
+}
+
+.exoplanet-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(205, 214, 244, 0.06);
+  border: 1px solid rgba(205, 214, 244, 0.12);
+  color: #CDD6F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.exoplanet-vault-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 12px 18px 6px;
+  padding: 8px 14px;
+  background: rgba(17, 17, 27, 0.55);
+  border: 1px solid rgba(148, 226, 213, 0.18);
+  border-radius: 12px;
+}
+
+.vault-currency-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vault-lbl {
+  font-family: var(--font-heading);
+  font-size: 8px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 0.5px;
+}
+
+.vault-val {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: #F9E2AF;
+}
+
+.vault-sep {
+  width: 1px;
+  height: 24px;
+  background: rgba(205, 214, 244, 0.12);
+}
+
+.exoplanet-systems-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+.exoplanet-card-item {
+  background: rgba(17, 17, 27, 0.6);
+  border: 1px solid rgba(205, 214, 244, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: border-color 0.2s ease, transform 0.18s ease;
+}
+
+.exoplanet-card-item.unlocked {
+  border-color: rgba(78, 201, 176, 0.35);
+  background: rgba(78, 201, 176, 0.05);
+}
+
+.exoplanet-card-item.active-world {
+  border-color: #4EC9B0;
+  box-shadow: 0 0 16px rgba(78, 201, 176, 0.2);
+}
+
+.exo-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exo-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exo-name {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: #CDD6F4;
+}
+
+.exo-dist {
+  font-size: 9.5px;
+  color: #F9E2AF;
+}
+
+.exo-type {
+  font-size: 9.5px;
+  color: #94E2D5;
+}
+
+.exo-buff {
+  font-size: 10px;
+  color: #F5C2E7;
+  margin-top: 2px;
+}
+
+.exo-action-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.exo-play-btn {
+  background: rgba(78, 201, 176, 0.2);
+  border: 1px solid #4EC9B0;
+  color: #4EC9B0;
+}
+
+.exo-play-btn:hover {
+  background: rgba(78, 201, 176, 0.35);
+  transform: scale(1.04);
+}
+
+.exo-unlock-btn {
+  background: rgba(249, 226, 175, 0.15);
+  border: 1px solid #F9E2AF;
+  color: #F9E2AF;
+}
+
+.exo-unlock-btn:hover {
+  background: rgba(249, 226, 175, 0.28);
+  transform: scale(1.04);
 }
 
 /* Reduced motion preference */
@@ -1398,3 +2083,4 @@ html, body {
     transition-duration: 0.01ms !important;
   }
 }
+

@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.1.6',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.2.0',
       isOtaActive: false,
 
       // Wellbeing & Real-time Vitals
@@ -72,6 +72,24 @@ class KiroStateManager extends StateEmitter {
       mood: 'thriving', // 'thriving' | 'happy' | 'okay' | 'sleeping'
       isSleeping: false,
       hasWellRestedBuff: false,
+
+      // Dual-Currency Economic Framework (V5.0)
+      stardustShards: parseInt(localStorage.getItem('kiro_stardust_shards') || '120', 10),
+      cosmicEssence: parseInt(localStorage.getItem('kiro_cosmic_essence') || '10', 10),
+      essenceCap: 100, // Boosted to 600 by Crab Pulsar milestone
+
+      // Exoplanet Progression Milestones (7 Celestial Destinations)
+      currentPlanet: localStorage.getItem('kiro_current_planet') || 'gliese',
+      unlockedPlanets: JSON.parse(localStorage.getItem('kiro_unlocked_planets') || '["gliese"]'),
+      exoplanetCatalog: {
+        gliese:    { id: 'gliese', name: 'Gliese 667', type: 'Mint Ice World', dist: '23.6 ly', game: 'tetris', gameTitle: 'Celestial Tetris', buffTitle: 'Base Sanctuary Operational', buffMultiplier: 1.0, cost: 0 },
+        trappist:  { id: 'trappist', name: 'Trappist 1', type: 'Pastel Star Sanctuary', dist: '39.6 ly', game: 'pong', gameTitle: 'Starlight Catch', buffTitle: 'Auto-collects +1 Stardust Shard', buffMultiplier: 1.1, cost: 150 },
+        kepler:    { id: 'kepler', name: 'Kepler 186', type: 'Lavender Ring Giant', dist: '582 ly', game: 'runner', gameTitle: 'Orbital Rings', buffTitle: '50% Slower Water Decay', buffMultiplier: 1.25, cost: 350 },
+        helix:     { id: 'helix', name: 'Eye of Helix Nebula', type: 'Ionized Nebula', dist: '655 ly', game: 'tetris', gameTitle: 'Celestial Bounce', buffTitle: '1.5x Squish Multiplier in Tetris', buffMultiplier: 1.5, cost: 600 },
+        butterfly: { id: 'butterfly', name: 'Butterfly Galaxy', type: 'Galactic Sanctuary', dist: '3.80 kly', game: 'dodge', gameTitle: 'Nebula Dodge', buffTitle: 'Glassmorphic UI Aurora Theme', buffMultiplier: 1.75, cost: 1000 },
+        crab:      { id: 'crab', name: 'Crab Pulsar Core', type: 'Neutron Pulsar', dist: '6.50 kly', game: 'pong', gameTitle: 'Supernova Blast', buffTitle: 'Cosmic Essence Cap +500', buffMultiplier: 2.0, cost: 1500 },
+        sombrero:  { id: 'sombrero', name: 'Sombrero Vortex', type: 'Spiral Core', dist: '29.3 Mly', game: 'runner', gameTitle: 'Starlight Sequencer', buffTitle: 'Permanent Thriving Aura & 3x Multiplier', buffMultiplier: 3.0, cost: 2500 }
+      },
 
       // Pilot Cockpit & Advanced Telescope Navigation
       telescopeActive: false,
@@ -117,6 +135,8 @@ class KiroStateManager extends StateEmitter {
     };
 
     this.loadPersistedVitals();
+    this.refreshMilestoneCaps();
+    this.startPassiveStardustTick();
   }
 
   loadPersistedVitals() {
@@ -136,6 +156,195 @@ class KiroStateManager extends StateEmitter {
     } catch (e) {
       console.warn('Failed loading persisted vitals:', e);
     }
+  }
+
+  refreshMilestoneCaps() {
+    if (this.hasMilestone('crab')) {
+      this.state.essenceCap = 600;
+    }
+  }
+
+  startPassiveStardustTick() {
+    if (typeof window === 'undefined') return;
+    setInterval(() => {
+      // Trappist milestone unlocks auto-collection (+1 shard every 15s)
+      if (this.hasMilestone('trappist')) {
+        this.addStardust(1, 'passive_trappist');
+      }
+    }, 15000);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Economic Engine: Stardust Shards & Cosmic Essence Operations
+  // ─────────────────────────────────────────────────────────────────────────
+
+  addStardust(amount, source = 'game') {
+    const qty = Math.max(0, parseInt(amount, 10) || 0);
+    if (qty <= 0) return this.state.stardustShards;
+
+    this.state.stardustShards += qty;
+    this.syncCurrencyToStorageAndBridge();
+    this.emit('currency:stardust', { amount: qty, total: this.state.stardustShards, source });
+    this.emit('change:stardustShards', { newValue: this.state.stardustShards, delta: qty });
+    return this.state.stardustShards;
+  }
+
+  spendStardust(amount) {
+    const qty = Math.max(0, parseInt(amount, 10) || 0);
+    if (this.state.stardustShards < qty) return false;
+
+    this.state.stardustShards -= qty;
+    this.syncCurrencyToStorageAndBridge();
+    this.emit('currency:stardust_spent', { amount: qty, total: this.state.stardustShards });
+    this.emit('change:stardustShards', { newValue: this.state.stardustShards, delta: -qty });
+    return true;
+  }
+
+  addCosmicEssence(amount, source = 'milestone') {
+    const qty = Math.max(0, parseInt(amount, 10) || 0);
+    if (qty <= 0) return this.state.cosmicEssence;
+
+    this.refreshMilestoneCaps();
+    this.state.cosmicEssence = Math.min(this.state.essenceCap, this.state.cosmicEssence + qty);
+    this.syncCurrencyToStorageAndBridge();
+    this.emit('currency:essence', { amount: qty, total: this.state.cosmicEssence, source });
+    this.emit('change:cosmicEssence', { newValue: this.state.cosmicEssence, delta: qty });
+    return this.state.cosmicEssence;
+  }
+
+  spendCosmicEssence(amount) {
+    const qty = Math.max(0, parseInt(amount, 10) || 0);
+    if (this.state.cosmicEssence < qty) return false;
+
+    this.state.cosmicEssence -= qty;
+    this.syncCurrencyToStorageAndBridge();
+    this.emit('currency:essence_spent', { amount: qty, total: this.state.cosmicEssence });
+    this.emit('change:cosmicEssence', { newValue: this.state.cosmicEssence, delta: -qty });
+    return true;
+  }
+
+  syncCurrencyToStorageAndBridge() {
+    try {
+      localStorage.setItem('kiro_stardust_shards', String(this.state.stardustShards));
+      localStorage.setItem('kiro_cosmic_essence', String(this.state.cosmicEssence));
+      localStorage.setItem('kiro_unlocked_planets', JSON.stringify(this.state.unlockedPlanets));
+      localStorage.setItem('kiro_current_planet', this.state.currentPlanet);
+    } catch (e) {}
+
+    // Safe Serialized Token Bridge to Kotlin Host
+    if (typeof window !== 'undefined' && window.AndroidHost && typeof window.AndroidHost.onCurrencyUpdate === 'function') {
+      try {
+        window.AndroidHost.onCurrencyUpdate(this.state.stardustShards, this.state.cosmicEssence);
+      } catch (e) {
+        console.warn('Kotlin Currency Bridge error:', e);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Exoplanet Progression & Milestone Multipliers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  hasMilestone(planetId) {
+    if (!planetId) return false;
+    return this.state.unlockedPlanets.includes(planetId.toLowerCase());
+  }
+
+  unlockExoplanet(planetId) {
+    const pid = String(planetId).toLowerCase();
+    const planet = this.state.exoplanetCatalog[pid];
+    if (!planet) return { success: false, reason: 'Invalid Exoplanet' };
+    if (this.hasMilestone(pid)) return { success: true, alreadyUnlocked: true };
+
+    if (this.state.stardustShards < planet.cost) {
+      return { success: false, reason: `Requires ${planet.cost} Stardust Shards (You have ${this.state.stardustShards})` };
+    }
+
+    this.spendStardust(planet.cost);
+    this.state.unlockedPlanets.push(pid);
+    this.state.currentPlanet = pid;
+    this.refreshMilestoneCaps();
+    this.syncCurrencyToStorageAndBridge();
+
+    // Reward 2 Cosmic Essence per milestone discovery!
+    this.addCosmicEssence(2, 'planet_unlock');
+
+    this.emit('exoplanet:unlock', { planetId: pid, planet });
+    this.emit('change:unlockedPlanets', { newValue: this.state.unlockedPlanets });
+    this.emit('change:currentPlanet', { newValue: pid });
+    return { success: true, planet };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mathematical Payout Formula Engine
+  // Payout = (BaseScore * ComboMultiplier) * WellbeingModifier
+  // ─────────────────────────────────────────────────────────────────────────
+
+  calculatePayout(gameId, baseScore, comboCount = 0) {
+    const wellbeing = this.state.wellbeing ?? 100;
+    const baseDifficulty = {
+      tetris: 25,
+      pong: 20,
+      dodge: 15,
+      runner: 10
+    }[gameId] || 15;
+
+    // Combo Multiplier: 1.0 + (combo * 0.1), capped at 3.0x
+    const comboMultiplier = Math.min(3.0, 1.0 + (Math.max(0, comboCount) * 0.1));
+    
+    // Wellbeing Modifier: bio-feedback coefficient (thriving Kiro gives 1.3x, neglected gives 0.5x)
+    const wellbeingModifier = parseFloat((0.5 + (wellbeing / 100) * 0.8).toFixed(2));
+    
+    // Squish multiplier from Helix milestone in Tetris
+    const squishBonus = (gameId === 'tetris' && this.hasMilestone('helix')) ? 1.5 : 1.0;
+    
+    // Sombrero vortex permanent milestone multiplier
+    const sombreroMultiplier = this.hasMilestone('sombrero') ? 1.25 : 1.0;
+
+    // Water hydration bonus/penalty
+    const waterLevel = this.state.water ?? 100;
+    const waterMultiplier = waterLevel < 30 ? 0.7 : (waterLevel > 70 ? 1.15 : 1.0);
+
+    const calculatedPayout = Math.max(1, Math.round(
+      (baseScore + baseDifficulty) * comboMultiplier * wellbeingModifier * squishBonus * sombreroMultiplier * waterMultiplier
+    ));
+    
+    return {
+      gameId,
+      baseScore,
+      baseDifficulty,
+      comboCount,
+      comboMultiplier,
+      wellbeing,
+      wellbeingModifier,
+      squishBonus,
+      sombreroMultiplier,
+      waterMultiplier,
+      totalPayout: calculatedPayout
+    };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Bio-Feedback Vitals Active Gameplay Consequences & Physics Modifiers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  getPhysicsDrag() {
+    const energy = this.state.energy ?? 100;
+    if (energy < 30) return 1.6; // Sluggish physics (increased drag & input latency)
+    if (this.state.hasWellRestedBuff || energy > 85) return 0.85; // Agile fast physics
+    return 1.0;
+  }
+
+  getShardRadiusMultiplier() {
+    const water = this.state.water ?? 100;
+    if (water < 30) return 0.7; // Dehydrated: reduced collection radius
+    if (water > 75) return 1.5; // Thriving: enhanced collection radius
+    return 1.0;
+  }
+
+  getShardMultiplier() {
+    const water = this.state.water ?? 100;
+    return water < 30 ? 0.7 : 1.0;
   }
 
   saveVitals() {

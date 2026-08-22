@@ -1,10 +1,10 @@
 {
-  "version": "2.1.6",
-  "build": 64,
+  "version": "2.2.0",
+  "build": 65,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V5.0 — Adaptive Resource Throttling (ART) Engine & 5-Signal Telemetry",
+  "description": "Space Capsule V5.0 — Comprehensive Gamification, Economic Model & Cozy Minigame Suite",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.6: Adaptive Resource Throttling (ART) engine, 5-signal predictive telemetry, dynamic DPR scaling, particle draw-range optimization, and memory cache pruning."
+  "changelog": "V8.7: Comprehensive Gamification & Economic Model with dual-currency framework, State-Write Interceptor, 4 procedural minigames (Celestial Tetris, Starlight Pong, Nebula Dodge, Cosmic Runner), 7 Exoplanet milestones, and Pointer Interaction Shield."
 }
 

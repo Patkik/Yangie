@@ -11,6 +11,7 @@ import { KiroIntroManager } from './intro.js';
 import { StarlightMessenger } from './mailbox.js';
 import { KiroAgenticOrchestrator } from './orchestrator.js';
 import { ARTEngine } from './art-engine.js';
+import { minigameEngine, PointerShield } from './minigames.js';
 
 // ============================================================================
 // 1. Native Lifecycle & Notification Bridges
@@ -412,17 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
   KiroState.on('change:cockpitSteering.aligned', ({ newValue }) => {
     const isTelescope = KiroState.get('telescopeActive');
     if (newValue && isTelescope && telescopeAlignedScreen) {
-      const targetId = KiroState.get('cockpitSteering.currentTarget');
-      const systemCatalog = {
-        butterfly: { name: 'Butterfly Galaxy (NGC 6302)', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', game: 'Nebula Dodge' },
-        helix:     { name: 'Eye of Helix Nebula (NGC 7293)', type: 'IONIZED NEBULA', dist: '655 ly', game: 'Celestial Bounce' },
-        sombrero:  { name: 'Sombrero Vortex (M104)', type: 'SPIRAL CORE', dist: '29.3 Mly', game: 'Cosmic Chimes' },
-        crab:      { name: 'Crab Pulsar Core (M1)', type: 'NEUTRON PULSAR', dist: '6.50 kly', game: 'Supernova Blast' },
-        gliese:    { name: 'Mint Ice World (Gliese 667)', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', game: 'Frozen Stardust' },
-        kepler:    { name: 'Lavender Ring Giant (Kepler 186)', type: 'RINGED GAS GIANT', dist: '582 ly', game: 'Orbital Rings' },
-        trappist:  { name: 'Pastel Star Sanctuary (Trappist 1)', type: 'RED DWARF HABITAT', dist: '39.6 ly', game: 'Starlight Catch' }
-      };
-      const sys = systemCatalog[targetId] || { name: 'Celestial Sanctuary', type: 'PLAYABLE SYSTEM', dist: '1.42 AU', game: 'Star Pulse' };
+      const targetId = KiroState.get('cockpitSteering.currentTarget') || 'gliese';
+      const catalog = KiroState.get('exoplanetCatalog') || {};
+      const sys = catalog[targetId] || { name: 'Celestial Sanctuary', type: 'PLAYABLE SYSTEM', dist: '1.42 AU', game: 'tetris', gameTitle: 'Celestial Tetris' };
 
       telescopeAlignedScreen.innerHTML = `
         <div class="target-lock-header">
@@ -439,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="target-lock-actions">
           <button id="btn-play-minigame" class="target-lock-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:13px;height:13px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Engage Warp to ${sys.game}
+            Engage Warp to ${sys.gameTitle || sys.game}
           </button>
         </div>
       `;
@@ -448,10 +441,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const playBtn = telescopeAlignedScreen.querySelector('#btn-play-minigame');
       if (playBtn) {
         playBtn.addEventListener('click', () => {
+          PointerShield.activate(1200);
           synthEngine.playSupernovaSound();
           if (sceneManager && typeof sceneManager.triggerWarpJump === 'function') {
             sceneManager.triggerWarpJump(sys);
           }
+          setTimeout(() => {
+            const gameId = sys.game || 'tetris';
+            minigameEngine.openGame(gameId);
+          }, 1100);
         });
       }
     } else if (telescopeAlignedScreen) {
@@ -850,9 +848,112 @@ document.addEventListener('DOMContentLoaded', () => {
     sleepBtn.addEventListener('pointercancel', cancelSleepPress);
   }
 
+  // 8.5 Exoplanet Sanctuary & Milestones Modal Controller
+  const currencyPill = document.getElementById('sanctuary-currency-pill');
+  const exoplanetModal = document.getElementById('exoplanet-modal');
+  const exoplanetCloseBtn = document.getElementById('exoplanet-close-btn');
+  const exoplanetGrid = document.getElementById('exoplanet-systems-grid');
+  const topbarStardustVal = document.getElementById('topbar-stardust-val');
+  const topbarEssenceVal = document.getElementById('topbar-essence-val');
+  const vaultStardustVal = document.getElementById('vault-stardust-val');
+  const vaultEssenceVal = document.getElementById('vault-essence-val');
+
+  const updateCurrencyUI = () => {
+    const shards = KiroState.get('stardustShards') ?? 0;
+    const essence = KiroState.get('cosmicEssence') ?? 0;
+    const essenceCap = KiroState.get('essenceCap') ?? 100;
+
+    if (topbarStardustVal) topbarStardustVal.textContent = shards;
+    if (topbarEssenceVal) topbarEssenceVal.textContent = essence;
+    if (vaultStardustVal) vaultStardustVal.textContent = `✦ ${shards}`;
+    if (vaultEssenceVal) vaultEssenceVal.textContent = `⬡ ${essence} / ${essenceCap}`;
+  };
+
+  const renderExoplanetModal = () => {
+    updateCurrencyUI();
+    if (!exoplanetGrid) return;
+
+    const catalog = KiroState.get('exoplanetCatalog') || {};
+    const unlocked = KiroState.get('unlockedPlanets') || ['gliese'];
+    const current = KiroState.get('currentPlanet') || 'gliese';
+    const userShards = KiroState.get('stardustShards') || 0;
+
+    exoplanetGrid.innerHTML = Object.values(catalog).map(sys => {
+      const isUnlocked = unlocked.includes(sys.id);
+      const isActive = current === sys.id;
+      const canUnlock = !isUnlocked && userShards >= sys.cost;
+
+      return `
+        <div class="exoplanet-card-item ${isUnlocked ? 'unlocked' : ''} ${isActive ? 'active-world' : ''}" data-planet="${sys.id}">
+          <div class="exo-info-col">
+            <div class="exo-name-row">
+              <span class="exo-name">${sys.name}</span>
+              ${isActive ? '<span class="minigame-badge" style="color:#4EC9B0;">[CURRENT]</span>' : ''}
+            </div>
+            <div class="exo-type">${sys.type} • <span class="exo-dist">${sys.dist}</span></div>
+            <div class="exo-buff">✦ ${sys.buffTitle} (${sys.buffMultiplier}x)</div>
+          </div>
+          <div class="exo-action-col">
+            ${isUnlocked ? `
+              <button class="exo-action-btn exo-play-btn" data-action="play" data-game="${sys.game}">
+                Play ${sys.gameTitle || 'Arcade'}
+              </button>
+            ` : `
+              <button class="exo-action-btn exo-unlock-btn" data-action="unlock" data-planet="${sys.id}" ${canUnlock ? '' : 'style="opacity:0.5;"'}>
+                Unlock (${sys.cost} ✦)
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach unlock and play action listeners
+    exoplanetGrid.querySelectorAll('button[data-action]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const action = btn.getAttribute('data-action');
+        if (action === 'play') {
+          const game = btn.getAttribute('data-game') || 'tetris';
+          if (exoplanetModal) exoplanetModal.style.display = 'none';
+          minigameEngine.openGame(game);
+        } else if (action === 'unlock') {
+          const pid = btn.getAttribute('data-planet');
+          const res = KiroState.unlockExoplanet(pid);
+          if (res.success) {
+            synthEngine.playAuraFlare();
+            renderExoplanetModal();
+          } else {
+            synthEngine.playSadWhimper();
+            alert(res.reason || 'Not enough Stardust Shards to unlock this sanctuary.');
+          }
+        }
+      });
+    });
+  };
+
+  if (currencyPill) {
+    currencyPill.addEventListener('click', () => {
+      renderExoplanetModal();
+      if (exoplanetModal) exoplanetModal.style.display = 'flex';
+      synthEngine.playShardPickup();
+    });
+  }
+
+  if (exoplanetCloseBtn) {
+    exoplanetCloseBtn.addEventListener('click', () => {
+      if (exoplanetModal) exoplanetModal.style.display = 'none';
+    });
+  }
+
+  // Reactive State Sync for Currencies & Exoplanets
+  updateCurrencyUI();
+  KiroState.on('change:stardustShards', () => updateCurrencyUI());
+  KiroState.on('change:cosmicEssence', () => updateCurrencyUI());
+  KiroState.on('change:unlockedPlanets', () => renderExoplanetModal());
+
   // 9. Rigid Viewport Lock — Prevent screen bounce/scrolling
   document.addEventListener('touchmove', (e) => {
-    const isScrollable = e.target.closest('.mailbox-feed, .settings-card, .intro-portals-stage, .call-panel');
+    const isScrollable = e.target.closest('.mailbox-feed, .settings-card, .intro-portals-stage, .call-panel, .exoplanet-systems-grid, .minigame-card');
     if (!isScrollable) {
       e.preventDefault();
     }
