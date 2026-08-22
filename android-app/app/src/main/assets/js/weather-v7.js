@@ -137,8 +137,15 @@ export default class KiroWeatherStationV7 {
                 <div class="simulate-section-header" style="text-align: center; margin-bottom: 6px; font-size: 0.8rem; letter-spacing: 1px;">
                     🛰️ Capsule Dual-Sanctuary Live Radar
                 </div>
-                <div id="radar-live-indicator" style="text-align: center; font-size: 0.65rem; color: #94e2d5; margin-bottom: 12px; font-weight: 600; opacity: 0.9;">
+                <div id="radar-live-indicator" style="text-align: center; font-size: 0.65rem; color: #94e2d5; margin-bottom: 8px; font-weight: 600; opacity: 0.9;">
                     Source: Open-Meteo High-Resolution ECMWF / NOAA Model
+                </div>
+
+                <!-- Cor Amoris Quest 3: Interactive Stardate Anchor -->
+                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                    <span id="weather-stardate-badge" class="capsule-stardate-val" title="Hold 3s to anchor Genesis Year" style="padding: 4px 12px; background: rgba(30, 30, 46, 0.85); border: 1px solid rgba(203, 166, 247, 0.4); border-radius: 12px; font-size: 0.68rem; font-weight: 700; color: #cba6f7; cursor: pointer; user-select: none; transition: all 0.2s ease;">
+                        ✦ STARDATE: 2024.01.27
+                    </span>
                 </div>
                 
                 <!-- Double-Persona Weather Stations -->

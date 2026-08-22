@@ -689,7 +689,54 @@ if (fs.existsSync(indexHtmlAuditPath) && fs.existsSync(mainCssAuditPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 23. Final Audit Summary
+// 23. Auditing Cor Amoris Scavenger Hunt Edition & Memorial Archive (01-27-2024)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}23. Auditing Cor Amoris Scavenger Hunt & Memorial Archive (01-27-2024)...${Colors.RESET}`);
+
+const corAmorisJsPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/cor-amoris.js');
+const corAmorisCssPath = path.resolve(__dirname, '../android-app/app/src/main/assets/css/cor-amoris.css');
+
+if (fs.existsSync(corAmorisJsPath)) {
+  const corJs = fs.readFileSync(corAmorisJsPath, 'utf8');
+  assert(corJs.includes('export class CorAmorisEngine') || corJs.includes('class CorAmorisEngine'), 'CorAmorisEngine exported from js/cor-amoris.js');
+  assert(corJs.includes('showOpeningMonologue') && corJs.includes('showContextualIdleHint'), 'Opening monologue and 20s contextual idle-hint engine verified in cor-amoris.js');
+  assert(corJs.includes('initSquishyShader') && corJs.includes('handleSquishyTap') && corJs.includes('pop-stardust-burst'), 'Quest 1: 3-tap RGB color-interpolation shader modal verified in cor-amoris.js');
+  assert(corJs.includes('bindStardateLongPress') && corJs.includes('detachStardateElement'), 'Quest 3: 3-second weather stardate physics detachment verified in cor-amoris.js');
+  assert(corJs.includes('triggerResonanceLockAlignment') && corJs.includes('playGrandCutscene'), 'Stargate resonance lock & Grand Emotional Cutscene verified in cor-amoris.js');
+  assert(corJs.includes('renderMemorialNotes') && corJs.includes('submitNewMemorialNote'), 'Memorial Archive decentralized love notes ledger verified in cor-amoris.js');
+}
+
+if (fs.existsSync(corAmorisCssPath)) {
+  const corCss = fs.readFileSync(corAmorisCssPath, 'utf8');
+  assert(corCss.includes('.constellation-dock') && corCss.includes('.dock-star-btn'), 'Bottom Navigation Constellation Dock (✧ ✧ ✧) styles verified in cor-amoris.css');
+  assert(corCss.includes('.squishy-canvas-wrapper') && corCss.includes('.stargate-slot'), 'Squishy shader canvas and Stargate radial dial styles verified in cor-amoris.css');
+  assert(corCss.includes('.declaration-letter-text') && corCss.includes('.core-lock-badge-artifact'), 'Declaration letter and Core Lock Badge styles verified in cor-amoris.css');
+}
+
+if (fs.existsSync(synthJsPath)) {
+  const synthCode = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthCode.includes('playTrappistBandpassSweep') && synthCode.includes('1500'), 'Trappist-1 BiquadFilter bandpass static sweep verified in synth.js');
+  assert(synthCode.includes('playCrystalChime') && synthCode.includes('523.25'), 'Crystal harmonic resonance chime (C5/E5/G5) verified in synth.js');
+  assert(synthCode.includes('playMusicBoxMelody'), 'Music box melody sequence verified in synth.js');
+  assert(synthCode.includes('playUnderTheSameSky') && synthCode.includes('stopUnderTheSameSky'), '"Under the Same Sky" 60 BPM procedural lo-fi ambient soundtrack verified in synth.js');
+}
+
+if (fs.existsSync(stateJsAuditPath)) {
+  const stateCode = fs.readFileSync(stateJsAuditPath, 'utf8');
+  assert(stateCode.includes('getWallet') && stateCode.includes('addWalletStardust') && stateCode.includes('spendWalletStardust'), 'Double-Ledger wallets (Pats & Yangiee) verified in state.js');
+  assert(stateCode.includes('unlockCorAmorisFragment') && stateCode.includes('alignStargate') && stateCode.includes('completeCorAmorisQuest'), 'Cor Amoris quest state machine (01-27-2024) verified in state.js');
+  assert(stateCode.includes('addMemorialNote') && stateCode.includes('setBackdrop'), 'Memorial Archive notes persistence and backdrop switcher verified in state.js');
+}
+
+if (fs.existsSync(indexHtmlAuditPath)) {
+  const htmlContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
+  assert(htmlContent.includes('cor-amoris-constellation-dock') && htmlContent.includes('dock-star-resonance'), 'Constellation Dock verified in index.html');
+  assert(htmlContent.includes('cor-amoris-squishy-modal') && htmlContent.includes('cor-amoris-stargate-modal'), 'Squishy & Stargate modals verified in index.html');
+  assert(htmlContent.includes('cor-amoris-cutscene-overlay') && htmlContent.includes('cor-amoris-archive-modal'), 'Cutscene overlay & Memorial Archive modal verified in index.html');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 24. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

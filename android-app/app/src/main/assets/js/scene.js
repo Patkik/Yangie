@@ -643,6 +643,35 @@ export class KiroSceneManager {
       this.setMinigameActive(Boolean(newValue));
     });
 
+    KiroState.on('cor_amoris:gate_aligned', () => {
+      if (this.camera && typeof gsap !== 'undefined') {
+        gsap.to(this.camera.position, {
+          z: 7.2,
+          y: 2.2,
+          duration: 2.5,
+          ease: 'power2.out'
+        });
+      }
+    });
+
+    KiroState.on('cor_amoris:backdrop_change', (backdropId) => {
+      if (this.nebulaMesh && this.nebulaMesh.material && this.nebulaMesh.material.uniforms) {
+        if (backdropId === 'cor-amoris') {
+          gsap.to(this.nebulaMesh.material.uniforms.u_color1.value, { r: 0.96, g: 0.76, b: 0.91, duration: 2.0 }); // Pastel-Pink Rose
+          gsap.to(this.nebulaMesh.material.uniforms.u_color2.value, { r: 0.31, g: 0.79, b: 0.69, duration: 2.0 }); // Mint-Teal
+        } else if (backdropId === 'trappist') {
+          gsap.to(this.nebulaMesh.material.uniforms.u_color1.value, { r: 0.96, g: 0.72, b: 0.75, duration: 2.0 }); // Blush-Pink
+          gsap.to(this.nebulaMesh.material.uniforms.u_color2.value, { r: 0.98, g: 0.89, b: 0.69, duration: 2.0 }); // Gold
+        } else if (backdropId === 'kepler') {
+          gsap.to(this.nebulaMesh.material.uniforms.u_color1.value, { r: 0.80, g: 0.65, b: 0.97, duration: 2.0 }); // Lavender-Cone
+          gsap.to(this.nebulaMesh.material.uniforms.u_color2.value, { r: 0.18, g: 0.12, b: 0.35, duration: 2.0 }); // Indigo
+        } else {
+          gsap.to(this.nebulaMesh.material.uniforms.u_color1.value, { r: 0.31, g: 0.79, b: 0.69, duration: 2.0 });
+          gsap.to(this.nebulaMesh.material.uniforms.u_color2.value, { r: 0.96, g: 0.76, b: 0.91, duration: 2.0 });
+        }
+      }
+    });
+
     // 2. Offscreen Star Texture Map
     this.starTexture = createGlowStarTexture();
     this.registerDisposable(this.starTexture);

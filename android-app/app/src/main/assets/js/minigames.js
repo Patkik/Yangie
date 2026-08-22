@@ -268,6 +268,8 @@ export class KiroMinigameEngine {
     if (sEl) sEl.textContent = Math.round(score);
     if (cEl) cEl.textContent = `${combo}x`;
     if (hEl) hEl.textContent = `+${pendingShards}`;
+
+    KiroState.emit('minigame:score', { game: this.currentGameId, score: combo === 27 ? 27 : score, combo });
   }
 
   showGameOver(baseScore, comboCount) {

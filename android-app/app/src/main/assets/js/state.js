@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.5',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.6',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)
@@ -75,36 +75,56 @@ class KiroStateManager extends StateEmitter {
       wellRestedBuffExpiresAt: 0,
       sleepSessionStartTime: null,
 
-      // Dual-Currency Economic Framework & Shared Vault
+      // Dual-Currency Economic Framework & Double-Ledger Wallets (Cor Amoris Edition)
       stardustShards: parseInt(localStorage.getItem('kiro_stardust_shards') || '350', 10),
       cosmicEssence: parseInt(localStorage.getItem('kiro_cosmic_essence') || '10', 10),
       essenceCap: 100, // Boosted to 600 by Crab Pulsar milestone
 
       vault: {
         stardustShards: parseInt(localStorage.getItem('kiro_stardust_shards') || '350', 10),
-        cosmicEssence: parseInt(localStorage.getItem('kiro_cosmic_essence') || '10', 10)
+        cosmicEssence: parseInt(localStorage.getItem('kiro_cosmic_essence') || '10', 10),
+        wallets: {
+          pat: parseInt(localStorage.getItem('kiro_wallet_pat') || '1240', 10),
+          yang: parseInt(localStorage.getItem('kiro_wallet_yang') || '1480', 10)
+        }
+      },
+
+      // Cor Amoris: The Heart Planet Scavenger Hunt Edition (01-27-2024)
+      corAmoris: {
+        active: true,
+        anniversaryDate: '2024.01.27',
+        fragments: JSON.parse(localStorage.getItem('cor_amoris_fragments') || '{"01":false,"27":false,"2024":false}'),
+        satchel: JSON.parse(localStorage.getItem('cor_amoris_satchel') || '[]'),
+        gateAligned: localStorage.getItem('cor_amoris_gate_aligned') === 'true',
+        unlocked: localStorage.getItem('cor_amoris_unlocked') === 'true',
+        backdrop: localStorage.getItem('cor_amoris_backdrop') || 'default',
+        memorialNotes: JSON.parse(localStorage.getItem('cor_amoris_notes') || '[]')
       },
 
       // Kepler-186 Outpost Shop & Shared Inventory Stockpile
       inventory: {
         star: 2,   // Stock Cap: 5 (Scarce)
         donut: 8,  // Stock Cap: 15
-        water: 12  // Stock Cap: 20
+        water: 12, // Stock Cap: 20
+        memory_squishy: 0 // Quest 1: Cosmic Memory Squishy
       },
       inventoryLimits: {
         star: 5,
         donut: 15,
-        water: 20
+        water: 20,
+        memory_squishy: 5
       },
       itemBaseCosts: {
         water: 15,
         donut: 25,
-        star: 120
+        star: 120,
+        memory_squishy: 30
       },
       itemRestorations: {
         donut: { food: 40, water: -5, energy: 0 },
         water: { food: 0, water: 35, energy: 0 },
-        star:  { food: 0, water: 0, energy: 30 }
+        star:  { food: 0, water: 0, energy: 30 },
+        memory_squishy: { food: 10, water: 10, energy: 10 }
       },
       lastStarCandyRestockTimestamp: parseInt(localStorage.getItem('kiro_last_star_restock') || String(Date.now()), 10),
 
@@ -288,6 +308,132 @@ class KiroStateManager extends StateEmitter {
         console.warn('Kotlin Currency Bridge error:', e);
       }
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Double-Ledger Wallets (Pats: Mint-Teal | Yang: Pastel-Pink)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  getWallet(persona = null) {
+    const target = persona ? this.normalizePersona(persona) : this.getPersona();
+    if (!this.state.vault.wallets) {
+      this.state.vault.wallets = { pat: 1240, yang: 1480 };
+    }
+    return this.state.vault.wallets[target] ?? (target === 'yang' ? 1480 : 1240);
+  }
+
+  addWalletStardust(persona, amount) {
+    const target = this.normalizePersona(persona || this.getPersona());
+    const qty = Math.max(0, parseInt(amount, 10) || 0);
+    if (!this.state.vault.wallets) {
+      this.state.vault.wallets = { pat: 1240, yang: 1480 };
+    }
+    this.state.vault.wallets[target] = (this.state.vault.wallets[target] || 0) + qty;
+    try {
+      localStorage.setItem(`kiro_wallet_${target}`, String(this.state.vault.wallets[target]));
+    } catch (e) {}
+    this.emit('wallet:change', { persona: target, amount: this.state.vault.wallets[target], delta: qty });
+    this.emit(`change:vault.wallets.${target}`, { newValue: this.state.vault.wallets[target] });
+    return this.state.vault.wallets[target];
+  }
+
+  spendWalletStardust(persona, amount) {
+    const target = this.normalizePersona(persona || this.getPersona());
+    const qty = Math.max(0, parseInt(amount, 10) || 0);
+    if (!this.state.vault.wallets) {
+      this.state.vault.wallets = { pat: 1240, yang: 1480 };
+    }
+    if ((this.state.vault.wallets[target] || 0) < qty) return false;
+    this.state.vault.wallets[target] -= qty;
+    try {
+      localStorage.setItem(`kiro_wallet_${target}`, String(this.state.vault.wallets[target]));
+    } catch (e) {}
+    this.emit('wallet:change', { persona: target, amount: this.state.vault.wallets[target], delta: -qty });
+    this.emit(`change:vault.wallets.${target}`, { newValue: this.state.vault.wallets[target] });
+    return true;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Cor Amoris: The Heart Planet Scavenger Hunt Engine (01-27-2024)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  getCorAmorisState() {
+    return this.state.corAmoris;
+  }
+
+  unlockCorAmorisFragment(fragmentId) {
+    const fid = String(fragmentId);
+    if (!['01', '27', '2024'].includes(fid)) return false;
+    if (this.state.corAmoris.fragments[fid]) return true;
+
+    this.state.corAmoris.fragments[fid] = true;
+    if (!this.state.corAmoris.satchel.includes(fid)) {
+      this.state.corAmoris.satchel.push(fid);
+    }
+
+    try {
+      localStorage.setItem('cor_amoris_fragments', JSON.stringify(this.state.corAmoris.fragments));
+      localStorage.setItem('cor_amoris_satchel', JSON.stringify(this.state.corAmoris.satchel));
+    } catch (e) {}
+
+    this.emit('cor_amoris:fragment_unlocked', { fragmentId: fid, satchel: this.state.corAmoris.satchel });
+    this.emit('change:corAmoris', { newValue: this.state.corAmoris });
+
+    const allCollected = this.state.corAmoris.fragments['01'] && this.state.corAmoris.fragments['27'] && this.state.corAmoris.fragments['2024'];
+    if (allCollected) {
+      this.emit('cor_amoris:all_fragments_collected', { satchel: this.state.corAmoris.satchel });
+    }
+
+    return true;
+  }
+
+  alignStargate() {
+    this.state.corAmoris.gateAligned = true;
+    try {
+      localStorage.setItem('cor_amoris_gate_aligned', 'true');
+    } catch (e) {}
+    this.emit('cor_amoris:gate_aligned');
+    this.emit('change:corAmoris', { newValue: this.state.corAmoris });
+    return true;
+  }
+
+  completeCorAmorisQuest() {
+    this.state.corAmoris.unlocked = true;
+    this.state.corAmoris.backdrop = 'cor-amoris';
+    try {
+      localStorage.setItem('cor_amoris_unlocked', 'true');
+      localStorage.setItem('cor_amoris_backdrop', 'cor-amoris');
+    } catch (e) {}
+    this.emit('cor_amoris:completed');
+    this.emit('change:corAmoris', { newValue: this.state.corAmoris });
+    return true;
+  }
+
+  setBackdrop(backdropId) {
+    if (!['default', 'kepler', 'trappist', 'cor-amoris'].includes(backdropId)) return;
+    this.state.corAmoris.backdrop = backdropId;
+    try {
+      localStorage.setItem('cor_amoris_backdrop', backdropId);
+    } catch (e) {}
+    this.emit('cor_amoris:backdrop_change', backdropId);
+    this.emit('change:corAmoris.backdrop', { newValue: backdropId });
+  }
+
+  addMemorialNote(note) {
+    if (!note || !note.text) return false;
+    const newNote = {
+      id: `note_${Date.now()}`,
+      author: this.getPersona(),
+      text: String(note.text).trim(),
+      timestamp: Date.now(),
+      image: note.image || null
+    };
+    this.state.corAmoris.memorialNotes.unshift(newNote);
+    try {
+      localStorage.setItem('cor_amoris_notes', JSON.stringify(this.state.corAmoris.memorialNotes));
+    } catch (e) {}
+    this.emit('cor_amoris:note_added', newNote);
+    return newNote;
   }
 
   // ─────────────────────────────────────────────────────────────────────────

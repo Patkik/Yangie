@@ -2045,6 +2045,263 @@ export class CosmicSynthEngine {
   // 5. Explicit Teardown & Resource Disposal
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 5. Cor Amoris Scavenger Hunt & Celestial Procedural Audio Suite (01-27-2024)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Trappist-1 Bandpass Static Sweep (Trappist_27_Bandpass_Sweep)
+   * Sweeps a BiquadFilterNode (type: bandpass, Q: 2.5) 100Hz -> 1500Hz -> 80Hz
+   * Clears cosmic static to reveal the "27" numerical fragment.
+   */
+  playTrappistBandpassSweep() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const targetDest = this.sfxGain || this.masterGain;
+
+    const noiseBuffer = this.createWhiteNoiseBuffer();
+    const noiseSource = this.ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.setValueAtTime(2.5, now);
+    filter.frequency.setValueAtTime(100, now);
+    filter.frequency.exponentialRampToValueAtTime(1500, now + 0.8);
+    filter.frequency.exponentialRampToValueAtTime(80, now + 1.8);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.01, now);
+    gain.gain.linearRampToValueAtTime(0.35, now + 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.9);
+
+    noiseSource.connect(filter);
+    filter.connect(gain);
+    gain.connect(targetDest);
+
+    noiseSource.start(now);
+    noiseSource.stop(now + 2.0);
+
+    setTimeout(() => {
+      try {
+        noiseSource.disconnect();
+        filter.disconnect();
+        gain.disconnect();
+      } catch (e) {}
+    }, 2100);
+  }
+
+  /**
+   * Crystal Harmonic Resonance Chimes (C5 = 523.25Hz, E5 = 659.25Hz, G5 = 783.99Hz)
+   * Plays pure crystal tones when fragments align into the Stargate dial.
+   * @param {number} freq - Frequency in Hz
+   */
+  playCrystalChime(freq = 523.25) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const targetDest = this.sfxGain || this.masterGain;
+
+    const osc = this.ctx.createOscillator();
+    const oscHarmonic = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+
+    // Overtone with slight shimmer
+    oscHarmonic.type = 'triangle';
+    oscHarmonic.frequency.setValueAtTime(freq * 2.003, now);
+
+    gain.gain.setValueAtTime(0.0, now);
+    gain.gain.linearRampToValueAtTime(0.45, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+
+    osc.connect(gain);
+    oscHarmonic.connect(gain);
+    gain.connect(targetDest);
+
+    osc.start(now);
+    oscHarmonic.start(now);
+    osc.stop(now + 2.5);
+    oscHarmonic.stop(now + 2.5);
+
+    setTimeout(() => {
+      try {
+        osc.disconnect();
+        oscHarmonic.disconnect();
+        gain.disconnect();
+      } catch (e) {}
+    }, 2600);
+  }
+
+  /**
+   * Delicate Music-Box Melody Sequence (Post-Trappist 27 Catch)
+   */
+  playMusicBoxMelody() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    // 8-note sweet music box arpeggio: C5, E5, G5, B5, C6, G5, E5, C5
+    const notes = [523.25, 659.25, 783.99, 987.77, 1046.50, 783.99, 659.25, 523.25];
+    const now = this.ctx.currentTime;
+    const targetDest = this.sfxGain || this.masterGain;
+
+    notes.forEach((freq, idx) => {
+      const noteTime = now + (idx * 0.22);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      gain.gain.setValueAtTime(0.0, noteTime);
+      gain.gain.linearRampToValueAtTime(0.3, noteTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.7);
+
+      osc.connect(gain);
+      gain.connect(targetDest);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.75);
+
+      setTimeout(() => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch (e) {}
+      }, (idx * 220) + 800);
+    });
+  }
+
+  /**
+   * Resonance Gate Shatter FX
+   */
+  playStargateShatterFX() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const targetDest = this.sfxGain || this.masterGain;
+
+    // Resonant pop
+    const popOsc = this.ctx.createOscillator();
+    const popGain = this.ctx.createGain();
+    popOsc.type = 'sine';
+    popOsc.frequency.setValueAtTime(880, now);
+    popOsc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+    popGain.gain.setValueAtTime(0.5, now);
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    popOsc.connect(popGain);
+    popGain.connect(targetDest);
+    popOsc.start(now);
+    popOsc.stop(now + 0.4);
+
+    // Crystal chime chords
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+      setTimeout(() => {
+        this.playCrystalChime(freq);
+      }, i * 60);
+    });
+  }
+
+  /**
+   * "Under the Same Sky" — 60 BPM Lo-Fi Ambient Procedural Masterpiece
+   */
+  playUnderTheSameSky() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.underTheSameSkyActive) return;
+
+    this.underTheSameSkyActive = true;
+    const targetDest = this.ambientGain || this.masterGain;
+
+    // 1. Cozy Vinyl Static Floor
+    const noiseBuffer = this.createWhiteNoiseBuffer();
+    this.vinylNode = this.ctx.createBufferSource();
+    this.vinylNode.buffer = noiseBuffer;
+    this.vinylNode.loop = true;
+
+    this.vinylFilter = this.ctx.createBiquadFilter();
+    this.vinylFilter.type = 'bandpass';
+    this.vinylFilter.frequency.setValueAtTime(2200, this.ctx.currentTime);
+    this.vinylFilter.Q.setValueAtTime(0.8, this.ctx.currentTime);
+
+    this.vinylGain = this.ctx.createGain();
+    this.vinylGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+
+    this.vinylNode.connect(this.vinylFilter);
+    this.vinylFilter.connect(this.vinylGain);
+    this.vinylGain.connect(targetDest);
+    this.vinylNode.start();
+
+    // 2. 60 BPM Jazz Progression (Cmaj9 -> Am9 -> Fmaj7 -> G13)
+    const chords = [
+      [261.63, 329.63, 392.00, 493.88, 587.33], // Cmaj9
+      [220.00, 261.63, 329.63, 392.00, 493.88], // Am9
+      [174.61, 220.00, 261.63, 329.63],         // Fmaj7
+      [196.00, 246.94, 293.66, 349.23, 440.00]  // G13
+    ];
+    let chordIdx = 0;
+
+    this.sameSkyInterval = setInterval(() => {
+      if (!this.underTheSameSkyActive || !this.ctx) return;
+      const currentChord = chords[chordIdx % chords.length];
+      chordIdx++;
+
+      const now = this.ctx.currentTime;
+      currentChord.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + (idx * 0.04));
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(750, now);
+
+        gain.gain.setValueAtTime(0.0, now + (idx * 0.04));
+        gain.gain.linearRampToValueAtTime(0.08, now + (idx * 0.04) + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.6);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(targetDest);
+
+        osc.start(now + (idx * 0.04));
+        osc.stop(now + 3.8);
+
+        setTimeout(() => {
+          try {
+            osc.disconnect();
+            filter.disconnect();
+            gain.disconnect();
+          } catch (e) {}
+        }, 4000);
+      });
+    }, 4000); // 1 chord every 4 beats at 60 BPM
+  }
+
+  stopUnderTheSameSky() {
+    this.underTheSameSkyActive = false;
+    if (this.sameSkyInterval) {
+      clearInterval(this.sameSkyInterval);
+      this.sameSkyInterval = null;
+    }
+    if (this.vinylNode) {
+      try {
+        this.vinylGain.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + 1.0);
+        setTimeout(() => {
+          this.vinylNode.stop();
+          this.vinylNode.disconnect();
+          this.vinylFilter.disconnect();
+          this.vinylGain.disconnect();
+        }, 1100);
+      } catch (e) {}
+    }
+  }
+
   dispose() {
     this.stopThruster(0.1);
     this.stopCosmicAtmosphere(0.1);

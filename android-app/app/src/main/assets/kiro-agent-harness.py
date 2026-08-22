@@ -82,8 +82,8 @@ SAFE_NEUTRALS = {
 
 REQUIRED_FILES = {
     "root": ["index.html", "version.json"],
-    "css": ["main.css", "intro.css", "messenger.css", "call.css", "weather-v7.css"],
-    "js": ["app.js", "state.js", "synth.js", "intro.js", "scene.js", "mailbox.js", "call-engine.js", "crypto-engine.js", "orchestrator.js", "weather-v7.js", "three.min.js", "gsap.min.js"]
+    "css": ["main.css", "intro.css", "messenger.css", "call.css", "weather-v7.css", "cor-amoris.css"],
+    "js": ["app.js", "state.js", "synth.js", "intro.js", "scene.js", "mailbox.js", "call-engine.js", "crypto-engine.js", "orchestrator.js", "weather-v7.js", "cor-amoris.js", "three.min.js", "gsap.min.js"]
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

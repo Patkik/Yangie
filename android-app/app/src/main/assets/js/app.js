@@ -14,6 +14,7 @@ import { KiroAgenticOrchestrator } from './orchestrator.js';
 import { ARTEngine, TelemetryHUD } from './art-engine.js';
 import { minigameEngine, PointerShield } from './minigames.js';
 import KiroWeatherStationV7 from './weather-v7.js';
+import { corAmorisEngine } from './cor-amoris.js';
 
 // ============================================================================
 // 1. Native Lifecycle & Notification Bridges
@@ -1367,9 +1368,160 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('touchstart', resetZenTimer, { passive: true });
   resetZenTimer();
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 10. Kepler-186 Outpost Shop & Shared Stockpile Handlers
+  // ─────────────────────────────────────────────────────────────────────────
+  const keplerShopModal = document.getElementById('kepler-shop-modal');
+  const shopCloseBtn = document.getElementById('shop-close-btn');
+
+  const updateShopUI = () => {
+    const inv = KiroState.get('inventory') || {};
+    const shards = KiroState.get('stardustShards') || 0;
+    const vaultShardsEl = document.getElementById('shop-vault-shards');
+    if (vaultShardsEl) vaultShardsEl.textContent = `${shards} ✦`;
+
+    ['water', 'donut', 'star', 'memory_squishy'].forEach(item => {
+      const stockEl = document.getElementById(`shop-stock-${item}`);
+      const costEl = document.getElementById(`shop-cost-${item}`);
+      if (stockEl) stockEl.textContent = inv[item] || 0;
+      if (costEl) costEl.textContent = `${KiroState.getItemCost(item)} ✦`;
+    });
+  };
+
+  const openKeplerShop = () => {
+    updateShopUI();
+    if (keplerShopModal) keplerShopModal.style.display = 'flex';
+    synthEngine.playAuraFlare();
+  };
+
+  if (shopCloseBtn) {
+    shopCloseBtn.addEventListener('click', () => {
+      if (keplerShopModal) keplerShopModal.style.display = 'none';
+    });
+  }
+
+  // Shop Buy Buttons
+  ['water', 'donut', 'star', 'memory_squishy'].forEach(item => {
+    const btn = document.getElementById(`btn-buy-${item}`);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const res = KiroState.buyItem(item);
+        if (res.success) {
+          synthEngine.playShardPickup();
+          updateShopUI();
+          if (item === 'memory_squishy') {
+            if (keplerShopModal) keplerShopModal.style.display = 'none';
+            corAmorisEngine.openMemorySquishyModal();
+          }
+        } else {
+          synthEngine.playSadWhimper();
+          alert(res.reason || 'Cannot purchase item.');
+        }
+      });
+    }
+  });
+
+  KiroState.on('change:inventory', () => updateShopUI());
+  KiroState.on('change:stardustShards', () => updateShopUI());
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 11. Cor Amoris Constellation Dock & Modals Bindings
+  // ─────────────────────────────────────────────────────────────────────────
+  const dockResonanceBtn = document.getElementById('dock-star-resonance');
+  const dockSatchelBtn = document.getElementById('dock-star-satchel');
+  const dockArchiveBtn = document.getElementById('dock-star-archive');
+
+  if (dockResonanceBtn) {
+    dockResonanceBtn.addEventListener('click', () => {
+      corAmorisEngine.openResonanceWalletModal();
+    });
+  }
+
+  if (dockSatchelBtn) {
+    dockSatchelBtn.addEventListener('click', () => {
+      corAmorisEngine.openSatchelModal();
+    });
+  }
+
+  if (dockArchiveBtn) {
+    dockArchiveBtn.addEventListener('click', () => {
+      const corState = KiroState.getCorAmorisState();
+      if (corState && corState.unlocked) {
+        corAmorisEngine.openMemorialArchiveModal();
+      } else {
+        synthEngine.playSadWhimper();
+        corAmorisEngine.openSatchelModal();
+      }
+    });
+  }
+
+  // Monologue Modal Buttons
+  const monologueCloseBtn = document.getElementById('monologue-close-btn');
+  const monologueBeginBtn = document.getElementById('monologue-begin-btn');
+  if (monologueCloseBtn) monologueCloseBtn.addEventListener('click', () => corAmorisEngine.hideOpeningMonologue());
+  if (monologueBeginBtn) monologueBeginBtn.addEventListener('click', () => corAmorisEngine.hideOpeningMonologue());
+
+  // Squishy Modal Buttons
+  const squishyCloseBtn = document.getElementById('squishy-close-btn');
+  const squishyTapBtn = document.getElementById('btn-tap-squishy');
+  const squishyCanvasWrapper = document.getElementById('squishy-canvas-wrapper');
+  if (squishyCloseBtn) squishyCloseBtn.addEventListener('click', () => corAmorisEngine.closeMemorySquishyModal());
+  if (squishyTapBtn) squishyTapBtn.addEventListener('click', () => corAmorisEngine.handleSquishyTap());
+  if (squishyCanvasWrapper) squishyCanvasWrapper.addEventListener('click', () => corAmorisEngine.handleSquishyTap());
+
+  // Stargate Dial Modal Buttons
+  const stargateCloseBtn = document.getElementById('stargate-close-btn');
+  const alignStargateBtn = document.getElementById('btn-align-stargate');
+  const openStargateFromSatchelBtn = document.getElementById('btn-open-stargate-from-satchel');
+  if (stargateCloseBtn) stargateCloseBtn.addEventListener('click', () => corAmorisEngine.closeStargateDialModal());
+  if (alignStargateBtn) alignStargateBtn.addEventListener('click', () => corAmorisEngine.triggerResonanceLockAlignment());
+  if (openStargateFromSatchelBtn) {
+    openStargateFromSatchelBtn.addEventListener('click', () => {
+      corAmorisEngine.closeSatchelModal();
+      corAmorisEngine.openStargateDialModal();
+    });
+  }
+
+  // Memorial Archive Buttons
+  const archiveCloseBtn = document.getElementById('archive-close-btn');
+  const submitNoteBtn = document.getElementById('btn-submit-note');
+  const noteInput = document.getElementById('cor-amoris-note-input');
+  if (archiveCloseBtn) archiveCloseBtn.addEventListener('click', () => corAmorisEngine.closeMemorialArchiveModal());
+  if (submitNoteBtn) submitNoteBtn.addEventListener('click', () => corAmorisEngine.submitNewMemorialNote());
+  if (noteInput) {
+    noteInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') corAmorisEngine.submitNewMemorialNote();
+    });
+  }
+
+  // Backdrop Switcher Pills
+  document.querySelectorAll('.backdrop-pill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const bid = btn.getAttribute('data-backdrop');
+      corAmorisEngine.setCelestialBackdrop(bid);
+    });
+  });
+
+  // Satchel & Wallet Close Buttons
+  const satchelCloseBtn = document.getElementById('satchel-close-btn');
+  const walletCloseBtn = document.getElementById('wallet-close-btn');
+  if (satchelCloseBtn) satchelCloseBtn.addEventListener('click', () => corAmorisEngine.closeSatchelModal());
+  if (walletCloseBtn) walletCloseBtn.addEventListener('click', () => corAmorisEngine.closeResonanceWalletModal());
+
+  // Launch opening monologue if quest active and not seen in session
+  try {
+    const corState = KiroState.getCorAmorisState();
+    if (corState && !corState.unlocked && !sessionStorage.getItem('cor_amoris_intro_seen')) {
+      sessionStorage.setItem('cor_amoris_intro_seen', 'true');
+      setTimeout(() => {
+        corAmorisEngine.showOpeningMonologue();
+      }, 2500);
+    }
+  } catch (e) {}
+
   // 9. Rigid Viewport Lock — Prevent screen bounce/scrolling
   document.addEventListener('touchmove', (e) => {
-    const isScrollable = e.target.closest('.mailbox-feed, .settings-card, .intro-portals-stage, .call-panel, .exoplanet-systems-grid, .minigame-card');
+    const isScrollable = e.target.closest('.mailbox-feed, .settings-card, .intro-portals-stage, .call-panel, .exoplanet-systems-grid, .minigame-card, .cor-amoris-card, .archive-notes-stream');
     if (!isScrollable) {
       e.preventDefault();
     }

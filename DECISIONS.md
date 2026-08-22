@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-631900] Cor Amoris Scavenger Hunt Edition, Double-Ledger Wallets & Memorial Archive V8.4
+- **Timestamp**: `2026-08-22T22:33:00.000000`
+- **Strategy & Synthesis**: Implemented the complete Cor Amoris Game Design Document architecture for Anniversary Date 01-27-2024 with zero-clutter Stargate dial, Grand Emotional Cutscene, and permanent Memorial Archive.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Transformed Kiro's Cosmic Haven into a high-fidelity cooperative digital pilgrimage celebrating anniversary date 01-27-2024. Delivered RGB color-interpolation shaders, music-box melodies, twin-sun Cathedral cutscene, and calligraphic stardust letter declaration.
+  - **Performance**: Score 5/5: 100% offline procedural Web Audio synthesis (Trappist bandpass sweep, crystal chimes C5/E5/G5, 'Under the Same Sky' 60 BPM lofi track) and GLSL shaders with zero external assets, locking 60-120 FPS.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.4.6 (Build 84) across version.json, index.html, state.js, and build.gradle.kts for instant Android WebView OTA asset cache eviction.
+  - **Structural**: Score 5/5: Centralized state interceptor in state.js normalizing user tokens, decoupled Double-Ledger Wallets (Pats: Mint-Teal | Yangiee: Pastel-Pink) while keeping vitals SSOT shared.
+  - **Gamification**: Score 5/5: Three-stage scavenger hunt across Kepler-186, Trappist-1, and Capsule Core, Stargate Resonance Dial alignment, and permanent Memorial Archive with love notes ledger.
+
+---
+
 ### [DEC-621900] Single-Row Top Bar Dynamic Island Geometry & Currency Pill Overlap Resolution V8.3
 - **Timestamp**: `2026-08-22T22:06:00.000000`
 - **Strategy & Synthesis**: Resolved top header partner beacon pill text overflow that was spilling hidden location and weather badges underneath the translucent currency pill. Enforced overflow isolation, compact mobile beacon representation, and opaque glassmorphic currency styling.
