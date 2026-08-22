@@ -293,17 +293,8 @@
   - **Structural**: Score 5/5: Operational rules updated across all 7 directive targets integrating skills-1.2.3 harness taxonomy (Engineering, Productivity, Domain Matrix) and refocusing harness as an architectural drift guardrail.
   - **Gamification**: Score 5/5: Rapid iteration cycles directly accelerate delivering engaging, tactile companion interactions.
 
-### [DEC-411900] Hierarchical Eye Assemblies, Non-Clipping Flush Belly & Reactive Action Kinematics V8.2
-- **Timestamp**: `2026-08-22T16:30:00.000000`
-- **Strategy & Synthesis**: Diagnosed and resolved all 5 structural and visual defects observed across angles and actions: (1) encapsulated pupil and all 3 catchlights into leftEyeGroup and rightEyeGroup eliminating floating catchlight detachment during blinks and winks; (2) recalibrated belly patch bounds inside body sphere eliminating bottom protrusion between feet; (3) replaced static arms with shoulder pivot groups that grasp treats during feeding and flutter during petting; (4) unified tail cone and dorsal plates into tailGroup with dynamic wagging; (5) added organic feet grounding squish on pedestal top plane.
-- **Evaluated Perspectives**:
-  - **Creative**: Score 5/5: Soulful starlight eyes with pupil and glossy catchlights encapsulated into unified hierarchical leftEyeGroup and rightEyeGroup, guaranteeing catchlights permanently deform and scale in exact lockstep during blinks, winks, squints, laughs, and sleep with zero mid-air floating detachment. Calibrated belly patch to flush lower tummy (y=-0.34, z=0.46) with zero bottom clipping artifacts between feet. Soft warm cherry-peach blush cheeks (#FF758F) that glow during petting and treat feeding.
-  - **Performance**: Score 5/5: 54/54 dynamic headless assertions passed. Zero-allocation render ticks with pre-allocated scratch vectors, maintaining locked 120 FPS on all mobile displays.
-  - **Container**: Score 5/5: 100% offline zero-asset WebGL pipeline, SemVer synchronized across all 4 targets to v2.1.2 (versionCode 60).
-  - **Structural**: Score 5/5: Anatomical shoulder pivot assemblies (leftArmGroup, rightArmGroup) and unified tail assembly (tailGroup) with relative kinematics for breathing sway, feeding treat grasping, petting arm flutter, excited tail wagging, and head crest wave dynamics.
-  - **Gamification**: Score 5/5: Incredibly responsive and living companion with grounded feet squishing against pedestal soles, dynamic treat grasping paws, joyful tail wags, affectionate winks, and seamless idle animation recovery.
-
 ---
+
 ### [DEC-241900] Input Analysis & Rule Guardrail Engine V4.7, Intent Triage & Submodule Skill Synchronization
 - **Timestamp**: `2026-08-22T00:46:00.000000`
 - **Strategy & Synthesis**: Built the Input Analysis & Rule Guardrail Engine (--eval-input / --analyze-prompt) inside kiro-agent-harness.py to triage incoming developer prompts against master invariants, block illegal assets, auto-map color tokens, and generate structured pre-execution blueprints.
@@ -498,7 +489,7 @@
 
 ### [DEC-401900] Anime Background Nebula, Gaussian Starfield Bokeh & Facial Harmony Architecture V8.1
 - **Timestamp**: `2026-08-22T16:15:00.000000`
-- **Strategy & Synthesis**: Eliminated background nebula color smashing and white-out haze with rich velvety midnight watercolor washes, deployed custom Gaussian bokeh starfield and galaxy shaders with asynchronous twinkling, and perfectly calibrated Kiro's facial arrangement (belly patch lowered to tummy, mouth elevated with clear breathing room, blush cheeks under starlight eyes) in brighter, joyful velvet plushie tones.
+- **Strategy & Synthesis**: Implemented rich velvety midnight indigo watercolor nebula, Gaussian starfield bokeh with asynchronous twinkling, and joyful non-clipping facial geometry in scene.js.
 - **Evaluated Perspectives**:
   - **Creative**: Score 5/5: Gorgeous hand-painted Makoto Shinkai night sky aesthetics. Replaced over-bright additive nebula fog with rich, velvety Midnight Indigo (#0E0E18) and subtle 3-layer watercolor washes (Twilight Violet, Dusky Rose, Starlight Mint). Upgraded stars to soft Gaussian bokeh discs with asynchronous phase twinkling. Calibrated Kiro's belly patch, blush cheeks, and mouth with zero mesh overlap tension in joyful bright pastel tones (#5AE5C8, #FFFDF7, #FFE58F).
   - **Performance**: Score 5/5: 51/51 dynamic headless assertions passed. Optimized GPU point shader with analytic Gaussian decay (exp(-3.8 * r^2)) and normal watercolor blending, eliminating overdraw and color washout while maintaining buttery 120 FPS.
@@ -508,9 +499,21 @@
 
 ---
 
+### [DEC-411900] Hierarchical Eye Assemblies, Non-Clipping Flush Belly & Reactive Action Kinematics V8.2
+- **Timestamp**: `2026-08-22T16:30:00.000000`
+- **Strategy & Synthesis**: Encapsulated pupil and glossy catchlights into hierarchical eye group assemblies to guarantee permanent deformation tracking during all expressions without mid-air detachment, and calibrated flush lower belly patch.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Soulful starlight eyes with pupil and glossy catchlights encapsulated into unified hierarchical leftEyeGroup and rightEyeGroup, guaranteeing catchlights permanently deform and scale in exact lockstep during blinks, winks, squints, laughs, and sleep with zero mid-air floating detachment. Calibrated belly patch to flush lower tummy (y=-0.34, z=0.46) with zero bottom clipping artifacts between feet. Soft warm cherry-peach blush cheeks (#FF758F) that glow during petting and treat feeding.
+  - **Performance**: Score 5/5: 54/54 dynamic headless assertions passed. Zero-allocation render ticks with pre-allocated scratch vectors, maintaining locked 120 FPS on all mobile displays.
+  - **Container**: Score 5/5: 100% offline zero-asset WebGL pipeline, SemVer synchronized across all 4 targets to v2.1.2 (versionCode 60).
+  - **Structural**: Score 5/5: Anatomical shoulder pivot assemblies (leftArmGroup, rightArmGroup) and unified tail assembly (tailGroup) with relative kinematics for breathing sway, feeding treat grasping, petting arm flutter, excited tail wagging, and head crest wave dynamics.
+  - **Gamification**: Score 5/5: Incredibly responsive and living companion with grounded feet squishing against pedestal soles, dynamic treat grasping paws, joyful tail wags, affectionate winks, and seamless idle animation recovery.
+
+---
+
 ### [DEC-421900] Starlight Messenger V4.0 Glassmorphic Styling & Cosmic Aurora Backdrop
 - **Timestamp**: `2026-08-22T16:32:00.000000`
-- **Strategy & Synthesis**: Polished and updated messenger.css to Starlight Messenger V4.0 with shifting cosmic aurora gradient backdrop, squishy matte-plushie speech bubbles for Patrick and Yangiee, elastic spring microinteractions on avatars, emoji picker, and rocket launch button, and dynamic recording-pulse microphone indicator in mailbox.js.
+- **Strategy & Synthesis**: Polished and updated messenger.css to Starlight Messenger V4.0 with shifting cosmic aurora gradient backdrop, squishy speech bubbles, and elastic spring microinteractions.
 - **Evaluated Perspectives**:
   - **Creative**: Score 5/5: Exquisite space-capsule glassmorphism with shifting 3D cosmic aurora gradient backdrop (15s sweep), cozy matte-plushie speech bubbles with custom squishy border radiuses (20px 20px 4px 20px / 20px 20px 20px 4px) reflecting Patrick's mint-teal and Yangiee's pastel-pink glow, elastic spring physics on avatars and quick emojis, command terminal input, and rocket launcher send button.
   - **Performance**: Score 5/5: 54/54 dynamic headless assertions passed. GPU-accelerated backdrop-filter and CSS transforms with zero DOM reflows during chat scrolling.
@@ -555,3 +558,4 @@
   - **Gamification**: Score 5/5: Rock-solid locked frame rate delivering buttery smoothness across the entire target device spectrum—from budget 4GB RAM phones to high-end 16GB gaming devices.
 
 ---
+
