@@ -559,6 +559,8 @@ export class KiroSceneManager {
     // Framing & Geometry Constants
     this.baseCameraY = 0.12;
     this.baseCameraZ = 6.2;
+    this.perspectiveRotationActive = false;
+    this.manualRotationOffset = 0;
 
     // Astrogation & Celestial Physics Agent
     this.physicsAgent = new KiroPhysicsAgent(this.PINHOLE_FOCAL_PX, 1080, 1920);
@@ -3011,6 +3013,26 @@ export class KiroSceneManager {
     }
   }
 
+  togglePerspectiveRotation(enable = null) {
+    const next = enable !== null ? enable : !this.perspectiveRotationActive;
+    this.perspectiveRotationActive = next;
+    return this.perspectiveRotationActive;
+  }
+
+  rotateKiroStep(angle = Math.PI / 4) {
+    this.manualRotationOffset += angle;
+    if (this.kiroGroup && window.gsap) {
+      gsap.to(this.kiroGroup.rotation, {
+        y: this.manualRotationOffset,
+        duration: 0.6,
+        ease: 'power2.out'
+      });
+    } else if (this.kiroGroup) {
+      this.kiroGroup.rotation.y = this.manualRotationOffset;
+    }
+    return this.manualRotationOffset;
+  }
+
   updatePhysics() {
     for (let i = this.activeCandies.length - 1; i >= 0; i--) {
       const candy = this.activeCandies[i];
@@ -3347,9 +3369,11 @@ export class KiroSceneManager {
           }
         }
 
-        // Head & Eye Tracking towards User Touch / Pointer
-        if (!isSleeping && this.pointerInCanvas) {
-          const targetRotY = this.mouse.x * 0.30;
+        // Perspective 360° Rotation or Head & Eye Tracking towards User Touch / Pointer
+        if (this.perspectiveRotationActive && this.kiroGroup) {
+          this.kiroGroup.rotation.y += 0.014;
+        } else if (!isSleeping && this.pointerInCanvas) {
+          const targetRotY = this.manualRotationOffset + this.mouse.x * 0.30;
           const targetRotX = -this.mouse.y * 0.18;
           this.kiroGroup.rotation.y += (targetRotY - this.kiroGroup.rotation.y) * 0.08;
           this.kiroGroup.rotation.x += (targetRotX - this.kiroGroup.rotation.x) * 0.08;
@@ -3363,7 +3387,7 @@ export class KiroSceneManager {
             this.rightEyeGroup.position.y = 0.18 + eyeShiftY;
           }
         } else if (!isSleeping) {
-          this.kiroGroup.rotation.y += (0 - this.kiroGroup.rotation.y) * 0.06;
+          this.kiroGroup.rotation.y += (this.manualRotationOffset - this.kiroGroup.rotation.y) * 0.06;
           this.kiroGroup.rotation.x += (0 - this.kiroGroup.rotation.x) * 0.06;
           if (this.leftEyeGroup && this.rightEyeGroup) {
             this.leftEyeGroup.position.x += (-0.28 - this.leftEyeGroup.position.x) * 0.06;

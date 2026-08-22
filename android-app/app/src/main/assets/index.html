@@ -57,9 +57,9 @@
           <div class="beacon-meta-info">
             <div class="beacon-primary-row">
               <span class="beacon-sparkle">✦</span>
-              <span id="partner-status-name" class="beacon-partner-name">Yangiee</span>
+              <span id="partner-status-name" class="beacon-partner-name">Patrick</span>
               <span class="beacon-sep">•</span>
-              <span id="partner-status-location" class="beacon-location-name">Capas</span>
+              <span id="partner-status-location" class="beacon-location-name">Malaybalay</span>
             </div>
             <span class="sanctuary-live-clock" id="live-clock">--:--:-- PST</span>
           </div>
@@ -272,32 +272,28 @@
         </button>
       </div>
 
-      <!-- Categorical Navigation Segmented Control -->
+      <!-- Categorical Navigation Segmented Control (Fit-to-Screen 4-Grid with Inline SVGs) -->
       <nav class="settings-cat-nav" id="settings-cat-nav" aria-label="Settings Categories">
-        <button class="settings-cat-tab active" data-cat="all" id="tab-cat-all" type="button">
-          <span class="cat-tab-icon">✦</span>
-          <span class="cat-tab-label">All</span>
-        </button>
-        <button class="settings-cat-tab" data-cat="profile" id="tab-cat-profile" type="button">
-          <span class="cat-tab-icon">👤</span>
+        <button class="settings-cat-tab active" data-cat="profile" id="tab-cat-profile" type="button">
+          <svg class="cat-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span class="cat-tab-label">Profile</span>
         </button>
         <button class="settings-cat-tab" data-cat="audio" id="tab-cat-audio" type="button">
-          <span class="cat-tab-icon">🔊</span>
+          <svg class="cat-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
           <span class="cat-tab-label">Audio</span>
         </button>
         <button class="settings-cat-tab" data-cat="performance" id="tab-cat-performance" type="button">
-          <span class="cat-tab-icon">⚡</span>
-          <span class="cat-tab-label">Performance</span>
+          <svg class="cat-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span class="cat-tab-label">Engine</span>
         </button>
         <button class="settings-cat-tab" data-cat="system" id="tab-cat-system" type="button">
-          <span class="cat-tab-icon">🚀</span>
+          <svg class="cat-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span class="cat-tab-label">System</span>
         </button>
       </nav>
 
       <!-- ═══════════════════════════════════════════════════════════════════
-           CATEGORY 1: Profile & Identity
+           CATEGORY 1: Profile & Identity (Default Active Panel)
            ═══════════════════════════════════════════════════════════════════ -->
       <div class="settings-category-panel" data-category="profile" id="settings-panel-profile">
         <div class="settings-cat-banner">
@@ -330,7 +326,7 @@
       <!-- ═══════════════════════════════════════════════════════════════════
            CATEGORY 2: Audio & Vocal Matrix
            ═══════════════════════════════════════════════════════════════════ -->
-      <div class="settings-category-panel" data-category="audio" id="settings-panel-audio">
+      <div class="settings-category-panel hidden" data-category="audio" id="settings-panel-audio">
         <div class="settings-cat-banner">
           <span class="cat-banner-title">
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#94E2D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -391,50 +387,50 @@
             <input type="range" id="slider-pitch-mult" min="40" max="240" value="100" class="sound-range-slider pitch-slider">
           </div>
 
-          <!-- Vocal SFX Test Soundboard (10 Cute Sounds) -->
+          <!-- Vocal SFX Test Soundboard (10 Cute Sounds with Pure Inline Vector SVGs) -->
           <div class="soundboard-container">
             <div class="soundboard-header">
               <span>✦ KIRO VOCAL SOUNDBOARD ✦</span>
             </div>
             <div class="soundboard-grid">
               <button class="soundboard-btn" data-sound="chirp" title="Happy Chirp">
-                <span class="sb-icon">🐥</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#4EC9B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5v-9l6 4.5-6 4.5z"/></svg>
                 <span class="sb-text">Happy Chirp</span>
               </button>
               <button class="soundboard-btn" data-sound="purr" title="Cozy Purr">
-                <span class="sb-icon">🐱</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#F5C2E7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 <span class="sb-text">Cozy Purr</span>
               </button>
               <button class="soundboard-btn" data-sound="candy" title="Candy Chew">
-                <span class="sb-icon">🍬</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#F9E2AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/></svg>
                 <span class="sb-text">Candy Chew</span>
               </button>
               <button class="soundboard-btn" data-sound="water" title="Water Gulp">
-                <span class="sb-icon">💧</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#94E2D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
                 <span class="sb-text">Water Gulp</span>
               </button>
               <button class="soundboard-btn" data-sound="yawn" title="Sleepy Yawn">
-                <span class="sb-icon">🥱</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#CBA6F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 <span class="sb-text">Sleepy Yawn</span>
               </button>
               <button class="soundboard-btn" data-sound="aura" title="Aura Flare">
-                <span class="sb-icon">✨</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="#F9E2AF"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
                 <span class="sb-text">Aura Flare</span>
               </button>
               <button class="soundboard-btn" data-sound="jump" title="Joyful Jump">
-                <span class="sb-icon">🦘</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#4EC9B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/><polyline points="18 9 12 3 6 9"/></svg>
                 <span class="sb-text">Joyful Jump</span>
               </button>
               <button class="soundboard-btn" data-sound="whimper" title="Sad Whimper">
-                <span class="sb-icon">🥺</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#F5B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                 <span class="sb-text">Sad Whimper</span>
               </button>
               <button class="soundboard-btn" data-sound="giggle" title="Tickle Giggle">
-                <span class="sb-icon">🤭</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#F9E2AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                 <span class="sb-text">Tickle Giggle</span>
               </button>
               <button class="soundboard-btn" data-sound="whoosh" title="Stardust Whoosh">
-                <span class="sb-icon">🌠</span>
+                <svg class="sb-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#94E2D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg>
                 <span class="sb-text">Star Whoosh</span>
               </button>
             </div>
@@ -445,7 +441,7 @@
       <!-- ═══════════════════════════════════════════════════════════════════
            CATEGORY 3: Performance & Hardware Health
            ═══════════════════════════════════════════════════════════════════ -->
-      <div class="settings-category-panel" data-category="performance" id="settings-panel-performance">
+      <div class="settings-category-panel hidden" data-category="performance" id="settings-panel-performance">
         <div class="settings-cat-banner">
           <span class="cat-banner-title">
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#4EC9B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -549,7 +545,7 @@
       <!-- ═══════════════════════════════════════════════════════════════════
            CATEGORY 4: System, Display & Updates
            ═══════════════════════════════════════════════════════════════════ -->
-      <div class="settings-category-panel" data-category="system" id="settings-panel-system">
+      <div class="settings-category-panel hidden" data-category="system" id="settings-panel-system">
         <div class="settings-cat-banner">
           <span class="cat-banner-title">
             <svg class="inline-svg-icon spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
@@ -558,7 +554,7 @@
           <span class="cat-banner-pill" style="color: var(--color-pink-blush); border-color: rgba(245, 183, 192, 0.35); background: rgba(245, 183, 192, 0.12);">OTA PIPELINE</span>
         </div>
 
-        <!-- Preferences Section -->
+        <!-- Preferences & Sensory Section -->
         <div class="settings-group">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-family: var(--font-heading); font-size: 11.5px; font-weight: 700; color: #CDD6F4; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
@@ -566,14 +562,30 @@
               Display & Sensory
             </span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+
+          <!-- Rotate Perspective 3D Controls -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 600; color: #CDD6F4;">Rotate Perspective</div>
+              <div style="font-size: 10px; color: #A6ADC8;">360° 3D orbital inspection</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button id="settings-rotate-step-btn" class="settings-toggle-btn" style="padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;" title="Rotate 45°">
+                <svg class="inline-svg-icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <span>45°</span>
+              </button>
+              <button id="settings-rotate-perspective-toggle" class="settings-toggle-btn">OFF</button>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
               <div style="font-size: 12px; font-weight: 600; color: #CDD6F4;">Gyroscope Parallax</div>
               <div style="font-size: 10px; color: #A6ADC8;">Tilt device for 3D depth effect</div>
             </div>
             <button id="settings-gyro-toggle" class="settings-toggle-btn">ON</button>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
               <div style="font-size: 12px; font-weight: 600; color: #CDD6F4;">Intro Sequence</div>
               <div style="font-size: 10px; color: #A6ADC8;">Replay the opening animation</div>
@@ -589,12 +601,12 @@
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
               Software Updates
             </span>
-            <span id="settings-current-ver-badge" class="settings-version-badge">v2.3.5</span>
+            <span id="settings-current-ver-badge" class="settings-version-badge">v2.3.6</span>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: #A6ADC8;">
             <span>Installed Version:</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.3.5</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.3.6</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>

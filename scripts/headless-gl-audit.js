@@ -534,16 +534,30 @@ if (fs.existsSync(synthJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 18. Auditing Categorical Settings Navigation & Panel Architecture
+// 18. Auditing Categorical Settings Navigation, Pure Vector SVGs & Rotate Perspective
 // ─────────────────────────────────────────────────────────────────────────────
-console.log(`\n${Colors.TEAL}18. Auditing Categorical Settings Navigation & Panel Architecture...${Colors.RESET}`);
+console.log(`\n${Colors.TEAL}18. Auditing Categorical Settings Navigation, Pure Vector SVGs & Rotate Perspective...${Colors.RESET}`);
 
 if (fs.existsSync(indexHtmlAuditPath)) {
   const htmlContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
-  assert(htmlContent.includes('settings-cat-nav') && htmlContent.includes('tab-cat-all'), 'Categorical Segmented Navigation Tab bar verified');
-  assert(htmlContent.includes('data-cat="profile"') && htmlContent.includes('data-cat="audio"') && htmlContent.includes('data-cat="performance"') && htmlContent.includes('data-cat="system"'), 'All 4 distinct settings category tabs verified');
+  assert(htmlContent.includes('settings-cat-nav') && htmlContent.includes('tab-cat-profile'), 'Categorical Segmented Navigation Tab bar verified');
+  assert(htmlContent.includes('cat-tab-svg') && !htmlContent.includes('tab-cat-all'), 'Pure inline vector SVGs in 4-grid category tabs without all-tab sprawl verified');
+  assert(htmlContent.includes('sb-svg-icon') && !htmlContent.includes('sb-icon">🐥'), 'Pure inline vector SVGs in Vocal Soundboard replacing emoji characters verified');
+  assert(htmlContent.includes('settings-rotate-perspective-toggle') && htmlContent.includes('settings-rotate-step-btn'), 'Rotate Kiro Perspective 3D controls verified in Settings modal');
   assert(htmlContent.includes('data-category="profile"') && htmlContent.includes('data-category="audio"') && htmlContent.includes('data-category="performance"') && htmlContent.includes('data-category="system"'), 'Structured Categorical Section Panels (Profile, Audio, Performance, System) verified');
-  assert(htmlContent.includes('settings-cat-banner') && htmlContent.includes('cat-banner-pill'), 'Luxury Glassmorphic Category Banner & Pill headers verified');
+}
+
+const appJsAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/app.js');
+if (fs.existsSync(appJsAuditPath)) {
+  const appJsCode = fs.readFileSync(appJsAuditPath, 'utf8');
+  assert(appJsCode.includes('partnerNameEl.textContent = personaName') && appJsCode.includes('Displays ACTIVE USER'), 'Active user name dynamically bound to top beacon pill verified');
+  assert(appJsCode.includes('rotatePerspectiveToggle') && appJsCode.includes('rotateStepBtn'), 'Rotate perspective toggle and step listeners wired in app.js');
+}
+
+const sceneJsAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/scene.js');
+if (fs.existsSync(sceneJsAuditPath)) {
+  const sceneJsCode = fs.readFileSync(sceneJsAuditPath, 'utf8');
+  assert(sceneJsCode.includes('togglePerspectiveRotation') && sceneJsCode.includes('rotateKiroStep'), '360° perspective rotation and step rotation methods implemented in scene.js');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

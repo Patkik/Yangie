@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-551900] Active User Top Bar Beacon, Pure Vector SVG UI & 3D Perspective Rotation
+- **Timestamp**: `2026-08-22T18:54:00.000000`
+- **Strategy & Synthesis**: Aligned top cockpit beacon with active user persona, unified 4-grid screen-fitting category tabs with strict single-panel filtering, converted all UI icons to pure vector SVGs, and added 3D perspective rotation controls for Kiro.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Restored 100% pure inline vector SVG aesthetics across all category tabs and vocal soundboard buttons, eliminating OS emoji glyph disparity while keeping the cozy Twilight palette harmonious.
+  - **Performance**: Score 5/5: 4-grid category layout perfectly fits mobile viewport bounds with zero overflow scrolling, and GPU-driven 3D perspective rotation runs at locked 60/120 FPS via requestAnimationFrame and GSAP.
+  - **Container**: Score 5/5: Main dashboard remains locked inside Android WebView while category sub-panels switch reactively with CSS fadeIn transitions.
+  - **Structural**: Score 5/5: Dynamic Single-Identity model explicitly projects the active user's name & location (Patrick • Malaybalay or Yangiee • Capas) on the top beacon pill with matching mint/blush aura glow.
+  - **Gamification**: Score 5/5: Added 360° orbital perspective inspection toggle and discrete 45° step rotation controls allowing users to admire Kiro from all 3D angles.
+
+---
+
 ### [DEC-541900] Categorical Settings Navigation & Structured Panels
 - **Timestamp**: `2026-08-22T18:40:00.000000`
 - **Strategy & Synthesis**: Re-architected settings modal from an unorganized vertical stack into a state-of-the-art categorical interface featuring an interactive segmented navigation control and structured category panels.

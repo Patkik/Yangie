@@ -860,30 +860,26 @@ html, body {
   padding-bottom: 12px;
 }
 
-/* Categorical Segmented Navigation Tabs */
+/* Categorical Segmented Navigation Tabs (Fit-to-Screen 4-Grid) */
 .settings-cat-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
   padding: 4px;
-  background: rgba(10, 14, 24, 0.75);
+  background: rgba(10, 14, 24, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 2px;
-}
-
-.settings-cat-nav::-webkit-scrollbar {
-  display: none;
+  margin-bottom: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .settings-cat-tab {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 6px 12px;
+  padding: 7px 4px;
   border-radius: 10px;
   background: transparent;
   border: 1px solid transparent;
@@ -891,12 +887,13 @@ html, body {
   font-family: var(--font-heading);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  min-width: 0;
 }
 
 .settings-cat-tab:hover {
@@ -909,15 +906,22 @@ html, body {
 }
 
 .settings-cat-tab.active {
-  background: rgba(78, 201, 176, 0.18);
-  border-color: rgba(78, 201, 176, 0.45);
+  background: rgba(78, 201, 176, 0.20);
+  border-color: rgba(78, 201, 176, 0.50);
   color: var(--color-mint);
   box-shadow: 0 0 14px rgba(78, 201, 176, 0.25);
 }
 
-.settings-cat-tab .cat-tab-icon {
-  font-size: 12px;
-  line-height: 1;
+.settings-cat-tab .cat-tab-svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.settings-cat-tab .cat-tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Categorical Section Panels */
@@ -1230,9 +1234,12 @@ html, body {
   background: rgba(78, 201, 176, 0.30);
 }
 
-.soundboard-btn .sb-icon {
-  font-size: 13px;
-  line-height: 1;
+.soundboard-btn .sb-icon,
+.soundboard-btn .sb-svg-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
 .soundboard-btn .sb-text {

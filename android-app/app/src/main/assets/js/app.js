@@ -218,16 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const partnerName = persona === 'pat' ? 'Yangiee' : 'Patrick';
     const partnerLocation = partner === 'yang' ? 'Capas' : 'Malaybalay';
 
-    // A. Update Top Header Twin Sanctuary Beacon
+    // A. Update Top Header Sanctuary Beacon (Displays ACTIVE USER)
     const partnerNameEl = document.getElementById('partner-status-name');
     const partnerLocEl = document.getElementById('partner-status-location');
     const beaconPulseEl = document.getElementById('partner-beacon-pulse');
-    if (partnerNameEl) partnerNameEl.textContent = partnerName;
-    if (partnerLocEl) partnerLocEl.textContent = partnerLocation;
+    if (partnerNameEl) partnerNameEl.textContent = personaName;
+    if (partnerLocEl) partnerLocEl.textContent = personaLocation;
     if (beaconPulseEl) {
       const coreDot = beaconPulseEl.querySelector('.beacon-core-dot');
       const ringWave = beaconPulseEl.querySelector('.beacon-ring-wave');
-      const color = partner === 'yang' ? 'var(--color-pink-blush)' : 'var(--color-mint)';
+      const color = persona === 'pat' ? 'var(--color-mint)' : 'var(--color-pink-blush)';
       if (coreDot) {
         coreDot.style.background = color;
         coreDot.style.boxShadow = `0 0 8px ${color}`;
@@ -537,18 +537,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6b. Categorical Settings Navigation Tab Switcher
+  // 6b. Categorical Settings Navigation Tab Switcher (Strict Single Category View)
   const catTabs = document.querySelectorAll('.settings-cat-tab');
   const catPanels = document.querySelectorAll('.settings-category-panel');
 
   catTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      const selectedCat = tab.getAttribute('data-cat');
+      const selectedCat = tab.getAttribute('data-cat') || 'profile';
       catTabs.forEach(t => t.classList.toggle('active', t === tab));
 
       catPanels.forEach(panel => {
         const panelCat = panel.getAttribute('data-category');
-        if (selectedCat === 'all' || selectedCat === panelCat) {
+        if (panelCat === selectedCat) {
           panel.classList.remove('hidden');
           panel.style.animation = 'none';
           void panel.offsetWidth; // Trigger reflow
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
-        synthEngine.playChimeSound(selectedCat === 'all' ? 700 : selectedCat === 'profile' ? 620 : selectedCat === 'audio' ? 820 : selectedCat === 'performance' ? 940 : 1050);
+        synthEngine.playChimeSound(selectedCat === 'profile' ? 620 : selectedCat === 'audio' ? 820 : selectedCat === 'performance' ? 940 : 1050);
       }
     });
   });
@@ -594,6 +594,34 @@ document.addEventListener('DOMContentLoaded', () => {
       KiroState.setGyro(!current);
       gyroToggleBtn.classList.toggle('active', !current);
       gyroToggleBtn.textContent = !current ? 'ON' : 'OFF';
+    });
+  }
+
+  // 6c. Rotate Kiro 3D Perspective Controls
+  const rotatePerspectiveToggle = document.getElementById('settings-rotate-perspective-toggle');
+  const rotateStepBtn = document.getElementById('settings-rotate-step-btn');
+
+  if (rotatePerspectiveToggle) {
+    rotatePerspectiveToggle.addEventListener('click', () => {
+      const isActive = sceneManager && typeof sceneManager.togglePerspectiveRotation === 'function'
+        ? sceneManager.togglePerspectiveRotation()
+        : false;
+      rotatePerspectiveToggle.classList.toggle('active', isActive);
+      rotatePerspectiveToggle.textContent = isActive ? 'ON' : 'OFF';
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(isActive ? 920 : 540);
+      }
+    });
+  }
+
+  if (rotateStepBtn) {
+    rotateStepBtn.addEventListener('click', () => {
+      if (sceneManager && typeof sceneManager.rotateKiroStep === 'function') {
+        sceneManager.rotateKiroStep(Math.PI / 4);
+      }
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(820);
+      }
     });
   }
 

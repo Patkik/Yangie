@@ -1,10 +1,10 @@
 {
-  "version": "2.3.5",
-  "build": 73,
+  "version": "2.3.6",
+  "build": 74,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V6.5 — Categorical Settings Navigation & Structured Panels",
+  "description": "Space Capsule V6.6 — Active User Beacon, Pure Vector SVG UI & 3D Perspective Rotation",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.5: Categorically arranged settings modal into 4 structured sections (Profile & Identity, Audio & Vocals, Performance & ART, System & Updates) with luxury glassmorphic category tabs."
+  "changelog": "V9.6: Bound active user persona to top cockpit beacon pill, added 360° perspective rotation toggle & 45° step controls for Kiro, converted all category tabs & vocal soundboard icons to pure inline vector SVGs, and unified 4-grid category layout to fit screen with strict single-category filtering."
 }
 
