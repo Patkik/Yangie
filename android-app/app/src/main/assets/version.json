@@ -1,10 +1,10 @@
 {
-  "version": "2.2.2",
-  "build": 67,
+  "version": "2.3.0",
+  "build": 68,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V5.0 — WebGL Shader Preloader & Running Kiro Warm-Up Engine",
+  "description": "Space Capsule V6.0 — 3D Hatching Egg Preloader & Stutter-Free GPU Engine",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.9: WebGL Shader Preloader & Warm-Up Engine (V5.0) featuring offscreen GPU shader compilation pass (renderer.compile), procedural 3D running Kiro trigonometric animation loop, starry-gold progress HUD, and cinematic leap forward radial clip-path transition."
+  "changelog": "V9.0: 3D Hatching Egg Preloader & Stutter-Free GPU Engine (V6.0) featuring 3D cel-shaded egg with custom Simplex noise golden crack GLSL shader, offscreen GPU shader warming @ 60%, shell splitting & spring bounce POP with procedural audio synesthesia, and 100% GPU vertex shader starfield rotation eliminating CPU buffer re-uploads and frame stutters."
 }
 

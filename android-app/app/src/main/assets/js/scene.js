@@ -252,7 +252,7 @@ export function createAnimeOutlineMesh(geometry, thickness = 0.022, outlineColor
   return new THREE.Mesh(geometry, outlineMaterial);
 }
 
-// Helper: 100% Procedural Soft Twinkling Star Bokeh Shader Material
+// Helper: 100% Procedural Soft Twinkling Star Bokeh Shader Material (100% GPU Rotation)
 export function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
   const vertexShader = `
     attribute float aPhase;
@@ -265,7 +265,16 @@ export function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
     void main() {
       vColor = aColor;
       vPhase = aPhase;
-      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+
+      // Smooth, zero-allocation rotation computed natively on the GPU registers
+      float angle = u_time * 0.015;
+      float cosA = cos(angle);
+      float sinA = sin(angle);
+      vec3 pos = position;
+      pos.x = position.x * cosA - position.z * sinA;
+      pos.z = position.x * sinA + position.z * cosA;
+
+      vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
       float twinkle = 0.60 + 0.40 * sin(u_time * 2.6 + aPhase) * cos(u_time * 1.3 + 0.5 * aPhase);
       gl_PointSize = (${baseSize.toFixed(2)} * aScale * twinkle) * (300.0 / -mvPos.z);
       gl_Position = projectionMatrix * mvPos;
@@ -3357,3 +3366,6 @@ export class KiroSceneManager {
     }
   }
 }
+
+export const KiroUnifiedSceneV5 = KiroSceneManager;
+export const KiroUnifiedScene = KiroSceneManager;

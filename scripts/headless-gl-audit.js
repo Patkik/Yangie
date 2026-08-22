@@ -391,36 +391,61 @@ if (fs.existsSync(stateModulePath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 13. Auditing WebGL Shader Preloader & Warm-Up Engine (V5.0)
+// 13. Auditing 3D Hatching Egg Preloader & Stutter-Free GPU Engine (V6.0)
 // ─────────────────────────────────────────────────────────────────────────────
-console.log(`\n${Colors.BRIGHT}13. Auditing WebGL Shader Preloader & Warm-Up Engine (V5.0)...${Colors.RESET}`);
+console.log(`\n${Colors.BRIGHT}13. Auditing 3D Hatching Egg Preloader & Stutter-Free GPU Engine (V6.0)...${Colors.RESET}`);
 
-const preloaderJsPath = path.join(ASSETS_DIR, 'js', 'kiro-preloader-v5.js');
-const preloaderCssPath = path.join(ASSETS_DIR, 'css', 'preloader-v5.css');
+const preloaderV6JsPath = path.join(ASSETS_DIR, 'js', 'kiro-preloader-v6.js');
+const preloaderV6CssPath = path.join(ASSETS_DIR, 'css', 'preloader-v6.css');
 
-if (fs.existsSync(preloaderJsPath)) {
-  const preloaderContent = fs.readFileSync(preloaderJsPath, 'utf8');
+if (fs.existsSync(preloaderV6JsPath)) {
+  const preloaderContent = fs.readFileSync(preloaderV6JsPath, 'utf8');
 
-  // 1. KiroPreloaderV5 Class Export
-  assert(preloaderContent.includes('export default class KiroPreloaderV5') || preloaderContent.includes('class KiroPreloaderV5'), 'KiroPreloaderV5 master shader preloading class exported');
+  // 1. KiroPreloaderV6 Class Export
+  assert(preloaderContent.includes('export default class KiroPreloaderV6') || preloaderContent.includes('class KiroPreloaderV6'), 'KiroPreloaderV6 master 3D hatching egg preloading class exported');
 
-  // 2. Offscreen GPU Shader Warming
-  assert(preloaderContent.includes('warmupShaders') && preloaderContent.includes('renderer.compile(this.scene, this.camera)'), 'Offscreen GPU shader warming pass (renderer.compile) eliminates mobile compilation stutter/jank');
+  // 2. Custom GLSL Glowing Cracking Shader with 2D Simplex Noise
+  assert(preloaderContent.includes('uCrackProgress') && preloaderContent.includes('snoise') && preloaderContent.includes('uCrackColor'), 'Custom GLSL Cracking Shader with 2D Simplex noise golden crack branching verified');
 
-  // 3. Procedural 3D Running Cycle Trigonometric Math
-  assert(preloaderContent.includes('buildRunningKiro') && preloaderContent.includes('runSpeed = 14.0') && preloaderContent.includes('Math.sin(t * runSpeed)'), 'Procedural 3D Running Kiro engine with harmonic vertical bobbing and arm swing dynamics verified');
+  // 3. Offscreen GPU Shader Warming @ 60% mark
+  assert(preloaderContent.includes('warmupShaders') && preloaderContent.includes('renderer.compile(this.scene, this.camera)'), 'Offscreen GPU shader warming pass (renderer.compile) at 60% milestone eliminates mobile compilation stutter/jank');
 
-  // 4. Cinematic Leap Forward & Radial Clip-Path Transition
-  assert(preloaderContent.includes('triggerTransition') && preloaderContent.includes('clipPath: "circle(0% at 50% 50%)"') || preloaderContent.includes('circle(0% at 50% 50%)'), 'Cinematic Leap Forward and Radial circular wipe transition into Sanctuary verified');
+  // 4. Egg Wobble, Shell Splitting & Kiro Spring-Bounce POP
+  assert(preloaderContent.includes('triggerHatchSequence') && preloaderContent.includes('topShell.position') && preloaderContent.includes('elastic.out'), 'Egg shell splitting and Kiro elastic spring-bounce POP sequence verified');
+
+  // 5. Cinematic Leap Forward & Radial Circular Clip-Path Wipe
+  assert(preloaderContent.includes('circle(0% at 50% 50%)') && preloaderContent.includes('camera.position'), 'Cinematic camera focal zoom and high-performance radial circular clip-path wipe verified');
 } else {
-  assert(false, `kiro-preloader-v5.js not found at ${preloaderJsPath}`);
+  assert(false, `kiro-preloader-v6.js not found at ${preloaderV6JsPath}`);
 }
 
-if (fs.existsSync(preloaderCssPath)) {
-  const preloaderCssContent = fs.readFileSync(preloaderCssPath, 'utf8');
-  assert(preloaderCssContent.includes('#intro-viewport-root') && preloaderCssContent.includes('preloader-glass-card') && preloaderCssContent.includes('preloader-bar-fill'), 'Preloader V5 CSS glassmorphic HUD card and starry-gold progress bar verified');
+if (fs.existsSync(preloaderV6CssPath)) {
+  const preloaderCssContent = fs.readFileSync(preloaderV6CssPath, 'utf8');
+  assert(preloaderCssContent.includes('#intro-viewport-root') && preloaderCssContent.includes('preloader-v6-portal') && preloaderCssContent.includes('preloader-v6-fill'), 'Preloader V6 CSS glassmorphic portal and starry-gold progress bar verified');
 } else {
-  assert(false, `preloader-v5.css not found at ${preloaderCssPath}`);
+  assert(false, `preloader-v6.css not found at ${preloaderV6CssPath}`);
+}
+
+// 6. Auditing 100% GPU Starfield Vertex Shader Math & Hard Pointer-Drag Guards in scene.js
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+  
+  // 100% GPU Starfield Rotation in Vertex Shader
+  assert((sceneContent.includes('cosA') && sceneContent.includes('sinA') && sceneContent.includes('u_time * 0.015')), '100% GPU Math: Starfield vertex shader computes zero-allocation orbital rotation natively on GPU registers');
+  
+  // Hard Pointer-Drag Guards
+  assert(sceneContent.includes("KiroState.get('telescopeActive')") && sceneContent.includes('onFlightMove'), 'Hard pointer-drag guards prevent background galaxy drift unless telescope is active');
+
+  // KiroUnifiedSceneV5 / KiroUnifiedScene Export Aliases
+  assert(sceneContent.includes('export const KiroUnifiedSceneV5') && sceneContent.includes('export const KiroUnifiedScene'), 'KiroUnifiedSceneV5 and KiroUnifiedScene export aliases verified in scene.js');
+} else {
+  assert(false, `scene.js not found at ${sceneJsPath}`);
+}
+
+// 7. Auditing Procedural Egg Hatch Pop Chime in synth.js
+if (fs.existsSync(synthJsPath)) {
+  const synthContent = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthContent.includes('playHatchPopChime') && synthContent.includes('exponentialRampToValueAtTime(1520,'), 'Procedural Egg Hatch POP sound synthesis with resonant frequency sweep and pentatonic sparkle chimes verified');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

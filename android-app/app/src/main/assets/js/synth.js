@@ -1866,6 +1866,65 @@ export class CosmicSynthEngine {
     });
   }
 
+  /**
+   * 🐣 3D Preloader V6.0: Procedural Egg Hatch Pop & Chime Synesthesia
+   * Synthesizes a resonant frequency pop sweep with ascending pentatonic sparkle chimes.
+   */
+  playHatchPopChime() {
+    if (!this.ctx) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const dest = this.masterGain || this.ctx.destination;
+
+    // 1. Resonant Bubble Pop (Sweeping sine/bandpass from 320Hz to 1520Hz)
+    const popOsc = this.ctx.createOscillator();
+    const popGain = this.ctx.createGain();
+    const popFilter = this.ctx.createBiquadFilter();
+
+    popOsc.type = 'sine';
+    popOsc.frequency.setValueAtTime(320, now);
+    popOsc.frequency.exponentialRampToValueAtTime(1520, now + 0.08);
+
+    popFilter.type = 'bandpass';
+    popFilter.frequency.setValueAtTime(750, now);
+    popFilter.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
+    popFilter.Q.value = 3.2;
+
+    popGain.gain.setValueAtTime(0.001, now);
+    popGain.gain.linearRampToValueAtTime(0.35, now + 0.015);
+    popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+    popOsc.connect(popFilter);
+    popFilter.connect(popGain);
+    popGain.connect(dest);
+
+    popOsc.start(now);
+    popOsc.stop(now + 0.20);
+
+    // 2. Ascending Sparkle Chimes (Pentatonic G5 -> C6 -> E6 -> G6)
+    const freqs = [783.99, 1046.50, 1318.51, 1567.98];
+    freqs.forEach((f, idx) => {
+      const chimeOsc = this.ctx.createOscillator();
+      const chimeGain = this.ctx.createGain();
+      const chimeTime = now + 0.06 + idx * 0.05;
+
+      chimeOsc.type = 'sine';
+      chimeOsc.frequency.setValueAtTime(f, chimeTime);
+
+      chimeGain.gain.setValueAtTime(0.0001, chimeTime);
+      chimeGain.gain.linearRampToValueAtTime(0.20, chimeTime + 0.01);
+      chimeGain.gain.exponentialRampToValueAtTime(0.0001, chimeTime + 0.35);
+
+      chimeOsc.connect(chimeGain);
+      chimeGain.connect(dest);
+
+      chimeOsc.start(chimeTime);
+      chimeOsc.stop(chimeTime + 0.38);
+    });
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // 5. Explicit Teardown & Resource Disposal
   // ─────────────────────────────────────────────────────────────────────────────

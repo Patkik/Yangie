@@ -6,9 +6,9 @@
 
 import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
-import { KiroSceneManager } from './scene.js';
+import { KiroSceneManager, KiroUnifiedSceneV5 } from './scene.js';
 import { KiroIntroManager } from './intro.js';
-import KiroPreloaderV5 from './kiro-preloader-v5.js';
+import KiroPreloaderV6 from './kiro-preloader-v6.js';
 import { StarlightMessenger } from './mailbox.js';
 import { KiroAgenticOrchestrator } from './orchestrator.js';
 import { ARTEngine } from './art-engine.js';
@@ -180,13 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 3D WebGL Shader Preloader & Warm-Up Engine (V5.0)
+  // 3D Hatching Egg Preloader & Stutter-Free Warm-Up Engine (V6.0)
   let preloader = null;
   const introRoot = document.getElementById('intro-viewport-root');
   if (introRoot) {
     introRoot.style.display = 'flex';
-    preloader = new KiroPreloaderV5('intro-viewport-root', () => {
-      console.log('Sanctuary initialized and fully warmed! ✨');
+    preloader = new KiroPreloaderV6('intro-viewport-root', () => {
+      console.log('Sanctuary initialized and fully warmed! Kiro has hatched! 🐣✨');
       if (KiroState.get('hasCompletedIntro')) {
         revealDashboard();
       }
