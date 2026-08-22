@@ -31,6 +31,7 @@
 
 import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
+import KiroPhysicsAgent from './physics-agent.js';
 
 // Helper: Generate procedural radial glow texture for 100% reliable mobile star rendering
 function createGlowStarTexture() {
@@ -169,11 +170,15 @@ export class KiroSceneManager {
     this.cockpitGroup = null;
     this.crosshairMesh = null;
     this.targetSystemMeshes = [];
+    this.lastAlignedTargetId = null;
     this.spaceSystems = [
-      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', x: 6.0, y: 1.2, z: -8.0, size: 0.65, color: 0xF5C2E7 },
-      { id: 'helix', name: 'Eye of Helix Nebula (NGC 7293)', x: -7.0, y: 2.5, z: -9.0, size: 0.75, color: 0x94E2D5 },
-      { id: 'sombrero', name: 'Sombrero Vortex (M104)', x: 8.0, y: -1.0, z: -10.0, size: 0.80, color: 0xF9E2AF },
-      { id: 'crab', name: 'Crab Pulsar Core (M1)', x: -6.0, y: -2.0, z: -8.0, size: 0.60, color: 0xCBA6F7 }
+      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', x: 6.2, y: 1.6, z: -8.5, size: 0.75, color: 0xF5C2E7 },
+      { id: 'helix',     name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce', type: 'IONIZED NEBULA', dist: '655 ly', x: -6.8, y: 2.4, z: -9.2, size: 0.85, color: 0x94E2D5 },
+      { id: 'sombrero',  name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes', type: 'SPIRAL CORE', dist: '29.3 Mly', x: 7.5, y: -1.8, z: -10.0, size: 0.80, color: 0xF9E2AF },
+      { id: 'crab',      name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast', type: 'NEUTRON PULSAR', dist: '6.50 kly', x: -6.2, y: -2.2, z: -8.8, size: 0.70, color: 0xCBA6F7 },
+      { id: 'gliese',    name: 'Mint Ice World (Gliese 667)', game: 'Frozen Stardust', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', x: -4.5, y: -0.5, z: -10.5, size: 0.60, color: 0x4EC9B0 },
+      { id: 'kepler',    name: 'Lavender Ring Giant (Kepler 186)', game: 'Orbital Rings', type: 'RINGED GAS GIANT', dist: '582 ly', x: 4.8, y: 3.2, z: -11.0, size: 0.65, color: 0xCBA6F7 },
+      { id: 'trappist',  name: 'Pastel Star Sanctuary (Trappist 1)', game: 'Starlight Catch', type: 'RED DWARF HABITAT', dist: '39.6 ly', x: 1.5, y: -3.4, z: -12.0, size: 0.55, color: 0xFFB6C1 }
     ];
     this.warpSpeed = 0.02;
     this.warpStarSize = 0.42;
@@ -220,6 +225,9 @@ export class KiroSceneManager {
     // Framing & Geometry Constants
     this.baseCameraY = 0.12;
     this.baseCameraZ = 6.2;
+
+    // Astrogation & Celestial Physics Agent
+    this.physicsAgent = new KiroPhysicsAgent(this.PINHOLE_FOCAL_PX, 1080, 1920);
 
     this.init();
   }
@@ -562,32 +570,32 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(this.galaxyPoints);
   }
 
-  // 2.3 Roaming Flat-Shaded Planets (Z = -10.0 to -14.0)
+  // 2.3 Roaming Flat-Shaded Planets (Z = -10.0 to -14.0) with Keplerian Orbits
   buildRoamingPlanets() {
     this.roamingPlanets = [];
 
-    // Planet 1: Mint/Teal Ice World
-    const geo1 = new THREE.IcosahedronGeometry(0.45, 1);
+    // Planet 1: Mint/Teal Ice World (Gliese 667)
+    const geo1 = new THREE.IcosahedronGeometry(0.48, 1);
     const mat1 = new THREE.MeshLambertMaterial({ color: 0x4EC9B0, flatShading: true });
     const p1 = new THREE.Mesh(geo1, mat1);
-    p1.userData = { orbitRadius: 6.5, speed: 0.04, baseAngle: 0, depth: -11.0 };
+    p1.userData = { id: 'gliese', semiMajor: 6.8, semiMinor: 4.5, tiltAngle: 0.22, baseDepth: -11.0, speed: 0.045, baseAngle: 0 };
     this.registerDisposable(geo1);
     this.registerDisposable(mat1);
     this.backgroundCelestialGroup.add(p1);
     this.roamingPlanets.push(p1);
 
-    // Planet 2: Lavender Gas Giant with Translucent Saturn-like Ring
+    // Planet 2: Lavender Gas Giant with Translucent Saturn-like Ring (Kepler 186)
     const planet2Group = new THREE.Group();
-    const geo2 = new THREE.IcosahedronGeometry(0.68, 1);
+    const geo2 = new THREE.IcosahedronGeometry(0.72, 1);
     const mat2 = new THREE.MeshLambertMaterial({ color: 0xCBA6F7, flatShading: true });
     const p2Mesh = new THREE.Mesh(geo2, mat2);
     planet2Group.add(p2Mesh);
 
-    const ringGeo = new THREE.RingGeometry(0.88, 1.45, 32);
+    const ringGeo = new THREE.RingGeometry(0.95, 1.55, 32);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xF9E2AF,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.5,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending
     });
@@ -595,7 +603,7 @@ export class KiroSceneManager {
     ringMesh.rotation.x = Math.PI / 3;
     planet2Group.add(ringMesh);
 
-    planet2Group.userData = { orbitRadius: 8.0, speed: 0.025, baseAngle: 2.2, depth: -12.5 };
+    planet2Group.userData = { id: 'kepler', semiMajor: 8.2, semiMinor: 5.4, tiltAngle: 0.35, baseDepth: -12.5, speed: 0.028, baseAngle: 2.2 };
     this.registerDisposable(geo2);
     this.registerDisposable(mat2);
     this.registerDisposable(ringGeo);
@@ -603,11 +611,11 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(planet2Group);
     this.roamingPlanets.push(planet2Group);
 
-    // Planet 3: Pastel-Pink Star Core
-    const geo3 = new THREE.IcosahedronGeometry(0.38, 1);
+    // Planet 3: Pastel-Pink Star Core (Trappist 1)
+    const geo3 = new THREE.IcosahedronGeometry(0.42, 1);
     const mat3 = new THREE.MeshLambertMaterial({ color: 0xFFB6C1, flatShading: true });
     const p3 = new THREE.Mesh(geo3, mat3);
-    p3.userData = { orbitRadius: 5.2, speed: 0.06, baseAngle: 4.4, depth: -13.5 };
+    p3.userData = { id: 'trappist', semiMajor: 5.6, semiMinor: 3.8, tiltAngle: -0.28, baseDepth: -13.5, speed: 0.065, baseAngle: 4.4 };
     this.registerDisposable(geo3);
     this.registerDisposable(mat3);
     this.backgroundCelestialGroup.add(p3);
@@ -648,51 +656,113 @@ export class KiroSceneManager {
     }
   }
 
-  // 2.5 Living Comet with Waving Tail
+  // 2.5 Photorealistic Astronomical Comet (Ion Coma, Filament Plasma Tail & Curved Stardust Plume)
   buildLivingComet() {
     this.cometMesh = new THREE.Group();
-    this.cometMesh.position.set(-15, 4.0, -11.5);
+    this.cometMesh.position.set(-16.0, 4.2, -12.0);
 
-    // Comet Glowing Head
-    const headGeo = new THREE.SphereGeometry(0.18, 16, 16);
-    const headMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-    this.cometHead = new THREE.Mesh(headGeo, headMat);
+    // 1. Brilliant Luminous Ion Coma & Nucleus
+    const coreGeo = new THREE.SphereGeometry(0.20, 20, 20);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    this.cometHead = new THREE.Mesh(coreGeo, coreMat);
     this.cometMesh.add(this.cometHead);
 
-    const haloGeo = new THREE.SphereGeometry(0.35, 16, 16);
-    const haloMat = new THREE.MeshBasicMaterial({
+    const innerComaGeo = new THREE.SphereGeometry(0.52, 20, 20);
+    const innerComaMat = new THREE.MeshBasicMaterial({
+      color: 0x4EC9B0,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+    this.cometMesh.add(new THREE.Mesh(innerComaGeo, innerComaMat));
+
+    const outerAtmosphereGeo = new THREE.SphereGeometry(1.05, 20, 20);
+    const outerAtmosphereMat = new THREE.MeshBasicMaterial({
       color: 0x94E2D5,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.32,
       blending: THREE.AdditiveBlending
     });
-    this.cometMesh.add(new THREE.Mesh(haloGeo, haloMat));
+    this.cometMesh.add(new THREE.Mesh(outerAtmosphereGeo, outerAtmosphereMat));
 
-    // Waving Tail Geometry (8 segment strip)
-    const tailGeo = new THREE.BufferGeometry();
-    const tailVerts = new Float32Array(8 * 3);
-    for (let j = 0; j < 8; j++) {
-      tailVerts[j * 3]     = -j * 0.35;
-      tailVerts[j * 3 + 1] = 0;
-      tailVerts[j * 3 + 2] = 0;
+    // 2. Multi-Filament Electric Cyan Plasma / Ion Tail (6 Parallel Streamers)
+    this.cometFilaments = [];
+    this.filamentSegments = 16;
+    const filamentColors = [0x4EC9B0, 0x94E2D5, 0x89DCEB, 0x4EC9B0, 0x94E2D5, 0xCBA6F7];
+
+    for (let f = 0; f < 6; f++) {
+      const fGeo = new THREE.BufferGeometry();
+      const fVerts = new Float32Array(this.filamentSegments * 3);
+      for (let s = 0; s < this.filamentSegments; s++) {
+        fVerts[s * 3]     = -s * 0.55; // 8.8 units long
+        fVerts[s * 3 + 1] = (f - 2.5) * 0.04;
+        fVerts[s * 3 + 2] = 0;
+      }
+      fGeo.setAttribute('position', new THREE.BufferAttribute(fVerts, 3));
+
+      const fMat = new THREE.LineBasicMaterial({
+        color: filamentColors[f],
+        transparent: true,
+        opacity: 0.75 - f * 0.06,
+        blending: THREE.AdditiveBlending
+      });
+      const fLine = new THREE.Line(fGeo, fMat);
+      fLine.userData = { lateralOffset: (f - 2.5) * 0.05, phase: f * 0.75 };
+      this.cometMesh.add(fLine);
+      this.cometFilaments.push(fLine);
+
+      this.registerDisposable(fGeo);
+      this.registerDisposable(fMat);
     }
-    tailGeo.setAttribute('position', new THREE.BufferAttribute(tailVerts, 3));
+    this.cometTail = this.cometFilaments[0]; // Backward-compatibility alias
 
-    const tailMat = new THREE.LineBasicMaterial({
-      color: 0xF5C2E7,
+    // 3. Sweeping Curved Stardust Dust Tail (120 Instanced Particle Cloud)
+    const dustCount = 120;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPositions = new Float32Array(dustCount * 3);
+    const dustColors = new Float32Array(dustCount * 3);
+    const goldColor = new THREE.Color(0xF9E2AF);
+    const pinkColor = new THREE.Color(0xF5C2E7);
+
+    for (let d = 0; d < dustCount; d++) {
+      const tProgress = d / dustCount;
+      // Trailing dust curves downward and expands quadratically
+      const distBack = tProgress * 7.5;
+      const curveY = -Math.pow(tProgress, 1.7) * 1.8 + (Math.random() - 0.5) * 0.35 * (1 + tProgress * 3);
+      const spreadZ = (Math.random() - 0.5) * 0.45 * (1 + tProgress * 2.5);
+
+      dustPositions[d * 3]     = -distBack;
+      dustPositions[d * 3 + 1] = curveY;
+      dustPositions[d * 3 + 2] = spreadZ;
+
+      const mixed = goldColor.clone().lerp(pinkColor, Math.random());
+      dustColors[d * 3]     = mixed.r;
+      dustColors[d * 3 + 1] = mixed.g;
+      dustColors[d * 3 + 2] = mixed.b;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+
+    const dustMat = new THREE.PointsMaterial({
+      size: 0.18,
+      vertexColors: true,
       transparent: true,
-      opacity: 0.75,
-      blending: THREE.AdditiveBlending
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      map: this.starTexture || null
     });
-    this.cometTail = new THREE.Line(tailGeo, tailMat);
-    this.cometMesh.add(this.cometTail);
+    this.cometDustTail = new THREE.Points(dustGeo, dustMat);
+    this.cometMesh.add(this.cometDustTail);
 
-    this.registerDisposable(headGeo);
-    this.registerDisposable(headMat);
-    this.registerDisposable(haloGeo);
-    this.registerDisposable(haloMat);
-    this.registerDisposable(tailGeo);
-    this.registerDisposable(tailMat);
+    this.registerDisposable(coreGeo);
+    this.registerDisposable(coreMat);
+    this.registerDisposable(innerComaGeo);
+    this.registerDisposable(innerComaMat);
+    this.registerDisposable(outerAtmosphereGeo);
+    this.registerDisposable(outerAtmosphereMat);
+    this.registerDisposable(dustGeo);
+    this.registerDisposable(dustMat);
 
     this.backgroundCelestialGroup.add(this.cometMesh);
   }
@@ -705,29 +775,104 @@ export class KiroSceneManager {
       const group = new THREE.Group();
       group.position.set(sys.x, sys.y, sys.z);
 
+      // 1. Central Wireframe Celestial Sphere
       const geo = new THREE.IcosahedronGeometry(sys.size, 2);
       const mat = new THREE.MeshBasicMaterial({
         color: sys.color,
-        wireframe: true
+        wireframe: true,
+        transparent: true,
+        opacity: 0.85
       });
       const mesh = new THREE.Mesh(geo, mat);
       group.add(mesh);
 
-      const glowGeo = new THREE.SphereGeometry(sys.size * 1.25, 16, 16);
+      // 2. Soft Outer Luminous Atmosphere Aura
+      const glowGeo = new THREE.SphereGeometry(sys.size * 1.35, 16, 16);
       const glowMat = new THREE.MeshBasicMaterial({
         color: sys.color,
         transparent: true,
-        opacity: 0.3,
+        opacity: 0.25,
         blending: THREE.AdditiveBlending
       });
-      group.add(new THREE.Mesh(glowGeo, glowMat));
+      const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+      group.add(glowMesh);
 
-      group.userData = { id: sys.id, name: sys.name, basePos: new THREE.Vector3(sys.x, sys.y, sys.z) };
+      // 3. Sci-Fi Holographic 4-Corner Targeting Brackets [  ]
+      const bracketSize = sys.size * 1.55;
+      const bracketArm = bracketSize * 0.35;
+      const bPoints = [
+        // Top-Left Corner
+        -bracketSize, bracketSize - bracketArm, 0,  -bracketSize, bracketSize, 0,
+        -bracketSize, bracketSize, 0,  -bracketSize + bracketArm, bracketSize, 0,
+        // Top-Right Corner
+        bracketSize - bracketArm, bracketSize, 0,  bracketSize, bracketSize, 0,
+        bracketSize, bracketSize, 0,  bracketSize, bracketSize - bracketArm, 0,
+        // Bottom-Right Corner
+        bracketSize, -bracketSize + bracketArm, 0,  bracketSize, -bracketSize, 0,
+        bracketSize, -bracketSize, 0,  bracketSize - bracketArm, -bracketSize, 0,
+        // Bottom-Left Corner
+        -bracketSize + bracketArm, -bracketSize, 0,  -bracketSize, -bracketSize, 0,
+        -bracketSize, -bracketSize, 0,  -bracketSize, -bracketSize + bracketArm, 0
+      ];
+      const bracketGeo = new THREE.BufferGeometry();
+      bracketGeo.setAttribute('position', new THREE.Float32BufferAttribute(bPoints, 3));
+      const bracketMat = new THREE.LineBasicMaterial({
+        color: 0x94E2D5,
+        transparent: true,
+        opacity: 0.70,
+        blending: THREE.AdditiveBlending
+      });
+      const bracketMesh = new THREE.LineSegments(bracketGeo, bracketMat);
+      group.add(bracketMesh);
+
+      // 4. Rotating Segmented Targeting Ring
+      const reticleRingGeo = new THREE.RingGeometry(sys.size * 1.45, sys.size * 1.52, 24);
+      const reticleRingMat = new THREE.MeshBasicMaterial({
+        color: 0x4EC9B0,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const reticleRing = new THREE.Mesh(reticleRingGeo, reticleRingMat);
+      group.add(reticleRing);
+
+      // 5. Pulsing Diamond Center Marker
+      const diamondGeo = new THREE.OctahedronGeometry(sys.size * 0.22);
+      const diamondMat = new THREE.MeshBasicMaterial({
+        color: 0xF9E2AF,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.90
+      });
+      const diamond = new THREE.Mesh(diamondGeo, diamondMat);
+      group.add(diamond);
+
+      group.userData = {
+        id: sys.id,
+        name: sys.name,
+        type: sys.type || 'SANCTUARY',
+        dist: sys.dist || '1.42 AU',
+        game: sys.game || 'Star Pulse',
+        basePos: new THREE.Vector3(sys.x, sys.y, sys.z),
+        baseColor: sys.color,
+        bracketMesh,
+        reticleRing,
+        diamond,
+        glowMesh,
+        isLocked: false
+      };
 
       this.registerDisposable(geo);
       this.registerDisposable(mat);
       this.registerDisposable(glowGeo);
       this.registerDisposable(glowMat);
+      this.registerDisposable(bracketGeo);
+      this.registerDisposable(bracketMat);
+      this.registerDisposable(reticleRingGeo);
+      this.registerDisposable(reticleRingMat);
+      this.registerDisposable(diamondGeo);
+      this.registerDisposable(diamondMat);
 
       this.backgroundCelestialGroup.add(group);
       this.targetSystemMeshes.push(group);
@@ -813,15 +958,14 @@ export class KiroSceneManager {
       }
     }
 
-    // 3. Roaming Planets Parametric Orbit
+    // 3. Roaming Planets Parametric Keplerian Orbit (Calculated by physicsAgent)
     this.roamingPlanets.forEach(planet => {
       const u = planet.userData;
       const angle = u.baseAngle + time * u.speed;
-      planet.position.x = Math.cos(angle) * u.orbitRadius;
-      planet.position.y = Math.sin(angle * 0.7) * (u.orbitRadius * 0.45);
-      planet.position.z = u.depth;
-      planet.rotation.y += 0.01;
-      planet.rotation.x += 0.005;
+      const orbitPos = this.physicsAgent.calculateOrbitalPosition(u.semiMajor, u.semiMinor, angle, u.tiltAngle);
+      planet.position.set(orbitPos.x, orbitPos.y, (u.baseDepth || -12.0) + orbitPos.z);
+      planet.rotation.y += 0.012;
+      planet.rotation.x += 0.006;
     });
 
     // 4. Staggered Meteor Spawner
@@ -858,44 +1002,110 @@ export class KiroSceneManager {
       }
     });
 
-    // 5. Living Comet with Waving Tail
-    if (this.cometMesh && this.cometTail) {
-      this.cometMesh.position.x += 0.015;
-      this.cometMesh.position.y = 3.5 + Math.sin(time * 0.35) * 0.6;
-      if (this.cometMesh.position.x > 16.0) {
-        this.cometMesh.position.x = -16.0;
+    // 5. Photorealistic Astronomical Comet (Keplerian Parabolic Sweep & Dynamic Tail Physics)
+    if (this.cometMesh) {
+      // Natural parabolic celestial trajectory across deep space (Z = -12.0)
+      const cTime = time * 0.08;
+      const tNorm = ((cTime % 2.0) - 1.0) * 18.0; // Sweeps from -18.0 to +18.0
+      const cY = 4.2 - (tNorm * tNorm) * 0.008 + Math.sin(time * 0.2) * 0.4;
+      const cZ = -12.0 + Math.abs(tNorm) * 0.08;
+      this.cometMesh.position.set(tNorm, cY, cZ);
+
+      // Comet orientation tangent to parabolic velocity vector
+      const dy_dx = -0.016 * tNorm;
+      this.cometMesh.rotation.z = Math.atan2(dy_dx, 1.0);
+
+      // Animate multi-filament plasma / ion tail micro-waves
+      if (this.cometFilaments && this.cometFilaments.length > 0) {
+        this.cometFilaments.forEach((filament) => {
+          const posAttr = filament.geometry.attributes.position;
+          const verts = posAttr.array;
+          const lateral = filament.userData.lateralOffset || 0;
+          const phase = filament.userData.phase || 0;
+
+          for (let s = 1; s < this.filamentSegments; s++) {
+            const distFromHead = s * 0.55;
+            // Higher amplitude wave further down the tail stream
+            const waveAmp = 0.02 + distFromHead * 0.035;
+            const wave = Math.sin(time * 7.5 - s * 0.45 + phase) * waveAmp;
+            verts[s * 3 + 1] = lateral + wave;
+          }
+          posAttr.needsUpdate = true;
+        });
       }
 
-      const tailPos = this.cometTail.geometry.attributes.position.array;
-      for (let j = 0; j < 8; j++) {
-        tailPos[j * 3 + 1] = Math.sin(time * 8.0 + j * 0.8) * 0.04;
+      // Animate curved stardust tail rotation
+      if (this.cometDustTail) {
+        this.cometDustTail.rotation.x = Math.sin(time * 0.5) * 0.05;
       }
-      this.cometTail.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 6. Holographic Target Markers
+    // 6. Sci-Fi Holographic Target Markers & Flight Crosshair Lock-On Detection
     const isTelescope = KiroState.get('telescopeActive');
-    const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
+    let lockedTargetId = null;
 
     this.targetSystemMeshes.forEach(target => {
-      target.rotation.y += 0.012;
-      target.rotation.x += 0.006;
+      // Idle rotation of 3D targeting rings and diamond marker
+      if (target.userData.reticleRing) target.userData.reticleRing.rotation.z += 0.018;
+      if (target.userData.diamond) {
+        target.userData.diamond.rotation.y += 0.025;
+        target.userData.diamond.rotation.x += 0.015;
+        const pulse = 1.0 + Math.sin(time * 4.0) * 0.15;
+        target.userData.diamond.scale.set(pulse, pulse, pulse);
+      }
 
       if (isTelescope) {
-        // Calculate screen-projected distance to center crosshair
+        // Calculate screen-projected distance relative to cockpit flight center
         const screenPos = target.position.clone();
         screenPos.add(this.backgroundCelestialGroup.position);
         const distToCenter = Math.sqrt(Math.pow(screenPos.x, 2) + Math.pow(screenPos.y - 0.15, 2));
 
-        if (distToCenter < 0.9) {
-          if (KiroState.get('cockpitSteering.currentTarget') !== target.userData.id) {
-            KiroState.set('cockpitSteering.currentTarget', target.userData.id);
-            KiroState.set('cockpitSteering.aligned', true);
-            synthEngine.playChimeSound(660);
+        // Lock-on threshold cone (< 1.25 units)
+        if (distToCenter < 1.25) {
+          lockedTargetId = target.userData.id;
+          target.userData.isLocked = true;
+
+          // Visual lock state on the target in 3D
+          if (target.userData.bracketMesh) {
+            target.userData.bracketMesh.scale.set(1.35, 1.35, 1.35);
+            target.userData.bracketMesh.material.color.setHex(0x94E2D5);
+            target.userData.bracketMesh.material.opacity = 1.0;
+          }
+          if (target.userData.glowMesh) {
+            target.userData.glowMesh.material.opacity = 0.60;
+          }
+        } else {
+          target.userData.isLocked = false;
+          if (target.userData.bracketMesh) {
+            target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
+            target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
+            target.userData.bracketMesh.material.opacity = 0.50;
+          }
+          if (target.userData.glowMesh) {
+            target.userData.glowMesh.material.opacity = 0.25;
           }
         }
+      } else {
+        target.userData.isLocked = false;
       }
     });
+
+    if (isTelescope) {
+      if (lockedTargetId) {
+        if (this.lastAlignedTargetId !== lockedTargetId) {
+          this.lastAlignedTargetId = lockedTargetId;
+          KiroState.set('cockpitSteering.currentTarget', lockedTargetId);
+          KiroState.set('cockpitSteering.aligned', true);
+          synthEngine.playTargetLockSound();
+        }
+      } else {
+        if (this.lastAlignedTargetId !== null) {
+          this.lastAlignedTargetId = null;
+          KiroState.set('cockpitSteering.aligned', false);
+          KiroState.set('cockpitSteering.currentTarget', null);
+        }
+      }
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -1547,6 +1757,78 @@ export class KiroSceneManager {
         }
       }
     });
+  }
+
+  resize() {
+    if (!this.renderer || !this.camera) return;
+    const width = window.innerWidth || (this.container ? this.container.clientWidth : 360);
+    const height = window.innerHeight || (this.container ? this.container.clientHeight : 640);
+    const aspect = width / height;
+
+    this.camera.aspect = aspect;
+    this.camera.updateProjectionMatrix();
+
+    this.baseCameraZ = aspect < 0.8
+      ? Math.max(5.6, 2.7 / (2 * Math.tan((45 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
+      : 5.4;
+
+    this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    if (this.physicsAgent) {
+      this.physicsAgent.updateViewport(width, height, this.PINHOLE_FOCAL_PX);
+    }
+  }
+
+  triggerWarpAcceleration() {
+    this.warpSpeed = 0.08;
+    this.warpZStretch = 2.5;
+    this.warpStarSize = 0.65;
+  }
+
+  exitWarpAcceleration() {
+    this.warpSpeed = 0.02;
+    this.warpZStretch = 1.0;
+    this.warpStarSize = 0.42;
+  }
+
+  triggerWarpJump(sys) {
+    if (this.isTelescopeTransitioning) return;
+    this.isTelescopeTransitioning = true;
+
+    // 1. Accelerate Warp Tunnel
+    this.warpSpeed = 0.22;
+    this.warpZStretch = 6.0;
+    this.warpStarSize = 0.85;
+
+    // 2. Play Supernova Warp Audio
+    synthEngine.playSupernovaSound();
+
+    // 3. Smooth Camera Surge & Orient to System
+    if (window.gsap) {
+      gsap.to(this.camera.position, {
+        z: 3.5,
+        duration: 1.2,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.inOut"
+      });
+
+      gsap.delayedCall(2.2, () => {
+        this.warpSpeed = 0.02;
+        this.warpZStretch = 1.0;
+        this.warpStarSize = 0.42;
+        this.isTelescopeTransitioning = false;
+        synthEngine.playChimeSound(1046.5);
+      });
+    } else {
+      setTimeout(() => {
+        this.warpSpeed = 0.02;
+        this.warpZStretch = 1.0;
+        this.warpStarSize = 0.42;
+        this.isTelescopeTransitioning = false;
+      }, 2200);
+    }
   }
 
   setSleepMode(isSleeping) {

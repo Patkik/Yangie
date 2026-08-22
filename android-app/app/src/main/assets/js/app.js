@@ -402,34 +402,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Telescope Lock-On Target Alert Card
+  // Telescope Lock-On Target Alert Card (Sci-Fi Movie System HUD)
   KiroState.on('change:cockpitSteering.aligned', ({ newValue }) => {
     if (newValue && telescopeAlignedScreen) {
       const targetId = KiroState.get('cockpitSteering.currentTarget');
-      const systemNames = {
-        butterfly: { name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge' },
-        helix: { name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce' },
-        sombrero: { name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes' },
-        crab: { name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast' }
+      const systemCatalog = {
+        butterfly: { name: 'Butterfly Galaxy (NGC 6302)', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', game: 'Nebula Dodge' },
+        helix:     { name: 'Eye of Helix Nebula (NGC 7293)', type: 'IONIZED NEBULA', dist: '655 ly', game: 'Celestial Bounce' },
+        sombrero:  { name: 'Sombrero Vortex (M104)', type: 'SPIRAL CORE', dist: '29.3 Mly', game: 'Cosmic Chimes' },
+        crab:      { name: 'Crab Pulsar Core (M1)', type: 'NEUTRON PULSAR', dist: '6.50 kly', game: 'Supernova Blast' },
+        gliese:    { name: 'Mint Ice World (Gliese 667)', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', game: 'Frozen Stardust' },
+        kepler:    { name: 'Lavender Ring Giant (Kepler 186)', type: 'RINGED GAS GIANT', dist: '582 ly', game: 'Orbital Rings' },
+        trappist:  { name: 'Pastel Star Sanctuary (Trappist 1)', type: 'RED DWARF HABITAT', dist: '39.6 ly', game: 'Starlight Catch' }
       };
-      const sys = systemNames[targetId] || { name: 'Unknown Celestial System', game: 'Star Pulse' };
+      const sys = systemCatalog[targetId] || { name: 'Celestial Sanctuary', type: 'PLAYABLE SYSTEM', dist: '1.42 AU', game: 'Star Pulse' };
 
       telescopeAlignedScreen.innerHTML = `
-        <div style="font-size:10px; color:var(--color-mint); font-weight:700; text-transform:uppercase; letter-spacing:1px;">✦ Target Locked ✦</div>
-        <div style="font-size:13px; font-weight:700; color:#FFF; margin: 4px 0;">${sys.name}</div>
-        <button id="btn-play-minigame" style="margin-top:6px; padding:6px 14px; border-radius:12px; border:none; background:linear-gradient(90deg, var(--color-pink-blush), var(--color-mint)); color:#0D1622; font-weight:700; font-size:11px; cursor:pointer;">
-          Play ${sys.game}
-        </button>
+        <div class="target-lock-header">
+          <svg class="target-radar-icon" viewBox="0 0 24 24" fill="none" stroke="#94E2D5" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="#94E2D5"/>
+            <line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span>✦ TARGET ACQUIRED // SYSTEM LOCKED ✦</span>
+        </div>
+        <div class="target-lock-title">${sys.name}</div>
+        <div class="target-lock-meta">
+          <span>${sys.type}</span> • <span style="color:#F9E2AF;">RANGE: ${sys.dist}</span> • <span style="color:#94E2D5;">STATUS: PLAYABLE</span>
+        </div>
+        <div class="target-lock-actions">
+          <button id="btn-play-minigame" class="target-lock-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:13px;height:13px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Engage Warp to ${sys.game}
+          </button>
+        </div>
       `;
       telescopeAlignedScreen.style.display = 'block';
 
       const playBtn = telescopeAlignedScreen.querySelector('#btn-play-minigame');
       if (playBtn) {
         playBtn.addEventListener('click', () => {
-          synthEngine.playChimeSound(1080);
-          alert(`✨ Launching ${sys.game} mini-game with Kiro!`);
+          synthEngine.playSupernovaSound();
+          if (sceneManager && typeof sceneManager.triggerWarpJump === 'function') {
+            sceneManager.triggerWarpJump(sys);
+          }
         });
       }
+    } else if (!newValue && telescopeAlignedScreen) {
+      telescopeAlignedScreen.style.display = 'none';
     }
   });
 

@@ -1,6 +1,6 @@
 {
-  "version": "2.0.3",
-  "updatedAt": "2026-08-22T13:30:00+08:00",
-  "releaseNotes": "Release V7.3: Starlight Messenger Push Notification Guard & Persistent History Architecture — Fixed recurring Android push notifications on update/startup/reload, added localStorage chat persistence, filtered outgoing messages from notifying local device, and implemented reactive unread count badge."
+  "version": "2.0.4",
+  "updatedAt": "2026-08-22T14:00:00+08:00",
+  "releaseNotes": "Release V7.4: Astrogation Celestial Physics Agent, Realistic Multi-Tail Comet & Sci-Fi Target Lock-On Architecture — Integrated KiroPhysicsAgent with Keplerian planetary orbits and spring-damper cursor repulsion, built authentic photorealistic astronomical comet with multi-filament plasma/ion tail and sweeping curved stardust plume, and implemented sci-fi movie holographic target lock-on brackets, distance telemetry, and warp drive triggers on all playable systems."
 }
 

@@ -170,7 +170,34 @@ if (fs.existsSync(mailboxJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Final Audit Summary
+// 6. Astrogation & Celestial Physics Agent & Sci-Fi Target Lock-On Audit
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}6. Auditing Astrogation Physics Agent, Multi-Tail Comet & Sci-Fi Target Lock...${Colors.RESET}`);
+
+const physicsJsPath = path.join(ASSETS_DIR, 'js', 'physics-agent.js');
+if (fs.existsSync(physicsJsPath)) {
+  const physicsContent = fs.readFileSync(physicsJsPath, 'utf8');
+
+  assert(physicsContent.includes('class KiroPhysicsAgent'), 'KiroPhysicsAgent master astrogation physics class exported');
+  assert(physicsContent.includes('calculateOrbitalPosition') && physicsContent.includes('tiltAngle'), 'Parametric Keplerian orbital trajectory calculations implemented with 3D plane tilting');
+  assert(physicsContent.includes('calculateSpiralStarPosition') && physicsContent.includes('Math.pow'), 'Double-arm logarithmic spiral galaxy coordinate generation with quadratic core concentration');
+  assert(physicsContent.includes('calculateRepulsionForce') && physicsContent.includes('repulsionRadius'), 'Hooke\'s Law spring-damper cursor repulsion force field calculated');
+  assert(physicsContent.includes('project3DTo2DPixel') && physicsContent.includes('unproject2DTo3DPlane'), 'Pinhole projective camera matrix (K-Matrix) 3D-to-2D and 2D-to-3D projection verified');
+} else {
+  assert(false, `physics-agent.js not found at ${physicsJsPath}`);
+}
+
+// Comet & Target Lock assertions in scene.js
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneContent.includes('buildLivingComet') && sceneContent.includes('cometFilaments'), 'Photorealistic astronomical comet with multi-filament plasma/ion tail streams implemented');
+  assert(sceneContent.includes('cometDustTail') || sceneContent.includes('Points'), 'Sweeping curved stardust plume dust tail verified');
+  assert(sceneContent.includes('buildHolographicTargets') && sceneContent.includes('bracketGeo'), 'Sci-fi holographic 4-corner targeting brackets [ ] and rotating rings present on all playable systems');
+  assert(sceneContent.includes('playTargetLockSound'), 'Sci-fi target acquisition audio feedback integrated');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

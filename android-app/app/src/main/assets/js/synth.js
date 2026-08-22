@@ -999,6 +999,84 @@ export class CosmicSynthEngine {
     });
   }
 
+  playChimeSound(freq = 660) {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const oscHarmonic = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+
+    oscHarmonic.type = 'sine';
+    oscHarmonic.frequency.setValueAtTime(freq * 2.0, now);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.14, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+
+    osc.connect(gain);
+    oscHarmonic.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(now);
+    oscHarmonic.start(now);
+    osc.stop(now + 0.70);
+    oscHarmonic.stop(now + 0.70);
+  }
+
+  playTargetLockSound() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+
+    // Sci-Fi Target Acquisition Chime (High-tech rapid harmonic burst: C6 -> E6 -> G6 -> C7)
+    const lockPitches = [1046.50, 1318.51, 1567.98, 2093.00];
+    lockPitches.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+      const tStart = now + idx * 0.045;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, tStart);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.05, tStart + 0.08);
+
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(freq * 1.2, tStart);
+      filter.Q.setValueAtTime(6.0, tStart);
+
+      gain.gain.setValueAtTime(0, tStart);
+      gain.gain.linearRampToValueAtTime(0.12, tStart + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, tStart + 0.28);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(tStart);
+      osc.stop(tStart + 0.30);
+    });
+
+    // Sub-harmonic confirmation hum
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(523.25, now + 0.16); // C5
+    subGain.gain.setValueAtTime(0, now + 0.16);
+    subGain.gain.linearRampToValueAtTime(0.08, now + 0.18);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+
+    subOsc.connect(subGain);
+    subGain.connect(this.masterGain);
+    subOsc.start(now + 0.16);
+    subOsc.stop(now + 0.60);
+  }
+
   playWaterSound() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
