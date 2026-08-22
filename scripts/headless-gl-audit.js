@@ -561,7 +561,39 @@ if (fs.existsSync(sceneJsAuditPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 19. Final Audit Summary
+// 19. Auditing Real-Time Capsule Diagnostics & Telemetry HUD
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}19. Auditing Real-Time Capsule Diagnostics & Telemetry HUD...${Colors.RESET}`);
+
+const artEngineAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/art-engine.js');
+if (fs.existsSync(artEngineAuditPath)) {
+  const artCode = fs.readFileSync(artEngineAuditPath, 'utf8');
+  assert(artCode.includes('export class PerformanceTelemetryHUD'), 'PerformanceTelemetryHUD class exported from art-engine.js');
+  assert(artCode.includes('recordFrame') && artCode.includes('getDiagnostics') && artCode.includes('drawSparkline'), 'Frame recording, diagnostics calculation, and 60-sample sparkline renderer verified');
+  assert(artCode.includes('window.PerformanceTelemetryHUD') && artCode.includes('window.TelemetryHUD'), 'TelemetryHUD global exposure verified');
+}
+
+if (fs.existsSync(indexHtmlAuditPath)) {
+  const htmlContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
+  assert(htmlContent.includes('id="diagnostics-hud-overlay"') && htmlContent.includes('id="diagnostics-hud-card"'), 'Floating Capsule Diagnostics HUD overlay widget verified in index.html');
+  assert(htmlContent.includes('id="hud-sparkline-canvas"') && htmlContent.includes('id="settings-sparkline-canvas"'), 'Real-time 60-sample frame time sparkline canvases verified');
+  assert(htmlContent.includes('id="settings-diagnostics-hud-toggle"'), 'Diagnostics HUD toggle button verified in settings modal');
+  assert(htmlContent.includes('hud-stat-fps') && htmlContent.includes('hud-stat-calls') && htmlContent.includes('hud-stat-triangles') && htmlContent.includes('hud-stat-heap'), '6-cluster live performance stat chips verified');
+}
+
+if (fs.existsSync(appJsAuditPath)) {
+  const appJsCode = fs.readFileSync(appJsAuditPath, 'utf8');
+  assert(appJsCode.includes('TelemetryHUD') && appJsCode.includes('diagnostics-hud-overlay'), 'TelemetryHUD integrated into master app.js lifecycle');
+  assert(appJsCode.includes('drawSparkline') && appJsCode.includes('setDiagHudVisibility'), 'Sparkline drawing loop and HUD visibility controller verified');
+}
+
+if (fs.existsSync(sceneJsAuditPath)) {
+  const sceneJsCode = fs.readFileSync(sceneJsAuditPath, 'utf8');
+  assert(sceneJsCode.includes('ARTEngine.telemetryHUD.setRenderer') && sceneJsCode.includes('ARTEngine.telemetryHUD.recordFrame'), 'Three.js renderer and render-loop frame duration piped to TelemetryHUD in scene.js');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 20. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

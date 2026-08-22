@@ -1,10 +1,10 @@
 {
-  "version": "2.3.6",
-  "build": 74,
+  "version": "2.3.7",
+  "build": 75,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V6.6 — Active User Beacon, Pure Vector SVG UI & 3D Perspective Rotation",
+  "description": "Space Capsule V6.7 — Real-Time Capsule Diagnostics & Telemetry HUD Overlay",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.6: Bound active user persona to top cockpit beacon pill, added 360° perspective rotation toggle & 45° step controls for Kiro, converted all category tabs & vocal soundboard icons to pure inline vector SVGs, and unified 4-grid category layout to fit screen with strict single-category filtering."
+  "changelog": "V9.7: Introduced real-time glassmorphic Capsule Diagnostics HUD overlay and in-settings sparkline monitor tracking GPU frame render times (ms), active WebGL draw calls, triangle load, JS heap allocation, and WebRTC latency."
 }
 

@@ -599,6 +599,10 @@ export class KiroSceneManager {
     const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
 
+    if (ARTEngine && ARTEngine.telemetryHUD) {
+      ARTEngine.telemetryHUD.setRenderer(this.renderer);
+    }
+
     if (!existingCanvas) {
       this.renderer.domElement.id = 'webgl-canvas';
       this.renderer.domElement.style.position = 'absolute';
@@ -3184,9 +3188,12 @@ export class KiroSceneManager {
     const frameMs = deltaMs;
     this.lastFrameTime = now;
 
-    // Feed Adaptive Resource Throttling (ART) Engine
+    // Feed Adaptive Resource Throttling (ART) Engine & Telemetry HUD
     if (ARTEngine) {
       ARTEngine.recordFrameTick(now);
+      if (ARTEngine.telemetryHUD) {
+        ARTEngine.telemetryHUD.recordFrame(frameMs);
+      }
     }
 
     // Performance Monitor update

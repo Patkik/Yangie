@@ -11,7 +11,7 @@ import { KiroIntroManager } from './intro.js';
 import KiroPreloaderV6 from './kiro-preloader-v6.js';
 import { StarlightMessenger } from './mailbox.js';
 import { KiroAgenticOrchestrator } from './orchestrator.js';
-import { ARTEngine } from './art-engine.js';
+import { ARTEngine, TelemetryHUD } from './art-engine.js';
 import { minigameEngine, PointerShield } from './minigames.js';
 
 // ============================================================================
@@ -848,6 +848,122 @@ document.addEventListener('DOMContentLoaded', () => {
   KiroState.on('change:ecoModeActive', ({ newValue }) => {
     updateEcoUI(Boolean(newValue));
   });
+
+  // 6.4 Real-Time Capsule Diagnostics HUD Overlay Controller
+  const diagHudOverlay = document.getElementById('diagnostics-hud-overlay');
+  const diagHudCard = document.getElementById('diagnostics-hud-card');
+  const diagHudToggleBtn = document.getElementById('settings-diagnostics-hud-toggle');
+  const hudMinimizeBtn = document.getElementById('hud-minimize-btn');
+  const hudCloseBtn = document.getElementById('hud-close-btn');
+
+  const hudSparklineCanvas = document.getElementById('hud-sparkline-canvas');
+  const settingsSparklineCanvas = document.getElementById('settings-sparkline-canvas');
+
+  const hudLiveFrametime = document.getElementById('hud-live-frametime');
+  const settingsLiveFrametimeVal = document.getElementById('settings-live-frametime-val');
+  const hudStatFps = document.getElementById('hud-stat-fps');
+  const hudStatCalls = document.getElementById('hud-stat-calls');
+  const hudStatTriangles = document.getElementById('hud-stat-triangles');
+  const hudStatHeap = document.getElementById('hud-stat-heap');
+  const hudStatRtt = document.getElementById('hud-stat-rtt');
+  const hudStatBattery = document.getElementById('hud-stat-battery');
+  const hudTierPill = document.getElementById('hud-tier-pill');
+
+  let isDiagHudVisible = localStorage.getItem('kiro_diag_hud_visible') === 'true';
+
+  const setDiagHudVisibility = (visible) => {
+    isDiagHudVisible = visible;
+    try {
+      localStorage.setItem('kiro_diag_hud_visible', visible ? 'true' : 'false');
+    } catch (e) {}
+
+    if (diagHudOverlay) {
+      diagHudOverlay.style.display = visible ? 'block' : 'none';
+    }
+    if (diagHudToggleBtn) {
+      diagHudToggleBtn.classList.toggle('active', visible);
+      diagHudToggleBtn.textContent = visible ? 'HIDE HUD' : 'SHOW HUD';
+    }
+  };
+
+  setDiagHudVisibility(isDiagHudVisible);
+
+  if (diagHudToggleBtn) {
+    diagHudToggleBtn.addEventListener('click', () => {
+      setDiagHudVisibility(!isDiagHudVisible);
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(isDiagHudVisible ? 780 : 520);
+      }
+    });
+  }
+
+  if (hudMinimizeBtn && diagHudCard) {
+    hudMinimizeBtn.addEventListener('click', () => {
+      diagHudCard.classList.toggle('minimized');
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(640);
+      }
+    });
+  }
+
+  if (hudCloseBtn) {
+    hudCloseBtn.addEventListener('click', () => {
+      setDiagHudVisibility(false);
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(480);
+      }
+    });
+  }
+
+  // Real-Time Telemetry HUD Tick (10 FPS update rate for telemetry text & smooth sparkline)
+  setInterval(() => {
+    if (!TelemetryHUD) return;
+    const diag = TelemetryHUD.getDiagnostics();
+
+    // 1. Update In-Settings Canvas & Label
+    if (settingsSparklineCanvas) {
+      TelemetryHUD.drawSparkline(settingsSparklineCanvas);
+    }
+    if (settingsLiveFrametimeVal) {
+      settingsLiveFrametimeVal.textContent = `${diag.avgFrameTimeMs} ms`;
+      const numMs = parseFloat(diag.avgFrameTimeMs);
+      settingsLiveFrametimeVal.style.color = numMs <= 16.67 ? '#4EC9B0' : (numMs <= 33.33 ? '#F9E2AF' : '#F5B7C0');
+    }
+
+    // 2. Update Floating HUD if visible
+    if (isDiagHudVisible && diagHudOverlay) {
+      if (hudSparklineCanvas) {
+        TelemetryHUD.drawSparkline(hudSparklineCanvas);
+      }
+      if (hudLiveFrametime) {
+        hudLiveFrametime.textContent = `${diag.avgFrameTimeMs} ms`;
+      }
+      if (hudStatFps) {
+        hudStatFps.textContent = `${diag.fps} FPS`;
+        hudStatFps.style.color = diag.fps >= 55 ? '#4EC9B0' : (diag.fps >= 30 ? '#F9E2AF' : '#F5B7C0');
+      }
+      if (hudStatCalls) {
+        hudStatCalls.textContent = `${diag.drawCalls} / 50`;
+        hudStatCalls.style.color = diag.drawCalls <= 50 ? '#94E2D5' : '#F5B7C0';
+      }
+      if (hudStatTriangles) {
+        const kTri = (diag.triangles / 1000).toFixed(1);
+        hudStatTriangles.textContent = `${kTri}k`;
+      }
+      if (hudStatHeap) {
+        hudStatHeap.textContent = diag.jsHeapUsed !== 'N/A' ? diag.jsHeapUsed : 'Normal';
+      }
+      if (hudStatRtt) {
+        hudStatRtt.textContent = `${diag.networkRtt} ms`;
+      }
+      if (hudStatBattery) {
+        hudStatBattery.textContent = `${diag.batteryLevel} ${diag.isCharging ? '⚡' : '🔋'}`;
+      }
+      if (hudTierPill) {
+        hudTierPill.textContent = diag.tierId;
+      }
+    }
+  }, 100);
 
   // 7. Ephemeral Vibe Soundscape Petals
   const soundOceanBtn = document.getElementById('btn-audio-waves') || document.getElementById('btn-sound-ocean');

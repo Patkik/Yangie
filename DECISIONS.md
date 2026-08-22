@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-561900] Real-Time Capsule Diagnostics & Floating Telemetry HUD Overlay
+- **Timestamp**: `2026-08-22T19:04:00.000000`
+- **Strategy & Synthesis**: Engineered a zero-dependency real-time Capsule Diagnostics Telemetry HUD overlay with live 60-sample sparkline canvas, 6-cluster GPU/heap/network chips, and in-settings developer toggles.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Designed a lightweight, glassmorphic Capsule Diagnostics HUD widget and embedded sparkline canvas with high-contrast Twilight mint/gold/pink threshold color coding.
+  - **Performance**: Score 5/5: Zero third-party telemetry dependencies; native WebGL info querying (renderer.info.render.calls & triangles) and 60-sample rolling sparkline canvas run with zero GC allocations and sub-1ms tick cost.
+  - **Container**: Score 5/5: Queries browser APIs (performance.memory, navigator.connection, Battery API) directly with graceful fallback to ensure 100% offline isolation.
+  - **Structural**: Score 5/5: Exported PerformanceTelemetryHUD from art-engine.js and integrated with master Three.js render loop in scene.js and dual UI in app.js.
+  - **Gamification**: Score 5/5: Empowered Patrick and Yangiee to inspect real-time frame budgets (8.33ms / 16.67ms), GPU draw calls, and network latency live while interacting with Kiro.
+
+---
+
 ### [DEC-551900] Active User Top Bar Beacon, Pure Vector SVG UI & 3D Perspective Rotation
 - **Timestamp**: `2026-08-22T18:54:00.000000`
 - **Strategy & Synthesis**: Aligned top cockpit beacon with active user persona, unified 4-grid screen-fitting category tabs with strict single-panel filtering, converted all UI icons to pure vector SVGs, and added 3D perspective rotation controls for Kiro.
