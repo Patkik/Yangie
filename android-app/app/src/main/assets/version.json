@@ -1,10 +1,10 @@
 {
-  "version": "2.3.3",
-  "build": 71,
+  "version": "2.3.4",
+  "build": 72,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V6.3 — Scene AST Syntax Hardening & Automated ES6 AST Linter Hook",
+  "description": "Space Capsule V6.4 — Pure Mathematical Web Audio Procedural Synthesis & Synesthesia",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.3: Resolved Android WebView ES6 SyntaxError in scene.js by strictly restoring telescope lock closing braces and added automated Node ES6 AST compilation check to kiro-agent-harness.py."
+  "changelog": "V9.4: Integrated 4 mathematical Web Audio API procedural vocalization algorithms (Elastic Hatch Pop, Alien Chirp, Viscoelastic Purr, Sleepy Yawn) and synesthesia AnalyserNode routing in synth.js & synth-v5.js."
 }
 

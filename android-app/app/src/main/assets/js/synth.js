@@ -1038,14 +1038,35 @@ export class CosmicSynthEngine {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. The 10 Distinct Cute Procedural Sounds of Kiro
+  // 3. The Cute Procedural Mathematical Vocalizations of Kiro (V5.0 / V6.0)
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * 1. Happy Chirp (playHappyChirp)
-   * The Sound: High-frequency, sweet ascending double-chirps of an alien chick.
-   * The Math: Synthesizes two rapid, overlapping sine wave frequency sweeps
-   * (starting at 480Hz and 620Hz) that exponentially multiply upward by a factor of 2.1 in 80ms.
+   * 1. The Elastic Hatch Pop (Egg Crack & Spring)
+   * Rapid pitch sweep up (150Hz -> 800Hz) with snappy amplitude envelope.
+   */
+  playElasticPop() {
+    if (!this.ctx) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
+    playElasticPop(this.ctx, this.sfxGain || this.masterGain);
+  }
+
+  /**
+   * 2. Kiro's Cute Alien Chirp (With Cuteness Pitch Multiplier)
+   * Dynamic triangle wave pitch modulation scaling from 0.4x to 2.4x.
+   */
+  playAlienChirp(pitchMultiplier = null) {
+    if (!this.ctx) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
+    const mult = pitchMultiplier !== null ? pitchMultiplier : (this.cutenessPitchMultiplier || 1.0);
+    playAlienChirp(this.ctx, mult, this.sfxGain || this.masterGain);
+  }
+
+  /**
+   * 1b. Happy Chirp (playHappyChirp)
+   * High-frequency ascending alien chick chirps.
    */
   playHappyChirp() {
     if (!this.ctx) this.init();
@@ -1077,6 +1098,17 @@ export class CosmicSynthEngine {
       osc.start(t);
       osc.stop(t + 0.085);
     });
+  }
+
+  /**
+   * 2b. Viscoelastic Purr (playCozyPurr)
+   * Deep 60Hz rumble modulated by a 25Hz sine LFO vibration for petting response.
+   */
+  playCozyPurr() {
+    if (!this.ctx) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
+    playCozyPurr(this.ctx, this.sfxGain || this.masterGain);
   }
 
   /**
@@ -1220,38 +1252,13 @@ export class CosmicSynthEngine {
   /**
    * 5. Sleepy Yawn (playSleepyYawn)
    * The Sound: A tired, long, sighing low-pass sweep when tucked into bed.
-   * The Math: A sleepy triangle oscillator starting at 260Hz and sliding exponentially down
-   * to 110Hz over 1.4 seconds, coupled with a low-pass filter that sweeps downwards from 500Hz to 160Hz.
+   * The Math: A sleepy sine oscillator with 500Hz lowpass filter sliding exponentially from 400Hz to 150Hz.
    */
   playSleepyYawn() {
     if (!this.ctx) this.init();
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-
-    const now = this.ctx.currentTime;
-    const mult = this.cutenessPitchMultiplier || 1.0;
-
-    const osc = this.ctx.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(260 * mult, now);
-    osc.frequency.exponentialRampToValueAtTime(110 * mult, now + 1.4);
-
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(500 * mult, now);
-    filter.frequency.exponentialRampToValueAtTime(160 * mult, now + 1.4);
-    filter.Q.setValueAtTime(3.0, now);
-
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.20, now + 0.35);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.sfxGain || this.masterGain);
-
-    osc.start(now);
-    osc.stop(now + 1.50);
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
+    playSleepyYawn(this.ctx, this.sfxGain || this.masterGain);
   }
 
   /**
@@ -2061,5 +2068,137 @@ export class CosmicSynthEngine {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. Standalone Procedural Mathematical Synthesis Functions (V5.0 / V6.0)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * 1. The Elastic Hatch Pop (Egg Crack & Spring)
+ * Rapid pitch sweep up (150Hz -> 800Hz) with snappy amplitude envelope.
+ * @param {AudioContext} audioCtx 
+ * @param {AudioNode} [dest]
+ */
+export function playElasticPop(audioCtx, dest = null) {
+  if (!audioCtx) return;
+  const targetDest = dest || (typeof window !== 'undefined' && window.synthEngine ? window.synthEngine.sfxGain || window.synthEngine.masterGain : null) || audioCtx.destination;
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  osc.type = 'sine';
+  // Rapid pitch sweep up to simulate a bubble pop
+  osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+
+  // Snappy amplitude envelope
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+  osc.connect(gainNode);
+  gainNode.connect(targetDest);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
+/**
+ * 2. Kiro's Cute Alien Chirp (With Cuteness Pitch Multiplier)
+ * Triangle wave frequency modulation with dynamic cuteness pitch scaling (0.4x to 2.4x).
+ * @param {AudioContext} audioCtx 
+ * @param {number} [pitchMultiplier=1.0]
+ * @param {AudioNode} [dest]
+ */
+export function playAlienChirp(audioCtx, pitchMultiplier = 1.0, dest = null) {
+  if (!audioCtx) return;
+  const targetDest = dest || (typeof window !== 'undefined' && window.synthEngine ? window.synthEngine.sfxGain || window.synthEngine.masterGain : null) || audioCtx.destination;
+  // pitchMultiplier scales from 0.4x (Monster Rumble) to 2.4x (Squeaky Baby)
+  const baseFreq = 440 * (pitchMultiplier || 1.0);
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+  osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.1);
+  osc.frequency.linearRampToValueAtTime(baseFreq * 0.8, audioCtx.currentTime + 0.2);
+
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.8, audioCtx.currentTime + 0.05);
+  gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+
+  osc.connect(gainNode);
+  gainNode.connect(targetDest);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.35);
+}
+
+/**
+ * 3. Viscoelastic Purr (Petting Reaction)
+ * Deep 60Hz sawtooth wave amplitude-modulated by a 25Hz sine LFO for authentic purr rattle.
+ * @param {AudioContext} audioCtx 
+ * @param {AudioNode} [dest]
+ */
+export function playCozyPurr(audioCtx, dest = null) {
+  if (!audioCtx) return;
+  const targetDest = dest || (typeof window !== 'undefined' && window.synthEngine ? window.synthEngine.sfxGain || window.synthEngine.masterGain : null) || audioCtx.destination;
+  const osc = audioCtx.createOscillator();
+  const lfo = audioCtx.createOscillator(); // Low-Frequency Oscillator for the "vibration"
+  const lfoGain = audioCtx.createGain();
+  const masterGain = audioCtx.createGain();
+
+  osc.type = 'sawtooth';
+  osc.frequency.value = 60; // Deep rumble
+
+  lfo.type = 'sine';
+  lfo.frequency.value = 25; // Speed of the purr rattle
+
+  // Modulate amplitude to create the vibrating purr effect
+  lfo.connect(lfoGain.gain);
+  osc.connect(lfoGain);
+  lfoGain.connect(masterGain);
+  masterGain.connect(targetDest);
+
+  masterGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.0); // 2-second purr
+
+  osc.start();
+  lfo.start();
+  osc.stop(audioCtx.currentTime + 2.0);
+  lfo.stop(audioCtx.currentTime + 2.0);
+}
+
+/**
+ * 4. Sleepy Yawn & Ambient Pink Noise Rain (Eco-Mode)
+ * Muffled 500Hz low-pass filtered sine sweep (400Hz -> 150Hz) simulating a gentle bedtime yawn.
+ * @param {AudioContext} audioCtx 
+ * @param {AudioNode} [dest]
+ */
+export function playSleepyYawn(audioCtx, dest = null) {
+  if (!audioCtx) return;
+  const targetDest = dest || (typeof window !== 'undefined' && window.synthEngine ? window.synthEngine.sfxGain || window.synthEngine.masterGain : null) || audioCtx.destination;
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter(); // Muffles the sound
+
+  osc.type = 'sine';
+  filter.type = 'lowpass';
+  filter.frequency.value = 500;
+
+  // Slow downward frequency curve
+  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 1.2);
+
+  // Smooth, slow envelope
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.4);
+  gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+
+  osc.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(targetDest);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 1.6);
+}
+
 export const synthEngine = new CosmicSynthEngine();
-window.synthEngine = synthEngine;
+if (typeof window !== 'undefined') {
+  window.synthEngine = synthEngine;
+}

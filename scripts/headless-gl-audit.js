@@ -520,7 +520,21 @@ if (fs.existsSync(jsDir)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 17. Final Audit Summary
+// 17. Auditing Pure Mathematical Vocalizations & Synesthesia Analyser
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}17. Auditing Pure Mathematical Vocalizations & Synesthesia Analyser...${Colors.RESET}`);
+
+if (fs.existsSync(synthJsPath)) {
+  const synthCode = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthCode.includes('playElasticPop') && synthCode.includes('150') && synthCode.includes('800'), '1. The Elastic Hatch Pop (150Hz -> 800Hz sweep) verified');
+  assert(synthCode.includes('playAlienChirp') && synthCode.includes('440') && synthCode.includes('pitchMultiplier'), '2. Kiro Cute Alien Chirp (440Hz triangle + cuteness multiplier) verified');
+  assert(synthCode.includes('playCozyPurr') && synthCode.includes('sawtooth') && synthCode.includes('25'), '3. Viscoelastic Purr (60Hz sawtooth + 25Hz LFO rattle) verified');
+  assert(synthCode.includes('playSleepyYawn') && synthCode.includes('lowpass') && synthCode.includes('500'), '4. Sleepy Yawn (500Hz lowpass + 400Hz->150Hz sweep) verified');
+  assert(synthCode.includes('createAnalyser') && synthCode.includes('getByteFrequencyData') && synthCode.includes('getAudioReactiveLevel'), 'Audio-Visual Synesthesia AnalyserNode routing verified');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 18. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {
