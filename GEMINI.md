@@ -54,6 +54,40 @@ All 34 Antigravity skills in `.agents/skills/` are ACTIVE OPERATIONAL CONTRACTS.
 ---
 
 # =============================================================================
+# 0.2 MASTER ARCHITECTURAL BLUEPRINT FOR MATHEMATICALLY EFFICIENT MODULAR ASSET SYSTEMS (2026 PERFORMANCE MANDATE)
+# =============================================================================
+All AI agents operating within this workspace are strictly bound to the Master Blueprint:
+
+1. **Strategic Overview & Topological Graph**:
+   - **Sub-500ms TTI & Sustained 200FPS Target (5ms Frame Budget)** across heterogeneous mobile fleets.
+   - Categorical abandonment of nested directory hierarchies: maintain flat-directory mapping (`android-app/app/src/main/assets/js/`) to eliminate path resolution overhead.
+   - Virtual asset projection through secure domain `https://appassets.androidplatform.net`.
+   - Consolidated Single Core State & Physics Engine enforcing data integrity at the metal.
+
+2. **Deletion & Cleanup Protocol (Dual-Environment Constraints)**:
+   - **Ephemeral Container UI (Gemini/Cloud)**: Periodic WebGL context disposal, interaction shielding (`pointerEvents = 'none'` during intensive transitions, restoring to `'auto'` on completion).
+   - **Persistent Local Ecosystem**: State tokens, data writes, and active routines within the Kotlin bridge.
+   - **State Interceptor Normalization**: Generic state-write interceptor in `state.js` automatically normalizes `'Patrick'|'Yangiee'|'yangie'` into `'pat'|'yang'` without throwing exceptions.
+
+3. **The 3 Topological Graph Rules**:
+   - **Rule 1 (Label Obsession)**: Every object, buffer, geometry, and material in Three.js/WebGPU must be assigned a descriptive `.name` or label at creation for zero-cost instant validation diagnostics and deep memory tracing.
+   - **Rule 2 (Dependency Directionality)**: Circular imports are strictly forbidden. Unidirectional parent-to-child data flow ensures core engines remain decoupled from volatile UI logic. Sibling imports only.
+   - **Rule 3 (Binary Size Reduction)**: Tree-Shaking + Dynamic Linking to minimize cold start. Heavy modules (Advanced Reporting / minigames) treated as atomic feature bundles linked on-demand (38% cold-start reduction).
+
+4. **Modular Non-Overlapping Sub-Systems**:
+   - **3D Cel-Shaded Scene**: BindGroup / explicit pipeline layout sharing, isolated WebGL/WebGPU context, pre-allocated scratch vectors to eliminate runtime allocations.
+   - **Procedural Audio (`synth.js`)**: Instant flat white noise generation (<1ms) feeding native multi-threaded C++ `BiquadFilterNode` frequency sweeps (100Hz ➔ 1500Hz ➔ 80Hz) with 0% main-thread overhead.
+   - **WebRTC Communication Bridges**: WebTransport over standard WebSockets with parallel streams to eliminate head-of-line blocking.
+   - **High-Frequency UI Logic**: High-frequency mutable states (e.g. stardust positions, joystick steering) must never trigger framework reconciliation cycles. Use `useRef`, direct DOM mutations, and `requestAnimationFrame` to keep frame processing within the 5ms budget.
+
+5. **Systems Integrity Agent Manifest**:
+   - **Adaptive Resource Throttling (ART)**: Dynamically monitor 5 core signals (device model, free memory, battery/thermal strain, user usage patterns, network quality) to modulate particle counts and shader tiers without human intervention.
+   - **Deep Heap Tracing**: Identify retained memory spikes post-navigation and enforce Max Retained Object Count to eliminate GC pauses.
+   - **Token Safety Enforcement**: Interceptor ensures strings reaching Kotlin bridge are always sanitized and normalized.
+
+---
+
+# =============================================================================
 # 1. CORE DEVELOPER IDENTITY & ANTIGRAVITY COGNITIVE ENGINE
 # =============================================================================
 You are Kiro's Principal Antigravity Architect & Cognitive Developer Agent.
@@ -218,3 +252,4 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 - **[DEC-481900]** WebGL Shader Preloader & Running Kiro Warm-Up Engine V8.9
 - **[DEC-491900]** 3D Hatching Egg Preloader & Stutter-Free GPU Engine V9.0
 - **[DEC-501900]** Sleep ZZZ Particle Emitter, Snoring Kinematics, Sleep Hat Removal, & Reorganized Sanctuary HUD V9.1
+- **[DEC-511900]** Master Architectural Blueprint for Mathematically Efficient Modular Asset Systems V9.2

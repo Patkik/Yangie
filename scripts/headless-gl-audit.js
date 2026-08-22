@@ -475,7 +475,26 @@ if (fs.existsSync(indexHtmlAuditPath) && fs.existsSync(mainCssPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 15. Final Audit Summary
+// 15. Auditing Master Architectural Blueprint & 2026 Performance Mandate
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}15. Auditing Master Architectural Blueprint & 2026 Performance Mandate...${Colors.RESET}`);
+
+const agentsMdPath = path.resolve(__dirname, '../AGENTS.md');
+const geminiMdPath = path.resolve(__dirname, '../GEMINI.md');
+const cursorrulesPath = path.resolve(__dirname, '../.cursorrules');
+
+if (fs.existsSync(agentsMdPath) && fs.existsSync(geminiMdPath) && fs.existsSync(cursorrulesPath)) {
+  const agentsContent = fs.readFileSync(agentsMdPath, 'utf8');
+  const geminiContent = fs.readFileSync(geminiMdPath, 'utf8');
+  const cursorContent = fs.readFileSync(cursorrulesPath, 'utf8');
+
+  assert(agentsContent.includes('0.2 MASTER ARCHITECTURAL BLUEPRINT FOR MATHEMATICALLY EFFICIENT MODULAR ASSET SYSTEMS') && agentsContent.includes('Sub-500ms TTI & Sustained 200FPS Target (5ms Frame Budget)'), 'AGENTS.md codified with Master Blueprint & 2026 Performance Mandate');
+  assert(geminiContent.includes('0.2 MASTER ARCHITECTURAL BLUEPRINT FOR MATHEMATICALLY EFFICIENT MODULAR ASSET SYSTEMS') && geminiContent.includes('Rule 1 (Label Obsession)'), 'GEMINI.md codified with Master Blueprint & Label Obsession rule');
+  assert(cursorContent.includes('0.2 MASTER ARCHITECTURAL BLUEPRINT FOR MATHEMATICALLY EFFICIENT MODULAR ASSET SYSTEMS') && cursorContent.includes('flat-directory mapping'), '.cursorrules codified with Master Blueprint & flat-directory mapping');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 16. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {
