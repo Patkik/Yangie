@@ -105,8 +105,7 @@ if not ASSETS_DIR.exists():
 
 DATABASE_PATH = PROJECT_ROOT / "agent-decisions-log.json"
 CURSORRULES_PATH = PROJECT_ROOT / ".cursorrules"
-CURSORRULES_ALT_PATH = PROJECT_ROOT / "cursorrules"
-DEVELOPER_RULES_PATH = PROJECT_ROOT / "ai-developer-rules-v3.md"
+DEVELOPER_RULES_PATH = PROJECT_ROOT / "ai-developer-rules-v4.md"
 
 def print_header():
     print(f"\n{Colors.TEAL}{Colors.BRIGHT}🛰️  KIRO'S COSMIC HAVEN — AUTONOMOUS AGENT HARNESS (V4.5 — ANTIGRAVITY EDITION){Colors.RESET}")
@@ -654,9 +653,7 @@ def sync_knowledge_rules():
 
     target_files = [
         CURSORRULES_PATH,
-        CURSORRULES_ALT_PATH,
         DEVELOPER_RULES_PATH,
-        PROJECT_ROOT / "ai-developer-rules.md",
         PROJECT_ROOT / "GEMINI.md",
         PROJECT_ROOT / "AGENTS.md",
         PROJECT_ROOT / ".agents" / "rules" / "kiro-workflow-directives.md"

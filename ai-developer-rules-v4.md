@@ -119,3 +119,41 @@ You must adhere to these rigid engineering implementations for the primary featu
 
 1.  **Wipe the Cache on Rebuilds**: WebView containers aggressively cache assets. Advise the developer to clean their Android build (`./gradlew clean`) and wipe the emulator's app storage whenever changes are applied.
 2.  **Validate Integrity Continuously**: Ensure that any structural asset restructuring is checked against the JUnit compilation validation classes (`KiroAssetValidator.kt`) and UI integration tests (`KiroWebViewTest-v2.kt`) to prevent release build failures.
+
+### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
+> Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
+
+- **[DEC-655841]** Antigravity Flat-Directory Architecture Refactoring
+- **[DEC-711920]** Master Vector SVG & Pure Geometry UI Refactoring
+- **[DEC-744810]** Dynamic Single-Identity Profile Architecture & Immovable Viewport Lock
+- **[DEC-812030]** Autonomous Quality Suite V4.5 & Continuous Learning Loop
+- **[DEC-852100]** Universal 12-Hour Clock & Strict Chat Iteration Lifecycle Protocol
+- **[DEC-889310]** Messenger Geometric Stabilization & Anti-Distortion Flexbox Fix
+- **[DEC-948120]** Offline WebGL Engine Hardening & Cinematic Warp Acceleration
+- **[DEC-982310]** Strict Antigravity Skill Dispatch Matrix & 34-Skill Operational Registry
+- **[DEC-994180]** 3D WebGL Viewport Re-Architecture & Android WebView Display Resolution
+- **[DEC-103840]** Externalized Decision Registry & Uncongested Rule Synchronization Architecture
+- **[DEC-114920]** Space Capsule V5.0 Full Architectural Refactoring & Procedural Audio Modernization
+- **[DEC-125890]** Sleep Pill Geometry Stabilization, SVG Overflow Prevention & 3D Stage Framing Calibration
+- **[DEC-132940]** Double-Arm Logarithmic Spiral Galaxy & Opaque WebGL Backbuffer Hardware Hardening
+- **[DEC-141850]** Volumetric Procedural Cosmic Nebula Shader & Space Capsule 3D Scene Integration
+- **[DEC-152910]** Gyroscope Pitch Baseline Calibration, Radial Star Texture Synthesis & Phong Material Hardening
+- **[DEC-160820]** Double-Arm Logarithmic Spiral Galaxy Math & Sibling Color Alignment at Z = -12.0
+- **[DEC-170150]** Full 5-Phase Celestial Background & Space Shuttle Cockpit Architecture Implementation
+- **[DEC-160820]** Double-Arm Logarithmic Spiral Galaxy Math & Sibling Color Alignment at Z = -12.0
+- **[DEC-181240]** Elimination of gsap.isAnimating Render-Loop Crash & Transition Flag Architecture
+- **[DEC-190100]** Kiro Procedural 3D Companion Redesign, Soulful Starlight Eyes & Responsive Viewport Framing
+- **[DEC-201940]** Deep Distant Cosmic Starfield, 3D-Tilted Spiral Galaxy & Volumetric Nebula Real Space Architecture
+- **[DEC-210450]** GitHub Release Updater Network Hardening, ConnectivityManager Pre-Check & Friendly Error Banner UX
+- **[DEC-221800]** Celestial Sanctuary Transformation, Unobstructed 90% WebGL Viewport, Floating Starlight Dock & Tactile Petting Engine
+- **[DEC-231900]** Continuous Unblocked Development Protocol & Skills-1.2.3 Harness Architecture Integration
+- **[DEC-241900]** Input Analysis & Rule Guardrail Engine V4.7, Intent Triage & Submodule Skill Synchronization
+- **[DEC-251900]** Remediation Blueprint V5.0 & Dynamic Headless WebGL/Audio Assertions Suite
+- **[DEC-261900]** Satellite Orbital Dock, Twin Sanctuary Beacon & Agentic Orchestration Engine V6.6
+- **[DEC-271900]** Satellite Orbital Dock, Twin Sanctuary Beacon & Authentic Plushie Dinosaur Refinement V6.7
+- **[DEC-281900]** Rounded Spherical Plushie Dinosaur Companion Architecture V6.8
+- **[DEC-291900]** Living Creature Kinematics & Organic Soft-Body Physics Engine V7.0
+- **[DEC-301900]** Photorealistic Astronomical Nebula, High-Fidelity Starbursts, Visible Mouth & Space Shuttle Flight POV V7.1
+- **[DEC-311900]** Performant Simple Cosmic Space, Soulful Starlight Eyes & 5 Dynamic Idle Animations V7.2
+- **[DEC-321900]** Starlight Messenger Push Notification Guard, Message Persistence & Unread Badge Architecture V7.3
+- **[DEC-331900]** Astrogation Celestial Physics Agent, Photorealistic Multi-Tail Comet & Sci-Fi Target Lock-On Architecture V7.4
