@@ -162,3 +162,4 @@ Commands:
 - **[DEC-371900]** Anime Inverted-Hull Outlines & Hand-Painted Character Shaders V7.8
 - **[DEC-381900]** Cozy Matte Fur & Velvet Microfiber Shader Architecture V7.9
 - **[DEC-391900]** Clean Plushie Velvet & Soft Half-Lambert Wrap Architecture V8.0
+- **[DEC-401900]** Anime Background Nebula, Gaussian Starfield Bokeh & Facial Harmony Architecture V8.1

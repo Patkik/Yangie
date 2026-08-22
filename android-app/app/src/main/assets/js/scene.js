@@ -242,6 +242,53 @@ function createAnimeOutlineMesh(geometry, thickness = 0.022, outlineColor = 0x11
   return new THREE.Mesh(geometry, outlineMaterial);
 }
 
+// Helper: 100% Procedural Soft Twinkling Star Bokeh Shader Material
+function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
+  const vertexShader = `
+    attribute float aPhase;
+    attribute float aScale;
+    attribute vec3 aColor;
+    uniform float u_time;
+    varying vec3 vColor;
+    varying float vPhase;
+
+    void main() {
+      vColor = aColor;
+      vPhase = aPhase;
+      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+      float twinkle = 0.60 + 0.40 * sin(u_time * 2.6 + aPhase) * cos(u_time * 1.3 + 0.5 * aPhase);
+      gl_PointSize = (${baseSize.toFixed(2)} * aScale * twinkle) * (300.0 / -mvPos.z);
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float u_time;
+    varying vec3 vColor;
+    varying float vPhase;
+
+    void main() {
+      vec2 coord = gl_PointCoord - vec2(0.5);
+      float r2 = dot(coord, coord) * 4.0;
+      if (r2 > 1.0) discard;
+      float gaussian = exp(-3.8 * r2);
+      float twinkleAlpha = 0.65 + 0.35 * sin(u_time * 2.8 + vPhase);
+      gl_FragColor = vec4(vColor, gaussian * twinkleAlpha);
+    }
+  `;
+
+  return new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      u_time: { value: 0.0 }
+    },
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+}
+
 export class KiroSceneManager {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
@@ -525,6 +572,8 @@ export class KiroSceneManager {
     const starGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.distantStarCount * 3);
     const colors = new Float32Array(this.distantStarCount * 3);
+    const phases = new Float32Array(this.distantStarCount);
+    const scales = new Float32Array(this.distantStarCount);
 
     this.distantStarOriginalPositions = [];
     this.distantStarPhases = [];
@@ -539,23 +588,23 @@ export class KiroSceneManager {
     const colorLavender = new THREE.Color(0xCBA6F7);   // Lavender Twinkle
 
     for (let i = 0; i < this.distantStarCount; i++) {
-      // Natural 3D spherical dome distribution across deep cosmic hemisphere
-      // Spanning R = 24.0 to 65.0 units away from camera
       const theta = Math.random() * Math.PI * 2;
       const u = Math.random();
-      const phi = Math.acos(1.0 - u * 0.95); // Wide cone in front of camera
+      const phi = Math.acos(1.0 - u * 0.95);
       const dist = 24.0 + Math.pow(Math.random(), 1.4) * 42.0;
 
       const x = Math.sin(phi) * Math.cos(theta) * dist;
       const y = Math.sin(phi) * Math.sin(theta) * dist;
-      const z = -Math.cos(phi) * dist; // Strictly negative Z (in front of camera)
+      const z = -Math.cos(phi) * dist;
 
       positions[i * 3]     = x;
       positions[i * 3 + 1] = y;
       positions[i * 3 + 2] = z;
 
       this.distantStarOriginalPositions.push({ x, y, z });
-      this.distantStarPhases.push(Math.random() * Math.PI * 2);
+      const phase = Math.random() * Math.PI * 2;
+      this.distantStarPhases.push(phase);
+      phases[i] = phase;
 
       // Varied Spectral Distribution & Apparent Magnitudes
       const pick = Math.random();
@@ -574,15 +623,17 @@ export class KiroSceneManager {
         starColor = colorLavender.clone();
       }
 
-      // Apparent brightness variation: 75% faint distant pin-pricks, 19% medium, 6% bright beacons
       let brightness;
       const bPick = Math.random();
       if (bPick < 0.75) {
-        brightness = 0.40 + Math.random() * 0.35; // Faint background pin-prick
+        brightness = 0.50 + Math.random() * 0.35;
+        scales[i] = 0.75 + Math.random() * 0.45;
       } else if (bPick < 0.94) {
-        brightness = 0.75 + Math.random() * 0.20; // Medium star
+        brightness = 0.85 + Math.random() * 0.25;
+        scales[i] = 1.10 + Math.random() * 0.40;
       } else {
-        brightness = 1.0 + Math.random() * 0.35;  // Bright prominent beacon
+        brightness = 1.15 + Math.random() * 0.35;
+        scales[i] = 1.60 + Math.random() * 0.60;
       }
       starColor.multiplyScalar(brightness);
 
@@ -592,19 +643,12 @@ export class KiroSceneManager {
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    starGeo.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
+    starGeo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+    starGeo.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
 
-    const starMat = new THREE.PointsMaterial({
-      size: 0.38,
-      map: this.starTexture,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.88,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true
-    });
-
+    const starMat = createAnimeStarfieldShaderMaterial(0.38);
+    this.starfieldMaterials = [starMat];
     this.registerDisposable(starGeo);
     this.registerDisposable(starMat);
 
@@ -656,33 +700,40 @@ export class KiroSceneManager {
 
       void main() {
         vec2 uv = vUv * 2.0 - 1.0;
-        float t = u_time * 0.04;
+        float t = u_time * 0.03;
 
-        // Swirling Turbulent Vector Rotation Vortex Field
-        float theta = length(uv) * 0.7 - t * 0.5;
+        // Swirling celestial vortex field
+        float r = length(uv);
+        float theta = r * 0.65 - t * 0.4;
         mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
         vec2 rotUv = rot * uv;
 
-        // Chromatic Aberration Splitting at cloud fringes
-        vec2 uvR = rotUv + vec2(0.012, 0.0);
+        // Chromatic Aberration Splitting at cloud fringes (Soft watercolor fringe sampling)
+        vec2 uvR = rotUv + vec2(0.008, 0.0);
         vec2 uvG = rotUv;
-        vec2 uvB = rotUv - vec2(0.012, 0.0);
+        vec2 uvB = rotUv - vec2(0.008, 0.0);
 
-        float nR = snoise(uvR * 1.5 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
-        float nG = snoise(uvG * 1.5 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
-        float nB = snoise(uvB * 1.5 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
+        float nR = snoise(uvR * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
+        float nG = snoise(uvG * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
+        float nB = snoise(uvB * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
 
-        vec3 midnight = vec3(0.066, 0.066, 0.106); // #11111b
-        vec3 mint     = vec3(0.306, 0.788, 0.690); // #4EC9B0
-        vec3 pink     = vec3(0.961, 0.761, 0.906); // #F5C2E7
-        vec3 gold     = vec3(0.976, 0.886, 0.686); // #F9E2AF
+        // Deep Velvety Twilight Palette (Zero blown-out white haze)
+        vec3 deepMidnight   = vec3(0.055, 0.055, 0.095); // #0E0E18
+        vec3 twilightViolet = vec3(0.13, 0.10, 0.25);   // #211A40
+        vec3 duskyRose      = vec3(0.36, 0.18, 0.32);   // #5C2E52
+        vec3 starlightMint  = vec3(0.12, 0.38, 0.34);   // #1F6157
+        vec3 auroralGold    = vec3(0.68, 0.58, 0.36);   // #AD945C
 
-        // 3-Layer Watercolor Blending
-        vec3 col = mix(midnight, mint, smoothstep(0.35, 0.72, nG));
-        col = mix(col, pink, smoothstep(0.42, 0.85, nR) * 0.75);
-        col = mix(col, gold, smoothstep(0.58, 0.90, nB) * u_audio * 0.45);
+        // Painterly Watercolor Layering
+        vec3 col = mix(deepMidnight, twilightViolet, smoothstep(0.20, 0.70, nG));
+        col = mix(col, duskyRose, smoothstep(0.38, 0.85, nR) * 0.65);
+        col = mix(col, starlightMint, smoothstep(0.45, 0.88, nB) * 0.55);
+        col = mix(col, auroralGold, smoothstep(0.62, 0.95, (nR + nG) * 0.5) * (0.15 + u_audio * 0.30));
 
-        float alpha = smoothstep(0.20, 0.78, (nR + nG + nB) / 3.0) * 0.88;
+        // Gentle cosmic vignette towards borders
+        float vignette = smoothstep(1.5, 0.2, r);
+        float alpha = smoothstep(0.15, 0.80, (nR + nG + nB) / 3.0) * 0.70 * vignette;
+
         gl_FragColor = vec4(col, alpha);
       }
     `;
@@ -696,7 +747,7 @@ export class KiroSceneManager {
         u_audio: { value: 0.0 }
       },
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       depthWrite: false
     });
 
@@ -714,6 +765,8 @@ export class KiroSceneManager {
     const galaxyGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.galaxyCount * 3);
     const colors = new Float32Array(this.galaxyCount * 3);
+    const phases = new Float32Array(this.galaxyCount);
+    const scales = new Float32Array(this.galaxyCount);
 
     this.galaxyOriginalPositions = [];
     this.galaxyPhases = [];
@@ -725,19 +778,18 @@ export class KiroSceneManager {
 
     for (let i = 0; i < this.galaxyCount; i++) {
       const arm = i % 2;
-      const isCore = i < 160; // Dense glowing nucleus
+      const isCore = i < 160;
 
       let r, angle, u, v, w;
 
       if (isCore) {
-        // High density spherical/elliptical galactic nucleus
         r = Math.pow(Math.random(), 1.6) * 1.5;
         angle = Math.random() * Math.PI * 2;
         u = Math.cos(angle) * r;
         v = Math.sin(angle) * r;
         w = (Math.random() - 0.5) * 0.45 * Math.exp(-r / 1.0);
+        scales[i] = 1.2 + Math.random() * 0.6;
       } else {
-        // Double-arm logarithmic spiral disk
         r = 0.8 + Math.pow(Math.random(), 1.5) * 6.5;
         const armAngle = arm * Math.PI;
         const winding = 2.2 * Math.log(1.0 + r * 0.65);
@@ -746,8 +798,8 @@ export class KiroSceneManager {
 
         u = Math.cos(angle) * r;
         v = Math.sin(angle) * r;
-        // Realistic exponential vertical disk thickness
         w = (Math.random() - 0.5) * 0.32 * Math.exp(-r / 3.8);
+        scales[i] = 0.8 + Math.random() * 0.5;
       }
 
       positions[i * 3]     = u;
@@ -755,9 +807,10 @@ export class KiroSceneManager {
       positions[i * 3 + 2] = w;
 
       this.galaxyOriginalPositions.push({ x: u, y: v, z: w, r, arm, isCore });
-      this.galaxyPhases.push(Math.random() * Math.PI * 2);
+      const phase = Math.random() * Math.PI * 2;
+      this.galaxyPhases.push(phase);
+      phases[i] = phase;
 
-      // Sibling color story
       let starColor;
       if (isCore) {
         starColor = colorCoreWhite.clone().lerp(colorAmber, Math.random() * 0.75);
@@ -775,24 +828,18 @@ export class KiroSceneManager {
     }
 
     galaxyGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    galaxyGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    galaxyGeo.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
+    galaxyGeo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+    galaxyGeo.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
 
-    const galaxyMat = new THREE.PointsMaterial({
-      size: this.warpStarSize,
-      map: this.starTexture,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.92,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true
-    });
-
+    const galaxyMat = createAnimeStarfieldShaderMaterial(0.42);
+    if (this.starfieldMaterials) {
+      this.starfieldMaterials.push(galaxyMat);
+    }
     this.registerDisposable(galaxyGeo);
     this.registerDisposable(galaxyMat);
 
     this.galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
-    // Position galaxy disk at Z = -13.5, gracefully tilted in 3D (X-tilt 50 deg, Y-tilt 16 deg)
     this.galaxyPoints.position.set(0, 0.4, -13.5);
     this.galaxyPoints.rotation.set(Math.PI * 0.28, Math.PI * 0.09, 0);
     this.backgroundCelestialGroup.add(this.galaxyPoints);
@@ -1143,7 +1190,16 @@ export class KiroSceneManager {
       this.nebulaMaterial.uniforms.u_audio.value = audioLevel;
     }
 
-    // 2. Distant Deep Cosmic Starfield (Slow ethereal rotation & Anime Twinkling)
+    // 2. Update Starfield & Galaxy Gaussian Bokeh Shader Uniforms
+    if (this.starfieldMaterials) {
+      this.starfieldMaterials.forEach(m => {
+        if (m.uniforms && m.uniforms.u_time) {
+          m.uniforms.u_time.value = time;
+        }
+      });
+    }
+
+    // 3. Distant Deep Cosmic Starfield (Slow ethereal rotation & Anime Twinkling)
     if (this.distantStars) {
       const starRotRate = isSleeping ? 0.0006 : 0.0015;
       this.distantStars.rotation.y += starRotRate * (delta || 0.016);
@@ -1453,13 +1509,13 @@ export class KiroSceneManager {
     this.scene.add(this.kiroGroup);
 
     // 100% Procedural Velvet Plushie Materials (Clean Half-Lambert Wrap & Peach-Fuzz Sheen, Zero Dirt Artifacts)
-    const mintMat = createAnimeCharacterMaterial(0x4EC9B0, 0x267262, 0x94E2D5, 2.2);
+    const mintMat = createAnimeCharacterMaterial(0x5AE5C8, 0x2A7C6E, 0xA8F6E8, 2.2);
     this.registerDisposable(mintMat);
 
-    const bellyMat = createAnimeCharacterMaterial(0xFFF8EB, 0xEADECA, 0xFFFFFF, 2.6);
+    const bellyMat = createAnimeCharacterMaterial(0xFFFDF7, 0xEDE2CE, 0xFFFFFF, 2.4);
     this.registerDisposable(bellyMat);
 
-    const crestMat = createAnimeCharacterMaterial(0xFDE08B, 0xD4A032, 0xFFF4A8, 2.4);
+    const crestMat = createAnimeCharacterMaterial(0xFFE58F, 0xDEB038, 0xFFF8C2, 2.2);
     this.registerDisposable(crestMat);
 
     this.animeCharacterMaterials = [mintMat, bellyMat, crestMat];
@@ -1472,11 +1528,11 @@ export class KiroSceneManager {
     this.kiroGroup.add(this.bodyMesh);
     this.registerDisposable(bodyGeo);
 
-    // 2. Large Smooth Creamy Belly Patch (#FFF8EB)
+    // 2. Large Smooth Creamy Belly Patch (#FFFDF7) — Positioned cleanly on tummy below mouth
     const bellyGeo = new THREE.SphereGeometry(0.58, 32, 24);
     this.bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
-    this.bellyMesh.scale.set(1.04, 0.90, 0.44);
-    this.bellyMesh.position.set(0, -0.16, 0.65);
+    this.bellyMesh.scale.set(0.88, 0.65, 0.36);
+    this.bellyMesh.position.set(0, -0.30, 0.62);
     this.kiroGroup.add(this.bellyMesh);
     this.registerDisposable(bellyGeo);
 
@@ -1544,13 +1600,13 @@ export class KiroSceneManager {
     // Left Eye
     this.leftEye = new THREE.Mesh(eyeGeo, eyeMat);
     this.leftEye.scale.set(1.0, 1.14, 0.55);
-    this.leftEye.position.set(-0.28, 0.16, 0.80);
+    this.leftEye.position.set(-0.28, 0.18, 0.80);
     this.kiroGroup.add(this.leftEye);
 
     // Right Eye
     this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
     this.rightEye.scale.set(1.0, 1.14, 0.55);
-    this.rightEye.position.set(0.28, 0.16, 0.80);
+    this.rightEye.position.set(0.28, 0.18, 0.80);
     this.kiroGroup.add(this.rightEye);
 
     // Primary Bright Glossy Reflection Catchlights (Large Pure White)
@@ -1561,12 +1617,12 @@ export class KiroSceneManager {
 
     this.leftHl = new THREE.Mesh(hlGeo, hlMat);
     this.leftHl.scale.set(1.0, 1.25, 0.4);
-    this.leftHl.position.set(-0.24, 0.21, 0.89);
+    this.leftHl.position.set(-0.24, 0.23, 0.89);
     this.kiroGroup.add(this.leftHl);
 
     this.rightHl = new THREE.Mesh(hlGeo, hlMat);
     this.rightHl.scale.set(1.0, 1.25, 0.4);
-    this.rightHl.position.set(0.24, 0.21, 0.89);
+    this.rightHl.position.set(0.24, 0.23, 0.89);
     this.kiroGroup.add(this.rightHl);
 
     // Secondary Golden Starlight Diamond Twinkle (#F9E2AF)
@@ -1576,11 +1632,11 @@ export class KiroSceneManager {
     this.registerDisposable(hl2Mat);
 
     this.leftHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
-    this.leftHl2.position.set(-0.31, 0.11, 0.88);
+    this.leftHl2.position.set(-0.31, 0.13, 0.88);
     this.kiroGroup.add(this.leftHl2);
 
     this.rightHl2 = new THREE.Mesh(hl2Geo, hl2Mat);
-    this.rightHl2.position.set(0.31, 0.11, 0.88);
+    this.rightHl2.position.set(0.31, 0.13, 0.88);
     this.kiroGroup.add(this.rightHl2);
 
     // Tertiary Cyan Starlight Micro Glint (#94E2D5)
@@ -1590,14 +1646,14 @@ export class KiroSceneManager {
     this.registerDisposable(hl3Mat);
 
     this.leftHl3 = new THREE.Mesh(hl3Geo, hl3Mat);
-    this.leftHl3.position.set(-0.23, 0.10, 0.88);
+    this.leftHl3.position.set(-0.23, 0.12, 0.88);
     this.kiroGroup.add(this.leftHl3);
 
     this.rightHl3 = new THREE.Mesh(hl3Geo, hl3Mat);
-    this.rightHl3.position.set(0.23, 0.10, 0.88);
+    this.rightHl3.position.set(0.23, 0.12, 0.88);
     this.kiroGroup.add(this.rightHl3);
 
-    // 7. Sweet Rosy Peach/Pink Blush Cheeks (#FFB6C1)
+    // 7. Sweet Rosy Peach/Pink Blush Cheeks (#FFB6C1) — Perfectly situated under eyes
     const blushGeo = new THREE.SphereGeometry(0.12, 20, 20);
     this.blushMat = new THREE.MeshBasicMaterial({
       color: 0xFFB6C1,
@@ -1608,20 +1664,20 @@ export class KiroSceneManager {
     this.registerDisposable(this.blushMat);
 
     this.leftBlush = new THREE.Mesh(blushGeo, this.blushMat);
-    this.leftBlush.scale.set(1.0, 0.75, 0.25);
-    this.leftBlush.position.set(-0.46, -0.02, 0.74);
+    this.leftBlush.scale.set(1.0, 0.65, 0.20);
+    this.leftBlush.position.set(-0.46, 0.04, 0.74);
     this.leftBlush.rotation.set(0.1, -0.2, 0.15);
     this.kiroGroup.add(this.leftBlush);
 
     this.rightBlush = new THREE.Mesh(blushGeo, this.blushMat);
-    this.rightBlush.scale.set(1.0, 0.75, 0.25);
-    this.rightBlush.position.set(0.46, -0.02, 0.74);
+    this.rightBlush.scale.set(1.0, 0.65, 0.20);
+    this.rightBlush.position.set(0.46, 0.04, 0.74);
     this.rightBlush.rotation.set(0.1, 0.2, -0.15);
     this.kiroGroup.add(this.rightBlush);
 
-    // 8. Sweet Wide Open Smile with Rosy Cavity and Cute Dinosaur Tooth (Z = 0.915)
+    // 8. Sweet Wide Open Smile with Rosy Cavity and Cute Dinosaur Tooth (Z = 0.88, Y = 0.08)
     this.mouthGroup = new THREE.Group();
-    this.mouthGroup.position.set(0, 0.04, 0.915);
+    this.mouthGroup.position.set(0, 0.08, 0.88);
 
     // Inner rosy pink mouth opening cavity
     const mouthCavityGeo = new THREE.SphereGeometry(0.048, 16, 16);
@@ -1669,13 +1725,13 @@ export class KiroSceneManager {
 
     this.leftSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.leftSleepEye.rotation.set(0, 0, Math.PI);
-    this.leftSleepEye.position.set(-0.28, 0.16, 0.82);
+    this.leftSleepEye.position.set(-0.28, 0.18, 0.82);
     this.leftSleepEye.visible = false;
     this.kiroGroup.add(this.leftSleepEye);
 
     this.rightSleepEye = new THREE.Mesh(sleepEyeGeo, sleepEyeMat);
     this.rightSleepEye.rotation.set(0, 0, Math.PI);
-    this.rightSleepEye.position.set(0.28, 0.16, 0.82);
+    this.rightSleepEye.position.set(0.28, 0.18, 0.82);
     this.rightSleepEye.visible = false;
     this.kiroGroup.add(this.rightSleepEye);
 
@@ -1683,13 +1739,13 @@ export class KiroSceneManager {
     const armGeo = new THREE.SphereGeometry(0.18, 20, 20);
     this.leftArm = new THREE.Mesh(armGeo, mintMat);
     this.leftArm.scale.set(0.68, 1.15, 0.68);
-    this.leftArm.position.set(-0.46, -0.15, 0.62);
+    this.leftArm.position.set(-0.46, -0.22, 0.58);
     this.leftArm.rotation.set(0.25, -0.45, 0.50);
     this.kiroGroup.add(this.leftArm);
 
     this.rightArm = new THREE.Mesh(armGeo, mintMat);
     this.rightArm.scale.set(0.68, 1.15, 0.68);
-    this.rightArm.position.set(0.46, -0.15, 0.62);
+    this.rightArm.position.set(0.46, -0.22, 0.58);
     this.rightArm.rotation.set(0.25, 0.45, -0.50);
     this.kiroGroup.add(this.rightArm);
     this.registerDisposable(armGeo);

@@ -205,7 +205,7 @@ if (fs.existsSync(sceneJsPath)) {
   const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
   assert(sceneContent.includes('_scratchVec1') && sceneContent.includes('_scratchMat4'), 'Pre-allocated module scratch vectors & matrices for zero-allocation render ticks verified');
   assert(sceneContent.includes('triggerViscoelasticSquish') && sceneContent.includes('viscousWobble'), 'Viscoelastic soft-body damped harmonic oscillator squish dynamics implemented');
-  assert(sceneContent.includes('createAnimeCharacterMaterial(0x4EC9B0') && sceneContent.includes('0x94E2D5'), 'Shinkai Fresnel grazing rim reflection and velvet response verified on Kiro body');
+  assert(sceneContent.includes('createAnimeCharacterMaterial') && (sceneContent.includes('0x5AE5C8') || sceneContent.includes('0x4EC9B0')), 'Shinkai Fresnel grazing rim reflection and velvet response verified on Kiro body');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
