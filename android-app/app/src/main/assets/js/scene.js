@@ -152,18 +152,20 @@ function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0)
   });
 }
 
-// Helper: 100% Procedural Anime Character Cel-Shading & Watercolor Grain Generator
-function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, fresnelPower = 3.5) {
+// Helper: 100% Procedural Cozy Velvety Fur & Matte Character Shader Generator
+function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, furFuzzIntensity = 0.055) {
   const vertexShader = `
     varying vec3 vNormal;
     varying vec3 vViewDir;
     varying vec2 vUv;
+    varying vec3 vWorldPosition;
 
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
       vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
       vViewDir = normalize(-mvPos.xyz);
+      vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
       gl_Position = projectionMatrix * mvPos;
     }
   `;
@@ -174,12 +176,13 @@ function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, fresnelPower =
     uniform vec3 u_baseColor;
     uniform vec3 u_shadowColor;
     uniform vec3 u_rimColor;
-    uniform float u_fresnelPower;
+    uniform float u_furFuzz;
     varying vec3 vNormal;
     varying vec3 vViewDir;
     varying vec2 vUv;
+    varying vec3 vWorldPosition;
 
-    // Fractional Brownian Motion (fBm) watercolor paper grain
+    // Procedural multi-scale pseudo-random noise for micro-fur fibers
     float hash(vec2 p) {
       return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
     }
@@ -195,31 +198,33 @@ function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, fresnelPower =
       return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
     }
 
-    float fbm(vec2 p) {
+    float furNoise(vec2 p) {
       float v = 0.0;
-      float a = 0.5;
-      for (int i = 0; i < 4; i++) {
+      float a = 0.55;
+      for (int i = 0; i < 3; i++) {
         v += a * noise(p);
-        p *= 2.0;
-        a *= 0.5;
+        p *= 2.1;
+        a *= 0.45;
       }
       return v;
     }
 
     void main() {
-      // 1. High-Contrast Toon-Ramp Mapping (Cel-Shading)
+      // 1. Soft Subsurface Wrap Lighting (Matte Fur / Velvet Fiber Diffusion, Zero Plastic Specular)
       float NdotL = dot(vNormal, u_lightDir);
-      float celTerminator = smoothstep(0.15, 0.18, NdotL) * 0.45 + smoothstep(0.50, 0.52, NdotL) * 0.55;
+      float wrapNdotL = (NdotL + 0.35) / 1.35; // Soft wrap diffusion through hair fibers
+      float furTerminator = smoothstep(0.18, 0.55, wrapNdotL);
 
-      // 2. Subtle Watercolor Paper Grain (fBm)
-      float grain = (fbm(vUv * 32.0 + vec2(u_time * 0.02, 0.0)) - 0.5) * 0.06;
+      // 2. High-Frequency Micro-Fur / Felt Fiber Texture
+      float microFur = (furNoise(vUv * 64.0 + vec2(u_time * 0.015, 0.0)) - 0.5) * u_furFuzz;
 
-      // 3. Shinkai Fresnel Backlight Rim Glow
-      float fresnel = pow(1.0 - max(0.0, dot(vNormal, vViewDir)), u_fresnelPower);
+      // 3. Velvet Peach-Fuzz Sheen (Soft grazing fiber backscatter, NOT plastic specular)
+      float grazingAngle = 1.0 - max(0.0, dot(vNormal, vViewDir));
+      float peachFuzz = pow(grazingAngle, 2.6) * 0.28;
 
-      // 4. Color Composition
-      vec3 surfaceColor = mix(u_shadowColor, u_baseColor, celTerminator) + grain;
-      vec3 finalColor = mix(surfaceColor, u_rimColor, fresnel * 0.85);
+      // 4. Matte Velvet Color Composition (Absorbs harsh highlights, diffuses soft warmth)
+      vec3 furBase = mix(u_shadowColor, u_baseColor, furTerminator) + microFur;
+      vec3 finalColor = mix(furBase, u_rimColor, peachFuzz);
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -234,7 +239,7 @@ function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, fresnelPower =
       u_baseColor: { value: new THREE.Color(baseHex) },
       u_shadowColor: { value: new THREE.Color(shadowHex) },
       u_rimColor: { value: new THREE.Color(rimHex) },
-      u_fresnelPower: { value: fresnelPower }
+      u_furFuzz: { value: furFuzzIntensity }
     }
   });
 }

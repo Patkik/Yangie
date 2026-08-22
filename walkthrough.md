@@ -1,31 +1,32 @@
-# 🌌 Kiro's Cosmic Haven — Anime Inverted-Hull Outlines & Character Shaders (V7.8)
+# 🌌 Kiro's Cosmic Haven — Cozy Matte Fur & Velvet Microfiber Shaders (V7.9)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.0.8` (Android `versionCode = 56`)
-- **Scope**: Deployed a complete hand-painted anime NPR visual pipeline to Kiro's 3D companion dinosaur and all orbiting planetary bodies in [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js). Implemented vertex-extruded Inverted-Hull screen-space outlines, toon-ramp cel-shading with saturated transitions, Fractional Brownian Motion (fBm) watercolor paper grain, and Shinkai Fresnel backlighting rim glows.
+- **Release Version**: `v2.0.9` (Android `versionCode = 57`)
+- **Scope**: Re-engineered Kiro's procedural companion character shader in [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js) to eliminate shiny plastic/specular glare and evoke a tactile, soft-touch matte furry plushie dinosaur. Implemented subsurface wrap lighting diffusion, 3-octave high-frequency micro-fur fiber noise ($64.0 \times \mathbf{uv}$), and soft peach-fuzz grazing sheen.
 - **Zero Asset Dependency**: 100% mathematical GLSL shaders and procedural geometries with zero external PNG or audio files.
 
 ---
 
-## 2. Mathematical & Procedural Shader Architecture
+## 2. Fur Microfiber Shader Architecture
 
-### 2.1 Inverted-Hull Screen-Space Outlines ([`scene.js`](file:///android-app/app/src/main/assets/js/scene.js))
-- **Vertex Extrusion along Normals**:
-  $$\mathbf{p}_{\text{outline}} = \mathbf{p} + \mathbf{n} \cdot d_{\text{thickness}}$$
-  $$\mathbf{p}_{\text{clip}} = \mathbf{P} \cdot \mathbf{V} \cdot \mathbf{M} \cdot \mathbf{p}_{\text{outline}}$$
-- **Back-Face Rendering (`side: THREE.BackSide`)**: Front faces of original mesh draw over the expanded back faces, creating a clean screen-space contour in Velvet Midnight Navy (`#11111b`).
-- **Attached Nodes**:
-  - Kiro's Chubby Dino Body, Cream Belly Patch, Dino Tail, and Base Feet.
-  - Orbiting Keplerian Planets: Gliese 667, Kepler 186, and Trappist 1.
+### 2.1 Subsurface Wrap Lighting Diffusion (Matte Fur Response)
+- Replaced harsh point specular reflections with soft subsurface light penetration through fur hair fibers:
+  $$\text{Wrap}(N \cdot L) = \frac{N \cdot L + 0.35}{1.35}$$
+  $$\text{FurTerminator} = \text{smoothstep}(0.18, 0.55, \text{Wrap}(N \cdot L))$$
+- Eliminates pitch-black shadow edges and plastic specular hotspots, creating a rich, warm, velvety matte finish.
 
-### 2.2 Toon-Ramp Cel-Shading & Watercolor Grain
-- **Toon-Ramp Quantization**:
-  $$\text{CelTerminator} = \text{smoothstep}(0.15, 0.18, N \cdot L) \cdot 0.45 + \text{smoothstep}(0.50, 0.52, N \cdot L) \cdot 0.55$$
-- **Fractional Brownian Motion (fBm) Paper Grain**:
-  $$\text{Grain} = \left(\sum_{i=0}^{3} 0.5^i \cdot \text{Noise}(2^i \cdot \mathbf{uv} \cdot 32.0) - 0.5\right) \cdot 0.06$$
-- **Shinkai Fresnel Rim Glow**:
-  $$R_{\text{fresnel}} = (1.0 - \max(0.0, \mathbf{n} \cdot \mathbf{v}))^{\text{power}}$$
-  Flares into Mint Teal (`#94E2D5`), Warm Gold (`#F9E2AF`), or Rose (`#FFB6C1`) at grazing viewing angles.
+### 2.2 Multi-Scale Procedural Micro-Fur Fibers
+- 3-octave procedural pseudo-random noise field:
+  $$\text{MicroFur}(\mathbf{uv}, t) = \left(\sum_{i=0}^2 a^i \cdot \text{Noise}(2.1^i \cdot \mathbf{uv} \cdot 64.0) - 0.5\right) \cdot \text{Fuzz}$$
+- Adds an authentic, soft-fuzz felt/fur fiber texture across Kiro's mint body, creamy belly patch, head crests, tail, and stubby feet.
+
+### 2.3 Velvet Peach-Fuzz Sheen
+- Soft grazing retro-reflection simulating backlit hair tips:
+  $$\text{PeachFuzz} = (1.0 - \max(0.0, \mathbf{n} \cdot \mathbf{v}))^{2.6} \cdot 0.28$$
+- Tints softly into Twilight accents without blowing out to harsh white specular glare.
+
+### 2.4 High-Contrast Eye Catchlights
+- Maintained glistening starlight specular catchlights (`MeshPhongMaterial({ shininess: 85 })`) on Kiro's starlight eyes, creating an adorable visual contrast between the soft fuzzy matte body and glossy anime eyes.
 
 ---
 
@@ -35,17 +36,18 @@
 |---|---|---|
 | **Multi-Agent Orchestrator Test** | `node scripts/test-orchestrator.js` | ✅ **7/7 SOP Checks Passed** |
 | **Dynamic Headless WebGL Audit** | `node scripts/headless-gl-audit.js` | ✅ **51/51 Assertions Passed (Exit 0)** |
-| **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Passed with 8/8 Tests Green** |
+| **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **8/8 Tests Green** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 22s** |
-| **Synchronized SemVer** | `v2.0.8` (Android `versionCode = 56`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-371900 synced across rules & `DECISIONS.md` |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 20s** |
+| **Synchronized SemVer** | `v2.0.9` (Android `versionCode = 57`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-381900 synced across rules & `DECISIONS.md` |
 
 ---
 
 ## 4. Git Publication & Release Audit
-- **Commit**: `feat(graphics): anime inverted-hull outlines & hand-painted character shaders (v2.0.8)`
-- **Tag**: `v2.0.8`
+- **Commit**: `feat(graphics): cozy matte fur & velvet microfiber shaders for kiro (v2.0.9)`
+- **Tag**: `v2.0.9`
 - **Branch**: `origin/main`
+
 
 

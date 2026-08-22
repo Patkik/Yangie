@@ -1,6 +1,6 @@
 {
-  "version": "2.0.8",
-  "updatedAt": "2026-08-22T14:42:00+08:00",
-  "releaseNotes": "Release V7.8: Procedural Anime Inverted-Hull Outlines & Hand-Painted Character Shaders — Attached vertex-extruded inverted-hull screen-space contours and fBm watercolor grain cel-shading to Kiro's body and all orbiting planetary bodies."
+  "version": "2.0.9",
+  "updatedAt": "2026-08-22T14:55:00+08:00",
+  "releaseNotes": "Release V7.9: Cozy Matte Fur & Velvet Microfiber Shader Architecture — Replaced plastic specular reflections with subsurface wrap lighting diffusion, multi-scale procedural fur fibers, and soft peach-fuzz grazing rim sheen on Kiro's companion body."
 }
 

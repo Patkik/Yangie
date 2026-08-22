@@ -235,7 +235,7 @@ if (fs.existsSync(sceneJsPath)) {
   assert(sceneContent.includes('celLight') && sceneContent.includes('smoothstep(0.12, 0.15, NdotL)'), 'High-contrast 3-step Cel-Shading with sharp terminator line verified');
   assert(sceneContent.includes('fresnel = pow') && sceneContent.includes('u_atmColor'), 'Glowing Fresnel atmospheric scattering envelope verified on planetary rims');
   assert(sceneContent.includes('Chromatic Aberration Splitting') && sceneContent.includes('uvR = rotUv'), '3-Layer watercolor parallax nebula with chromatic fringe splitting verified');
-  assert(sceneContent.includes('createAnimeCharacterMaterial'), '100% procedural Anime Character shader with fBm watercolor paper grain implemented');
+  assert(sceneContent.includes('createAnimeCharacterMaterial') && sceneContent.includes('furNoise'), '100% procedural Matte Fur & Velvet Microfiber Shader implemented');
   assert(sceneContent.includes('createAnimeOutlineMesh'), 'Procedural Inverted-Hull Anime Outline Mesh generator implemented');
   assert(sceneContent.includes('bodyOutline') && sceneContent.includes('tailOutline'), 'Inverted-Hull screen-space contour outlines attached to Kiro body & tail');
 }
