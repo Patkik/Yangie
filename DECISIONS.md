@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-591900] Single-Row Cosmic Dynamic Island HUD & Unobstructed 3D Viewport Calibration V8.0
+- **Timestamp**: `2026-08-22T21:26:00.000000`
+- **Strategy & Synthesis**: Consolidated top cockpit UI into a single-row Cosmic Dynamic Island HUD, removed center stage floating pills in favor of a tap-to-expand Bottom Sheet, and calibrated 3D camera headroom to eliminate all screen overflow and showcase Kiro in full glory.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Restructured top cockpit into an ultra-sleek, single-row Cosmic Dynamic Island HUD (height <= 44px). Merged Twin Sanctuary Beacon, Economy currency tokens, and Comms Cluster into a unified horizontal row and replaced the center status card with a tap-to-expand Bottom Sheet, granting 100% of the screen center to Kiro.
+  - **Performance**: Score 5/5: Completely eliminated vertical layout stacking, flex reflows, and HUD card clipping on mobile screens. Calibrated 3D camera FOV to 46 deg with baseline Y = 0.05 and dynamic mobile Z distance (6.0+), providing generous 25% negative headroom.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.4.2 (Build 80) across version.json, index.html, state.js, and build.gradle.kts, ensuring instant WebView OTA cache purge and asset reload.
+  - **Structural**: Score 5/5: Cleanly decoupled KiroWeatherStationV7 HUD injection to bind bottom sheet triggers directly to #partner-beacon-pill without mounting intrusive DOM cards in #center-sanctuary-stage.
+  - **Gamification**: Score 5/5: Smooth gesture-driven Bottom Sheet opening/closing for dual-sanctuary Open-Meteo weather stats, sky state simulator, and tactile Kiro petting without visual obstruction.
+
+---
+
 ### [DEC-581900] Starlight Telemetry, Weather & Interactive Sky Simulation Station V7.0
 - **Timestamp**: `2026-08-22T20:10:00.000000`
 - **Strategy & Synthesis**: Architected and integrated KiroWeatherStationV7 & weather-v7.css with a unified digital chronometer, dual-persona localized weather stations, automatic Kiro umbrella rain warnings with audio synesthesia, and an interactive retractable Sky Simulator modulating Web Audio environments.

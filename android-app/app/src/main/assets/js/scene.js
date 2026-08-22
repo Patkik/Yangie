@@ -556,8 +556,8 @@ export class KiroSceneManager {
     this.PEDESTAL_DEPTH_M = 6.2;   // Optical depth along Z-axis
     this.PINHOLE_FOCAL_PX = 3024;  // Zero-skew reference focal length
 
-    // Framing & Geometry Constants
-    this.baseCameraY = 0.12;
+    // Framing & Geometry Constants (Safe Headroom & Responsive Viewport)
+    this.baseCameraY = 0.05;
     this.baseCameraZ = 6.2;
     this.perspectiveRotationActive = false;
     this.manualRotationOffset = 0;
@@ -579,12 +579,12 @@ export class KiroSceneManager {
     const height = window.innerHeight || (this.container ? this.container.clientHeight : 640);
     const aspect = width / height;
 
-    // Optimized Pinhole Camera with Dynamic Mobile Portrait Viewport Calibration
+    // Optimized Pinhole Camera with Dynamic Mobile Portrait Viewport Calibration (Generous Safe Headroom)
     this.baseCameraZ = aspect < 0.8
-      ? Math.max(5.6, 2.7 / (2 * Math.tan((45 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
-      : 5.4;
+      ? Math.max(6.0, 2.9 / (2 * Math.tan((46 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
+      : 5.6;
 
-    this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 200);
+    this.camera = new THREE.PerspectiveCamera(46, aspect, 0.1, 200);
     this.camera.position.set(0, this.baseCameraY, this.baseCameraZ);
 
     // Pre-rendered Canvas Binding
@@ -2466,8 +2466,8 @@ export class KiroSceneManager {
     this.camera.updateProjectionMatrix();
 
     this.baseCameraZ = aspect < 0.8
-      ? Math.max(5.6, 2.7 / (2 * Math.tan((45 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
-      : 5.4;
+      ? Math.max(6.0, 2.9 / (2 * Math.tan((46 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
+      : 5.6;
 
     this.renderer.setSize(width, height);
     const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
@@ -3517,8 +3517,8 @@ export class KiroSceneManager {
     const aspect = width / height;
 
     this.baseCameraZ = aspect < 0.8
-      ? Math.max(5.6, 2.7 / (2 * Math.tan((45 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
-      : 5.4;
+      ? Math.max(6.0, 2.9 / (2 * Math.tan((46 * Math.PI / 180) / 2) * Math.max(aspect, 0.35)))
+      : 5.6;
 
     this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();

@@ -1255,15 +1255,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8.6 Zen Mode (Auto-Fade UI)
   let zenTimer = null;
   const ZEN_DELAY = 5000;
-  const uiElementsToFade = [
+  const getUiElementsToFade = () => [
     document.querySelector('.sanctuary-top-bar'),
-    document.querySelector('.satellite-orbital-dock'),
-    document.getElementById('starlight-telemetry-station')
+    document.querySelector('.satellite-orbital-dock')
   ];
   
   const resetZenTimer = () => {
     // Wake up UI
-    uiElementsToFade.forEach(el => {
+    getUiElementsToFade().forEach(el => {
       if (el) {
         el.style.transition = 'opacity 0.3s ease';
         el.style.opacity = '1';
@@ -1273,12 +1272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start timer for Zen Mode
     if (zenTimer) clearTimeout(zenTimer);
     zenTimer = setTimeout(() => {
-      // Re-fetch the pill because it might be injected after DOMContentLoaded
-      const pill = document.getElementById('starlight-telemetry-station');
-      if (pill && !uiElementsToFade.includes(pill)) {
-        uiElementsToFade.push(pill);
-      }
-      uiElementsToFade.forEach(el => {
+      getUiElementsToFade().forEach(el => {
         if (el) {
           el.style.transition = 'opacity 1.5s ease';
           el.style.opacity = '0.3';

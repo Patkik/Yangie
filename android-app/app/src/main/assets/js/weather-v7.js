@@ -108,27 +108,7 @@ export default class KiroWeatherStationV7 {
         const existingSheet = document.getElementById('capsule-core-bottom-sheet');
         if (existingSheet) existingSheet.remove();
 
-        let mountPoint = document.getElementById('hero-center') || 
-                         document.getElementById('starlight-weather-mount') ||
-                         document.getElementById('center-sanctuary-stage') ||
-                         this.container;
-
-        const weatherCard = document.createElement('div');
-        weatherCard.id = 'starlight-telemetry-station';
-        weatherCard.className = 'capsule-core-status-pill interactive-element';
-
-        weatherCard.innerHTML = `
-            <span class="kiro-emoji">🌌</span>
-            <span class="pill-text">Capsule Core</span>
-        `;
-
-        if (mountPoint.firstChild) {
-            mountPoint.insertBefore(weatherCard, mountPoint.firstChild);
-        } else {
-            mountPoint.appendChild(weatherCard);
-        }
-
-        // Add the swipeable bottom sheet globally to body (above the webgl canvas and regular UI)
+        // Add the swipeable bottom sheet globally to body
         const bottomSheet = document.createElement('div');
         bottomSheet.id = 'capsule-core-bottom-sheet';
         bottomSheet.className = 'capsule-core-bottom-sheet';
@@ -172,7 +152,7 @@ export default class KiroWeatherStationV7 {
                         <div class="pillar-stats">
                             <span id="pat-temp" class="pillar-temp">${patWeather.temp}</span>
                             <span id="pat-cond" class="pillar-cond">${patWeather.condition}</span>
-                            <span id="pat-substats" class="pillar-substats" style="font-size: 0.68rem; color: #a6adc8; margin-top: 2px;">
+                            <span id="pat-substats" class="pillar-substats" style="font-size: 0.68rem; color: #94e2d5; margin-top: 2px;">
                                 Feels ${patWeather.apparentTemp || patWeather.temp} • 💧 ${patWeather.humidity || '80%'}
                             </span>
                             <span id="pat-alert-badge" class="pillar-alert-text" style="font-size: 0.65rem; color: #f9e2af; margin-top: 3px;">
@@ -192,7 +172,7 @@ export default class KiroWeatherStationV7 {
                         <div class="pillar-stats">
                             <span id="yang-temp" class="pillar-temp">${yangWeather.temp}</span>
                             <span id="yang-cond" class="pillar-cond">${yangWeather.condition}</span>
-                            <span id="yang-substats" class="pillar-substats" style="font-size: 0.68rem; color: #a6adc8; margin-top: 2px;">
+                            <span id="yang-substats" class="pillar-substats" style="font-size: 0.68rem; color: #94e2d5; margin-top: 2px;">
                                 Feels ${yangWeather.apparentTemp || yangWeather.temp} • 💧 ${yangWeather.humidity || '82%'}
                             </span>
                             <span id="yang-alert-badge" class="pillar-alert-text" style="font-size: 0.65rem; color: #f5c2e7; margin-top: 3px;">
@@ -240,14 +220,14 @@ export default class KiroWeatherStationV7 {
                     </div>
 
                     <div style="text-align: center; margin-top: 6px;">
-                        <button type="button" id="reset-sim-btn" style="background: transparent; border: none; font-size: 0.65rem; color: #a6adc8; text-decoration: underline; cursor: pointer;">
+                        <button type="button" id="reset-sim-btn" style="background: transparent; border: none; font-size: 0.65rem; color: #94e2d5; text-decoration: underline; cursor: pointer;">
                             ↩️ Reset All to Live Meteorological Radar
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Hidden, slide-down Kiro dynamic bubble alert (now attached to the bottom sheet) -->
+            <!-- Hidden, slide-down Kiro dynamic bubble alert (attached to bottom sheet) -->
             <div id="kiro-rain-warning-bubble" class="kiro-alert-bubble">
                 <div class="bubble-triangle"></div>
                 <div class="bubble-content">
@@ -261,11 +241,15 @@ export default class KiroWeatherStationV7 {
         `;
         document.body.appendChild(bottomSheet);
 
-        // Bind the pill click to open the bottom sheet
-        weatherCard.addEventListener('click', () => {
-            bottomSheet.classList.add('open');
-            this.syncBottomSheetUI();
-        });
+        // Bind the top partner beacon pill click to open the bottom sheet
+        const beaconPill = document.getElementById('partner-beacon-pill');
+        if (beaconPill) {
+            beaconPill.addEventListener('click', (e) => {
+                e.stopPropagation();
+                bottomSheet.classList.add('open');
+                this.syncBottomSheetUI();
+            });
+        }
 
         // Bind the handle and background area to close the sheet
         const handle = bottomSheet.querySelector('.bottom-sheet-handle');
@@ -284,10 +268,6 @@ export default class KiroWeatherStationV7 {
                     bottomSheet.classList.remove('open');
                 }
             }, { passive: true });
-        }
-
-        if (window.gsap) {
-            gsap.fromTo(weatherCard, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)" });
         }
     }
 

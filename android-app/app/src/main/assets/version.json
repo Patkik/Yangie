@@ -1,10 +1,10 @@
 {
-  "version": "2.4.1",
-  "build": 79,
+  "version": "2.4.2",
+  "build": 80,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V7.2 — Open-Meteo Credible High-Resolution Live Weather & Radar Sync",
+  "description": "Space Capsule V8.0 — Single-Row Cosmic Dynamic Island HUD & Unobstructed 3D Sanctuary Viewport",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V7.2: Integrated Open-Meteo High-Resolution ECMWF/NOAA Meteorological Radar for live, highly accurate weather telemetry in Malaybalay and Capas. Added WMO standard code interpretation, live heat index / humidity stats, predictive hourly rain & umbrella alerts, and automatic offline caching."
+  "changelog": "V8.0: Re-architected Sanctuary top cockpit into a sleek single-row Cosmic Dynamic Island HUD (≤44px height). Consolidated Twin Sanctuary Beacon Pill, Sanctuary Economy tokens, and Comms Cluster into a unified horizontal row. Removed center stage floating pill in favor of tap-to-expand Bottom Sheet, giving 100% of the screen center to Kiro with generous 25% negative headroom."
 }
 

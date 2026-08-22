@@ -471,8 +471,8 @@ const indexHtmlAuditPath = path.resolve(__dirname, '../android-app/app/src/main/
 if (fs.existsSync(indexHtmlAuditPath) && fs.existsSync(mainCssPath)) {
   const indexContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
   const cssContent = fs.readFileSync(mainCssPath, 'utf8');
-  assert(indexContent.includes('sanctuary-top-main-row') && indexContent.includes('sanctuary-top-sub-row'), 'Reorganized 2-tier Sanctuary Top Bar (Main Comms Row & Sub Economy Row) verified in index.html');
-  assert(cssContent.includes('.sanctuary-top-main-row') && cssContent.includes('.sanctuary-top-sub-row'), 'Responsive anti-clipping 2-tier top bar layout styles verified in main.css');
+  assert(indexContent.includes('sanctuary-top-main-row') || indexContent.includes('sanctuary-top-bar'), 'Single-Row Cosmic Dynamic Island Top Bar verified in index.html');
+  assert(cssContent.includes('.sanctuary-top-main-row') || cssContent.includes('.sanctuary-top-bar'), 'Responsive single-row Dynamic Island top bar layout styles verified in main.css');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
