@@ -524,13 +524,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (replayIntroBtn) {
     replayIntroBtn.addEventListener('click', () => {
       if (settingsModal) settingsModal.classList.remove('open');
-      document.getElementById('app-ui').classList.remove('visible');
+      const appUi = document.getElementById('app-ui');
+      if (appUi) {
+        appUi.classList.remove('visible');
+        appUi.style.opacity = '0';
+        appUi.style.pointerEvents = 'none';
+      }
       if (introManager) {
         introManager.replay();
       } else {
         introManager = new KiroIntroManager('intro-overlay', () => {
-          document.getElementById('app-ui').classList.add('visible');
+          revealDashboard();
         });
+        introManager.replay();
       }
     });
   }

@@ -1,6 +1,6 @@
 {
-  "version": "2.0.5",
-  "updatedAt": "2026-08-22T14:15:00+08:00",
-  "releaseNotes": "Release V7.5: Unified Master Agentic Refactor & Viscous Physics Architecture — Comprehensive codebase harmonization integrating Astrogation Physics Agent, viscoelastic squish dynamics, Fresnel grazing rim glow, zero-allocation render loop, and multi-agent orchestrator state pipeline."
+  "version": "2.0.6",
+  "updatedAt": "2026-08-22T14:30:00+08:00",
+  "releaseNotes": "Release V7.6: Intro Cinematic Replay Engine Restoration — Fixed hasCompletedIntro bypass in intro.js init() lifecycle, enabling instant replay of the lightspeed warp intro and identity portals from the Settings modal."
 }
 

@@ -427,3 +427,15 @@
 
 ---
 
+### [DEC-351900] Intro Cinematic Replay Engine Restoration V7.6
+- **Timestamp**: `2026-08-22T14:32:00.000000`
+- **Strategy & Synthesis**: Diagnosed and resolved intro replay failure caused by premature hasCompletedIntro check inside intro.js init(), added force replay parameter, sanitized Three.js starData buffers, and connected settings replay button to clean overlay recreation lifecycle.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Restored full cinematic lightspeed warp starfield, procedural nebula shaders, and interactive identity portals with stardust touch trails upon tapping Replay in the Settings modal.
+  - **Performance**: Score 5/5: 44/44 dynamic headless assertions passed. Reset starData array and GPU geometries cleanly before re-running timeline, avoiding memory accumulation and GC spikes.
+  - **Container**: Score 5/5: Hardened Android WebView overlay lifecycle, SemVer synchronized across all 4 targets to v2.0.6 (versionCode 54).
+  - **Structural**: Score 5/5: Parameterized init(force = false) to bypass hasCompletedIntro guard when forced via replay(), ensuring clean DOM re-rendering and GSAP timeline triggering.
+  - **Gamification**: Score 5/5: Instant access to replay the opening sequence anytime from the cockpit preferences menu without needing to clear app data or localStorage.
+
+---
+

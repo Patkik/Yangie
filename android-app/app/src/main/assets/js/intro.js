@@ -42,11 +42,11 @@ export class KiroIntroManager {
     this.init();
   }
 
-  init() {
+  init(force = false) {
     if (!this.overlay) return;
 
-    // Check if persona already selected or intro completed
-    if (KiroState.get('hasCompletedIntro')) {
+    // Check if persona already selected or intro completed (unless force replay)
+    if (!force && KiroState.get('hasCompletedIntro')) {
       const persona = this.selectedPersona || KiroState.getPersona() || 'pat';
       this.overlay.classList.add('hidden');
       this.overlay.style.display = 'none';
@@ -176,6 +176,7 @@ export class KiroIntroManager {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     // 1. Build 800 Chromatic Stardust Line Segments
+    this.starData = [];
     const positions = new Float32Array(this.starCount * 6);
     const colors = new Float32Array(this.starCount * 6);
 
@@ -596,15 +597,28 @@ export class KiroIntroManager {
   }
 
   replay() {
+    this.dispose();
     this.isDisposed = false;
     this.isSelecting = false;
+    this.warpSpeed = 1.0;
+    this.streakLength = 0.5;
+
     if (this.overlay) {
+      this.overlay.innerHTML = '';
+      this.overlay.classList.remove('hidden');
       this.overlay.style.display = 'flex';
       this.overlay.style.opacity = '1';
       this.overlay.style.pointerEvents = 'auto';
-      this.overlay.classList.remove('hidden');
     }
-    this.init();
+
+    const appUi = document.getElementById('app-ui');
+    if (appUi) {
+      appUi.classList.remove('visible');
+      appUi.style.opacity = '0';
+      appUi.style.pointerEvents = 'none';
+    }
+
+    this.init(true);
   }
 
   dispose() {

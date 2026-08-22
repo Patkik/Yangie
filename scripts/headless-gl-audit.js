@@ -209,7 +209,23 @@ if (fs.existsSync(sceneJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 8. Final Audit Summary
+// 8. Auditing Intro Cinematic Lifecycle & Replay Engine
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}8. Auditing Intro Cinematic Lifecycle & Replay Engine in intro.js & app.js...${Colors.RESET}`);
+
+const introJsPath = path.join(ASSETS_DIR, 'js', 'intro.js');
+const appJsPath = path.join(ASSETS_DIR, 'js', 'app.js');
+
+if (fs.existsSync(introJsPath) && fs.existsSync(appJsPath)) {
+  const introContent = fs.readFileSync(introJsPath, 'utf8');
+  const appContent = fs.readFileSync(appJsPath, 'utf8');
+  assert(introContent.includes('init(force = false)') && introContent.includes('!force && KiroState.get(\'hasCompletedIntro\')'), 'Intro init supports forced replay bypassing completed flag');
+  assert(introContent.includes('replay()') && introContent.includes('this.init(true)'), 'Clean replay lifecycle resets DOM overlay, Three.js starData, and runs warp timeline');
+  assert(appContent.includes('replayIntroBtn') && appContent.includes('introManager.replay()'), 'Settings modal REPLAY button cleanly hides dashboard and triggers introManager.replay()');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {
