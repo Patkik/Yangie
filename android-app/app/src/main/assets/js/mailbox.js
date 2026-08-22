@@ -337,14 +337,17 @@ export class StarlightMessenger {
         if (this.isRecording) return;
         this.isRecording = true;
         this.recordStartTime = Date.now();
-        voiceBtn.style.background = 'rgba(235, 77, 75, 0.4)';
+        voiceBtn.classList.add('recording-pulse');
         const success = await synthEngine.startRecordingVoice();
-        if (!success) { this.isRecording = false; voiceBtn.style.background = 'rgba(255,255,255,0.06)'; }
+        if (!success) {
+          this.isRecording = false;
+          voiceBtn.classList.remove('recording-pulse');
+        }
       };
       const stopVoice = async () => {
         if (!this.isRecording) return;
         this.isRecording = false;
-        voiceBtn.style.background = 'rgba(255,255,255,0.06)';
+        voiceBtn.classList.remove('recording-pulse');
         const audioUrl = await synthEngine.stopRecordingVoice();
         const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
         if (audioUrl && duration >= 1) this.addMessageNode(this.localUser, audioUrl, 'audio', { notify: false, save: true });

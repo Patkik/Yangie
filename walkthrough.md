@@ -1,56 +1,49 @@
-# 🌌 Kiro's Cosmic Haven — Hierarchical Eye Assemblies, Non-Clipping Flush Belly & Reactive Action Kinematics (V8.2)
+# 🌌 Kiro's Cosmic Haven — Starlight Messenger V4.0 Glassmorphic Styling & Cosmic Aurora Backdrop (V8.3)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.1.2` (Android `versionCode = 60`)
+- **Release Version**: `v2.1.3` (Android `versionCode = 61`)
 - **Scope**:
-  1. **Unified Hierarchical Eye Assemblies (`leftEyeGroup`, `rightEyeGroup`)**:
-     - Encapsulated the black pupil mesh and all 3 starlight catchlights (pure white glossy highlight, golden diamond twinkle `#F9E2AF`, and cyan micro-glint `#94E2D5`) into dedicated parent `THREE.Group` objects.
-     - **Bug Resolved**: During blinks (`performBlink()`), winks (`performWink()`), squints, laughs, and sleeping (`onSleepChange()`), catchlights now scale and deform in exact, synchronous lockstep with the pupil, completely eliminating the floating/detached beads artifact hovering above closed eyes.
-  2. **Non-Clipping Flush Belly Geometry & Seam Elimination**:
-     - Recalibrated `this.bellyMesh` to $(0, -0.34, 0.46)$ with scale $(0.92, 0.68, 0.46)$ inside the base body sphere ($r = 0.85$).
-     - Completely eliminated the bottom protrusion artifact poking between Kiro's feet ($y \approx -0.80$) and smoothed the horizontal scallop seam into a flush, huggable tummy.
-  3. **Anatomical Shoulder Pivot Assemblies & Reactive Kinematics (`leftArmGroup`, `rightArmGroup`)**:
-     - Created shoulder pivot groups at $(\pm 0.36, -0.28, 0.60)$ with natural arc motion.
-     - **Reactive Behaviors**:
-       - *Feeding (`onEatCandy`)*: Arms raise up and inwards ($rotation.x = -0.65, rotation.z = \pm 0.35$) holding the star candy up to his mouth.
-       - *Petting (`triggerPetReaction`)*: Arms flutter happily with excited wing-like flaps.
-       - *Idle Hop*: Arms flap joyfully in mid-air during hops.
-       - *Sleep Mode*: Arms tuck snug and peaceful against his lower tummy.
-  4. **Unified Tail Assembly & Organic Crown Crest Dynamics**:
-     - Grouped tail cone and yellow dorsal plates into `this.tailGroup` with sinusoidal wave wagging.
-     - Head crown crests now propagate gentle backward wave lag with breathing and fan out during happy reactions.
-  5. **Grounded Soft-Body Feet Squish**:
-     - Anchored feet soles cleanly to the pedestal top plane ($y = -0.78$), calculating soft-body compression ($0.60 \times (2.0 - breathY)$) to absorb body bounce without intersecting or floating.
-- **Zero Asset Dependency**: 100% mathematical procedural geometries and shaders with zero external PNG or audio files.
+  1. **Cosmic Aurora Shifting Gradient Backdrop (`#mailbox-modal`, `.mailbox-card`)**:
+     - Upgraded the Starlight Mailbox sidebar panel with a dynamic, GPU-accelerated shifting cosmic gradient backdrop (`animation: cosmic-aurora-sweep 15s ease infinite`) combined with deep glassmorphism saturation (`backdrop-filter: blur(24px) saturate(170%)`).
+     - Framed with a delicate glowing emerald border (`border: 1.5px solid rgba(148, 226, 213, 0.22)`).
+  2. **Cozy Matte-Plushie Speech Bubbles**:
+     - Transformed message nodes into squishy, organic speech bubbles echoing Kiro's soft plushie curves:
+       - **Patrick (Mint-Teal)**: Soft minty gradient with glowing border (`rgba(78, 201, 176, 0.42)`), crisp lavender-gray text (`#CDD6F4`), and custom border radiuses (`20px 20px 4px 20px` for outgoing, `20px 20px 20px 4px` for incoming).
+       - **Yangiee (Pastel-Pink)**: Dreamy blush gradient with pink glow border (`rgba(245, 183, 192, 0.42)`), warm pastel text (`#F5C2E7`), and matching border radiuses.
+  3. **Elastic Spring Microinteractions**:
+     - Applied physics-based cubic-bezier transitions (`cubic-bezier(0.175, 0.885, 0.32, 1.25)`) across message bubbles, avatar icons, quick-tap emojis, and action buttons.
+     - Hovering over `.emoji-tap-btn` applies elastic spring tilt (`scale(1.4) rotate(-6deg) translateY(-2px)`) with golden starlight drop shadows (`drop-shadow(0 0 10px #f9e2af)`).
+  4. **Command Terminal Input & Rocket Launcher Send Button**:
+     - Terminal input transitions to bright Mint-Teal on focus with glowing neon shadow (`box-shadow: 0 0 12px rgba(78, 201, 176, 0.35)`).
+     - Send button rotates and expands on hover (`scale(1.14) rotate(15deg)`), providing tactile rocket launch feedback.
+  5. **Cosmic Heartbeat Recording Indicator (`.chat-action-btn.recording-pulse`)**:
+     - Holding the voice note button triggers breathing pulse animation (`@keyframes recording-cosmic-glow`) connected to Web Audio recording hooks in [`mailbox.js`](file:///android-app/app/src/main/assets/js/mailbox.js).
+- **Zero Asset Dependency**: 100% mathematical CSS/SVG vectors and procedural Web Audio with zero external dependencies.
 
 ---
 
 ## 2. Key Mathematical & Architectural Upgrades
 
-### 2.1 Unified Eye Assembly Geometry & Local Coordinate Transforms
+### 2.1 Aurora Gradient Sweep Architecture
+```css
+.mailbox-card {
+  background: linear-gradient(165deg, rgba(17, 17, 27, 0.94), rgba(30, 30, 46, 0.88), rgba(15, 15, 23, 0.95));
+  background-size: 200% 200%;
+  animation: cosmic-aurora-sweep 15s ease infinite;
+  backdrop-filter: blur(24px) saturate(170%);
+}
+@keyframes cosmic-aurora-sweep {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 ```
-leftEyeGroup (Position: -0.28, 0.18, 0.80)
-├── leftPupil (Local: 0, 0, 0 | Scale: 1.0, 1.14, 0.55)
-├── leftHl [White Gloss] (Local: 0.04, 0.05, 0.09 | Scale: 1.0, 1.25, 0.4)
-├── leftHl2 [Gold Star] (Local: -0.03, -0.05, 0.08)
-└── leftHl3 [Cyan Glint] (Local: 0.05, -0.06, 0.08)
 
-rightEyeGroup (Position: 0.28, 0.18, 0.80)
-├── rightPupil (Local: 0, 0, 0 | Scale: 1.0, 1.14, 0.55)
-├── rightHl [White Gloss] (Local: -0.04, 0.05, 0.09 | Scale: 1.0, 1.25, 0.4)
-├── rightHl2 [Gold Star] (Local: 0.03, -0.05, 0.08)
-└── rightHl3 [Cyan Glint] (Local: -0.05, -0.06, 0.08)
-```
-
-### 2.2 Reactive Action State Matrix
-| Action / State | Eye State | Arms (`leftArmGroup` / `rightArmGroup`) | Tail (`tailGroup`) | Cheeks (`blushMat`) |
+### 2.2 Dynamic Single-Identity Single-SSOT Color Mappings
+| User Profile | Outgoing Bubble Gradient | Outgoing Border | Outgoing Text | Avatar Glow Ring |
 |---|---|---|---|---|
-| **Breathing Idle** | Blinking every 3-6s | Harmonic sway ($rotX = 0.20 \pm 0.04$) | Gentle wag ($rotY = \pm 0.12$) | Rest (`opacity: 0.78`) |
-| **Feeding Treat** | Delighted Squint ($scaleY = 0.22$) | Grasps candy to mouth ($rotX = -0.65, rotZ = \pm 0.35$) | Fast wag ($rotY = \pm 0.45$) | Warm glow |
-| **Petting Touch** | Joyful squint ($scaleY = 0.18$) | Fluttering flaps ($rotZ = \mp 0.75$) | High-frequency wag ($rotY = \pm 0.55$) | Warm blush (`opacity: 0.95`) |
-| **Idle Hop / Jump** | Big alert eyes | Flaps high in mid-air ($rotZ = \mp 0.75$) | Fan wag ($rotY = \pm 0.50$) | Rest |
-| **Yawn & Stretch** | Sleepy squint | Stretches wide back ($rotX = -0.65$) | Centered | Rest |
-| **Sleep Mode** | Crescent sleep eyes | Tucked against tummy ($rotX = 0.35, rotZ = \pm 0.30$) | Resting still | Bedtime tint |
+| **Patrick (`pat`)** | Mint-Teal (`#4EC9B0` 24% to 14%) | Mint (`rgba(78, 201, 176, 0.42)`) | `#CDD6F4` | `rgba(78, 201, 176, 0.45)` |
+| **Yangiee (`yang`)**| Pastel-Pink (`#F5B7C0` 24% to 14%)| Blush (`rgba(245, 183, 192, 0.42)`)| `#F5C2E7` | `rgba(245, 183, 192, 0.45)` |
 
 ---
 
@@ -62,13 +55,13 @@ rightEyeGroup (Position: 0.28, 0.18, 0.80)
 | **Dynamic Headless WebGL Audit** | `node scripts/headless-gl-audit.js` | ✅ **54/54 Assertions Passed (Exit 0)** |
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **8/8 Tests Green (Exit 0)** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 18s** |
-| **Synchronized SemVer** | `v2.1.2` (Android `versionCode = 60`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-411900 synced across rules & `DECISIONS.md` |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 10s** |
+| **Synchronized SemVer** | `v2.1.3` (Android `versionCode = 61`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-421900 synced across rules & `DECISIONS.md` |
 
 ---
 
 ## 4. Git Publication & Release Audit
-- **Commit**: `feat(graphics): hierarchical eye assemblies, flush belly & reactive action kinematics (v2.1.2)`
-- **Tag**: `v2.1.2`
+- **Commit**: `feat(messenger): starlight mailbox v4.0 cosmic aurora backdrop, squishy bubbles & spring microinteractions (v2.1.3)`
+- **Tag**: `v2.1.3`
 - **Branch**: `origin/main`

@@ -1,5 +1,6 @@
 {
-  "version": "2.1.2",
-  "updatedAt": "2026-08-22T16:30:00+08:00",
-  "releaseNotes": "Release V8.2: Hierarchical Eye Assemblies, Non-Clipping Flush Belly & Reactive Action Kinematics — Refactored eye pupil and all catchlights into unified leftEyeGroup and rightEyeGroup preventing floating detachment during blinks and winks, calibrated belly mesh bounds inside body sphere with zero bottom clipping, and implemented reactive shoulder pivots and fluid idle kinematics."
+  "version": "2.1.3",
+  "name": "Kiro's Cosmic Haven",
+  "description": "Space Capsule V5.0 — Starlight Messenger V4.0 Glassmorphic Styling & Aurora Backdrop",
+  "minApkVersion": "1.0.0"
 }
