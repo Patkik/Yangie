@@ -534,7 +534,20 @@ if (fs.existsSync(synthJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 18. Final Audit Summary
+// 18. Auditing Categorical Settings Navigation & Panel Architecture
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}18. Auditing Categorical Settings Navigation & Panel Architecture...${Colors.RESET}`);
+
+if (fs.existsSync(indexHtmlAuditPath)) {
+  const htmlContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
+  assert(htmlContent.includes('settings-cat-nav') && htmlContent.includes('tab-cat-all'), 'Categorical Segmented Navigation Tab bar verified');
+  assert(htmlContent.includes('data-cat="profile"') && htmlContent.includes('data-cat="audio"') && htmlContent.includes('data-cat="performance"') && htmlContent.includes('data-cat="system"'), 'All 4 distinct settings category tabs verified');
+  assert(htmlContent.includes('data-category="profile"') && htmlContent.includes('data-category="audio"') && htmlContent.includes('data-category="performance"') && htmlContent.includes('data-category="system"'), 'Structured Categorical Section Panels (Profile, Audio, Performance, System) verified');
+  assert(htmlContent.includes('settings-cat-banner') && htmlContent.includes('cat-banner-pill'), 'Luxury Glassmorphic Category Banner & Pill headers verified');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 19. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

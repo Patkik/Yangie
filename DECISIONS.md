@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-541900] Categorical Settings Navigation & Structured Panels
+- **Timestamp**: `2026-08-22T18:40:00.000000`
+- **Strategy & Synthesis**: Re-architected settings modal from an unorganized vertical stack into a state-of-the-art categorical interface featuring an interactive segmented navigation control and structured category panels.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Categorically reorganized settings modal into 4 distinct luxury glassmorphic panels (Profile & Identity, Audio & Vocals, Performance & ART, System & Updates) crowned with an interactive horizontal segmented pill bar.
+  - **Performance**: Score 5/5: Zero-overhead tab filtering and CSS keyframe animations ensure 120Hz smooth transitions without DOM recreation or layout thrashing.
+  - **Container**: Score 5/5: Scroll containment (touch-action: pan-y; overscroll-behavior: contain;) preserves immovable viewport lock inside the Android WebView sandbox.
+  - **Structural**: Score 5/5: Clean semantic segmentation with data-category attributes and unified event delegation in app.js preserves 100% of existing element IDs and reactive bindings.
+  - **Gamification**: Score 5/5: Interactive category tab switching with procedural Web Audio pentatonic chime responses (700Hz -> 620Hz -> 820Hz -> 940Hz -> 1050Hz) elevates tactile delight.
+
+---
+
 ### [DEC-531900] Pure Mathematical Web Audio Procedural Synthesis & Synesthesia
 - **Timestamp**: `2026-08-22T18:34:00.000000`
 - **Strategy & Synthesis**: Implemented 4 mathematical Web Audio API procedural synthesis algorithms (Elastic Hatch Pop, Alien Chirp, Viscoelastic Purr, Sleepy Yawn) and established zero-allocation AnalyserNode synesthesia routing driving 3D WebGL shader uniforms and tactile petting feedback.

@@ -537,6 +537,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 6b. Categorical Settings Navigation Tab Switcher
+  const catTabs = document.querySelectorAll('.settings-cat-tab');
+  const catPanels = document.querySelectorAll('.settings-category-panel');
+
+  catTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const selectedCat = tab.getAttribute('data-cat');
+      catTabs.forEach(t => t.classList.toggle('active', t === tab));
+
+      catPanels.forEach(panel => {
+        const panelCat = panel.getAttribute('data-category');
+        if (selectedCat === 'all' || selectedCat === panelCat) {
+          panel.classList.remove('hidden');
+          panel.style.animation = 'none';
+          void panel.offsetWidth; // Trigger reflow
+          panel.style.animation = 'fadeIn 0.2s ease-out';
+        } else {
+          panel.classList.add('hidden');
+        }
+      });
+
+      if (synthEngine && typeof synthEngine.playChimeSound === 'function') {
+        synthEngine.playChimeSound(selectedCat === 'all' ? 700 : selectedCat === 'profile' ? 620 : selectedCat === 'audio' ? 820 : selectedCat === 'performance' ? 940 : 1050);
+      }
+    });
+  });
+
   if (updateNowBtn) {
     updateNowBtn.addEventListener('click', () => AppUpdater.performFullUpdate());
   }

@@ -1,10 +1,10 @@
 {
-  "version": "2.3.4",
-  "build": 72,
+  "version": "2.3.5",
+  "build": 73,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V6.4 — Pure Mathematical Web Audio Procedural Synthesis & Synesthesia",
+  "description": "Space Capsule V6.5 — Categorical Settings Navigation & Structured Panels",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.4: Integrated 4 mathematical Web Audio API procedural vocalization algorithms (Elastic Hatch Pop, Alien Chirp, Viscoelastic Purr, Sleepy Yawn) and synesthesia AnalyserNode routing in synth.js & synth-v5.js."
+  "changelog": "V9.5: Categorically arranged settings modal into 4 structured sections (Profile & Identity, Audio & Vocals, Performance & ART, System & Updates) with luxury glassmorphic category tabs."
 }
 

@@ -122,6 +122,7 @@ Commands:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-541900]** Categorical Settings Navigation & Structured Panels
 - **[DEC-531900]** Pure Mathematical Web Audio Procedural Synthesis & Synesthesia
 - **[DEC-655841]** Antigravity Flat-Directory Architecture Refactoring
 - **[DEC-711920]** Master Vector SVG & Pure Geometry UI Refactoring
