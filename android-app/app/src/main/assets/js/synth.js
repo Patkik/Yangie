@@ -1624,6 +1624,11 @@ export class CosmicSynthEngine {
         if (this.windSource) { this.windSource.stop(); this.windSource.disconnect(); }
         if (this.windLfo) { this.windLfo.stop(); this.windLfo.disconnect(); }
       } catch (e) {
+        // Safe disposal
+      }
+    }, fadeDuration * 1000);
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // 3.5. Minigame Procedural Audio Suite & Non-Blocking Bandpass Synthesizers
   // ─────────────────────────────────────────────────────────────────────────────
