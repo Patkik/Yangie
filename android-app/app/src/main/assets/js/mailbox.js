@@ -115,6 +115,7 @@ export class StarlightMessenger {
     if (!this.overlay) return;
 
     this.messages = [];
+    this.unreadCount = 0;
     this.isRecording = false;
     this.recordStartTime = 0;
     this.localScreenStream = null;
@@ -123,14 +124,14 @@ export class StarlightMessenger {
     this._isCamOff    = false;
     this._isSharing   = false;
 
-    this.syncPersonaProfile();
+    this.syncPersonaProfile(false);
     this.init();
 
-    KiroState.on('persona:change', () => this.syncPersonaProfile());
-    KiroState.on('change:persona', () => this.syncPersonaProfile());
+    KiroState.on('persona:change', () => this.syncPersonaProfile(true));
+    KiroState.on('change:persona', () => this.syncPersonaProfile(true));
   }
 
-  syncPersonaProfile() {
+  syncPersonaProfile(reRender = false) {
     const rawPersona = KiroState.get('persona') || 'pat';
     this.currentPersona = (rawPersona === 'yang' || rawPersona === 'yangiee') ? 'yang' : 'pat';
     this.localUser      = this.currentPersona === 'pat' ? 'patrick' : 'yangiee';
@@ -140,13 +141,17 @@ export class StarlightMessenger {
     this.currentSender  = this.localUser;
 
     this.updateProfileUI();
+    if (reRender) {
+      this.renderMessagesFeed();
+    }
   }
 
   init() {
     this.render();
     this.bindEvents();
     this._initCallEngine();
-    this.loadMockFeed();
+    this.loadSavedMessagesOrMock();
+    this.updateUnreadBadge();
   }
 
   render() {
@@ -310,7 +315,7 @@ export class StarlightMessenger {
     this.overlay.querySelectorAll('.emoji-tap-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const emoji = btn.getAttribute('data-emoji');
-        this.addMessageNode(this.localUser, emoji, 'text');
+        this.addMessageNode(this.localUser, emoji, 'text', { notify: false, save: true });
         synthEngine.playChimeSound(880);
       });
     });
@@ -321,7 +326,7 @@ export class StarlightMessenger {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (ev) => this.addMessageNode(this.localUser, ev.target.result, 'image');
+        reader.onload = (ev) => this.addMessageNode(this.localUser, ev.target.result, 'image', { notify: false, save: true });
         reader.readAsDataURL(file);
       });
     }
@@ -342,7 +347,7 @@ export class StarlightMessenger {
         voiceBtn.style.background = 'rgba(255,255,255,0.06)';
         const audioUrl = await synthEngine.stopRecordingVoice();
         const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
-        if (audioUrl && duration >= 1) this.addMessageNode(this.localUser, audioUrl, 'audio');
+        if (audioUrl && duration >= 1) this.addMessageNode(this.localUser, audioUrl, 'audio', { notify: false, save: true });
       };
       voiceBtn.addEventListener('mousedown',  startVoice);
       voiceBtn.addEventListener('mouseup',    stopVoice);
@@ -375,7 +380,7 @@ export class StarlightMessenger {
       onRemoteStream: (stream) => this._onRemoteStream(stream),
       onError: (msg, err) => {
         console.error('[Messenger] Call error:', msg, err);
-        this.addMessageNode(this.localUser, `Call error: ${msg}`, 'text');
+        this.addMessageNode(this.localUser, `Call error: ${msg}`, 'text', { notify: false, save: true });
       },
     });
   }
@@ -388,7 +393,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.startCall({ video: true, audio: true });
-    this.addMessageNode(this.localUser, `Calling ${this.partnerName}…`, 'text');
+    this.addMessageNode(this.localUser, `Calling ${this.partnerName}…`, 'text', { notify: false, save: true });
     synthEngine.playChimeSound(660);
   }
 
@@ -400,7 +405,7 @@ export class StarlightMessenger {
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
     await kiroCallEngine.answerCall({ video: true, audio: true });
-    this.addMessageNode(this.localUser, `Answering call…`, 'text');
+    this.addMessageNode(this.localUser, `Answering call…`, 'text', { notify: false, save: true });
     synthEngine.playChimeSound(770);
   }
 
@@ -414,7 +419,7 @@ export class StarlightMessenger {
     const panel = this.overlay.querySelector('#call-session-panel');
     if (panel) setTimeout(() => { panel.style.display = 'none'; }, 1200);
 
-    this.addMessageNode(this.localUser, 'Call ended.', 'text');
+    this.addMessageNode(this.localUser, 'Call ended.', 'text', { notify: false, save: true });
     synthEngine.playChimeSound(330);
   }
 
@@ -442,14 +447,14 @@ export class StarlightMessenger {
       this._isSharing = false;
       const btn = this.overlay.querySelector('#call-btn-screen');
       if (btn) { btn.innerHTML = SVGS.screenShare; btn.classList.remove('active-red'); }
-      this.addMessageNode(this.localUser, 'Screen sharing stopped.', 'text');
+      this.addMessageNode(this.localUser, 'Screen sharing stopped.', 'text', { notify: false, save: true });
     } else {
       const stream = await kiroCallEngine.startScreenShare();
       if (stream) {
         this._isSharing = true;
         const btn = this.overlay.querySelector('#call-btn-screen');
         if (btn) { btn.innerHTML = SVGS.screenShare; btn.classList.add('active-red'); }
-        this.addMessageNode(this.localUser, 'Started screen broadcast.', 'text');
+        this.addMessageNode(this.localUser, 'Started screen broadcast.', 'text', { notify: false, save: true });
       }
     }
   }
@@ -498,36 +503,104 @@ export class StarlightMessenger {
     }
   }
 
+  isOpen() {
+    return Boolean(this.overlay && this.overlay.classList.contains('open'));
+  }
+
   open() {
-    this.syncPersonaProfile();
+    this.syncPersonaProfile(true);
     this.overlay.classList.add('open');
+    this.unreadCount = 0;
+    this.updateUnreadBadge();
+    this.scrollToBottom();
   }
 
   close() {
     this.overlay.classList.remove('open');
   }
 
-  send() {
-    const input = this.overlay.querySelector('#mailbox-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
-
-    this.addMessageNode(this.localUser, text, 'text');
-    input.value = '';
+  updateUnreadBadge() {
+    const dot = document.getElementById('mailbox-unread-dot');
+    if (dot) {
+      if (this.unreadCount > 0) {
+        dot.textContent = String(this.unreadCount);
+        dot.style.display = 'flex';
+      } else {
+        dot.style.display = 'none';
+      }
+    }
   }
 
-  addMessageNode(sender, content, type = 'text') {
+  loadSavedMessagesOrMock() {
+    try {
+      const raw = localStorage.getItem('starlight_messages');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.messages = parsed;
+          this.renderMessagesFeed();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('[Messenger] Failed to load stored messages, fallback to default mock feed:', e);
+    }
+
+    // Default seed messages for initial clean state (NEVER triggers push notification)
+    this.messages = [
+      {
+        sender: 'patrick',
+        content: "Did you see Kiro floating across the nebula? He looks so happy today.",
+        type: 'text',
+        time: '10:00 AM'
+      },
+      {
+        sender: 'yangiee',
+        content: "I fed him a star treat earlier and his sparkles went into high gear!",
+        type: 'text',
+        time: '10:02 AM'
+      }
+    ];
+    this.renderMessagesFeed();
+  }
+
+  saveMessages() {
+    try {
+      if (this.messages.length > 100) {
+        this.messages = this.messages.slice(-100);
+      }
+      localStorage.setItem('starlight_messages', JSON.stringify(this.messages));
+    } catch (e) {
+      console.warn('[Messenger] Failed to save messages to localStorage:', e);
+    }
+  }
+
+  renderMessagesFeed() {
     const feed = this.overlay.querySelector('#mailbox-feed');
     if (!feed) return;
+    feed.innerHTML = '';
+    for (const msg of this.messages) {
+      this._createMessageElement(msg.sender, msg.content, msg.type || 'text', msg.time);
+    }
+    this.scrollToBottom();
+  }
+
+  _createMessageElement(sender, content, type = 'text', time = null) {
+    const feed = this.overlay.querySelector('#mailbox-feed');
+    if (!feed) return null;
 
     const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
     const isOutgoing = (normSender === this.localUser);
-    const now = new Date();
-    const h12 = now.getHours() % 12 || 12;
-    const mStr = String(now.getMinutes()).padStart(2, '0');
-    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-    const time = `${h12}:${mStr} ${ampm}`;
+    
+    let displayTime = time;
+    if (!displayTime) {
+      const now = new Date();
+      const h12 = now.getHours() % 12 || 12;
+      const mStr = String(now.getMinutes()).padStart(2, '0');
+      const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+      displayTime = `${h12}:${mStr} ${ampm}`;
+    }
+
     const row = document.createElement('div');
     row.className = `message-row ${isOutgoing ? 'outgoing' : 'incoming'} ${normSender}`;
 
@@ -552,17 +625,68 @@ export class StarlightMessenger {
       <div class="avatar-wrapper">${avatar}</div>
       <div class="message-bubble">
         ${contentHTML}
-        <span class="message-time">${time}</span>
+        <span class="message-time">${displayTime}</span>
       </div>
     `;
 
     feed.appendChild(row);
+    return row;
+  }
+
+  send() {
+    const input = this.overlay.querySelector('#mailbox-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    this.addMessageNode(this.localUser, text, 'text', { notify: false, save: true });
+    input.value = '';
+  }
+
+  addMessageNode(sender, content, type = 'text', options = {}) {
+    const { notify = false, time = null, save = true } = options;
+    const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
+    const isOutgoing = (normSender === this.localUser);
+
+    let displayTime = time;
+    if (!displayTime) {
+      const now = new Date();
+      const h12 = now.getHours() % 12 || 12;
+      const mStr = String(now.getMinutes()).padStart(2, '0');
+      const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+      displayTime = `${h12}:${mStr} ${ampm}`;
+    }
+
+    if (save) {
+      this.messages.push({
+        sender: normSender,
+        content,
+        type,
+        time: displayTime
+      });
+      this.saveMessages();
+    }
+
+    this._createMessageElement(normSender, content, type, displayTime);
     this.scrollToBottom();
 
-    if (window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
+    if (!this.isOpen() && !isOutgoing) {
+      this.unreadCount++;
+      this.updateUnreadBadge();
+    }
+
+    // STRICT INVARIANT: Only dispatch Android system notification if:
+    // 1. Explicitly requested via notify flag
+    // 2. Incoming from remote partner (NEVER notify user of their own outgoing messages)
+    // 3. AndroidHost bridge exists
+    if (notify && !isOutgoing && window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
       const senderName = normSender === 'patrick' ? 'Patrick' : 'Yangiee';
       const preview = type === 'text' ? content : `[Sent a ${type}]`;
-      window.AndroidHost.sendNotification(`Note from ${senderName}`, preview);
+      try {
+        window.AndroidHost.sendNotification(`Note from ${senderName}`, preview);
+      } catch (e) {
+        console.warn('[Messenger] AndroidHost notification bridge error:', e);
+      }
     }
   }
 
@@ -572,8 +696,7 @@ export class StarlightMessenger {
   }
 
   loadMockFeed() {
-    this.addMessageNode('patrick', "Did you see Kiro floating across the nebula? He looks so happy today.", 'text');
-    this.addMessageNode('yangiee', "I fed him a star treat earlier and his sparkles went into high gear!", 'text');
+    this.loadSavedMessagesOrMock();
   }
 
   dispose() {

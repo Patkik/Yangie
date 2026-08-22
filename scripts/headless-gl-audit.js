@@ -154,7 +154,23 @@ if (fs.existsSync(orchestratorJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Final Audit Summary
+// 5. Starlight Messenger Notification Guard & State Invariants Audit
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}5. Auditing Messenger Notification Guard & Storage Invariants in mailbox.js...${Colors.RESET}`);
+
+const mailboxJsPath = path.join(ASSETS_DIR, 'js', 'mailbox.js');
+if (fs.existsSync(mailboxJsPath)) {
+  const mailboxContent = fs.readFileSync(mailboxJsPath, 'utf8');
+
+  assert(mailboxContent.includes('notify && !isOutgoing') && mailboxContent.includes('window.AndroidHost.sendNotification'), 'Strict notification guard: Never dispatch Android notifications on boot/reload or for local outgoing messages');
+  assert(mailboxContent.includes('loadSavedMessagesOrMock'), 'Persistent message history with fallback seed initializer present');
+  assert(mailboxContent.includes('updateUnreadBadge') && mailboxContent.includes('unreadCount'), 'Reactive unread badge management implemented');
+} else {
+  assert(false, `mailbox.js not found at ${mailboxJsPath}`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

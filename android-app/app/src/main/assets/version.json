@@ -1,5 +1,6 @@
 {
-  "version": "2.0.2",
-  "updatedAt": "2026-08-22T06:10:00+08:00",
-  "releaseNotes": "Release V7.2: Performant Simple Space, Soulful Starlight Eyes & 5 Distinct Living Idle Animations — Replaced heavy shader with buttery-smooth 120 FPS simple space backdrop, brilliant diamond starbursts, sparkling anime starlight eyes with pupil breathing, and 5 distinct living idle animations (happy spring hop & mid-air foot wiggle, curious look & head tilt, dino tail waggle & foot tap, cozy yawn & stretch, and 360 spin hop)."
+  "version": "2.0.3",
+  "updatedAt": "2026-08-22T13:30:00+08:00",
+  "releaseNotes": "Release V7.3: Starlight Messenger Push Notification Guard & Persistent History Architecture — Fixed recurring Android push notifications on update/startup/reload, added localStorage chat persistence, filtered outgoing messages from notifying local device, and implemented reactive unread count badge."
 }
+

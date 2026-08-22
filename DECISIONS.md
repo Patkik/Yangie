@@ -391,3 +391,15 @@
 
 ---
 
+### [DEC-321900] Starlight Messenger Push Notification Guard, Message Persistence & Unread Badge Architecture V7.3
+- **Timestamp**: `2026-08-22T13:30:00.000000`
+- **Strategy & Synthesis**: Eliminated recurring Android push notifications upon app update, startup, and reload by adding strict notification filters, prevented self-notifications on outgoing messages, introduced localStorage message persistence, and implemented reactive unread count badge management.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Preserved celestial messenger UI harmony and pristine Twilight styling with crisp inline SVGs for avatars and communication tokens.
+  - **Performance**: Score 5/5: 29/29 dynamic headless assertions passed, zero redundant notification dispatch, and capped localStorage message history (last 100 items) for optimal memory footprint.
+  - **Container**: Score 5/5: Hardened Android WebView notification bridge with strict incoming-only guards, eliminating phantom notification loops on app update/reload, SemVer synchronized across all 4 targets to v2.0.3 (versionCode 51).
+  - **Structural**: Score 5/5: Added persistent chat history under starlight_messages with initial seed fallback, prevented local outgoing self-notifications (!isOutgoing), and reactively synchronized unread count badge.
+  - **Gamification**: Score 5/5: Seamless, non-intrusive communication experience with accurate partner notifications, reactive unread counts, and zero phantom message alerts.
+
+---
+

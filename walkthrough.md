@@ -1,40 +1,43 @@
-# 🌌 Kiro's Cosmic Haven — Space Capsule V6.5 Walkthrough & Remediation Blueprint Audit
+# 🌌 Kiro's Cosmic Haven — Starlight Messenger Push Guard & History Architecture (V7.3)
 
 ## 1. Executive Summary
-- **Release Version**: `v1.9.6` (Android `versionCode = 44`)
-- **Scope**: Integration of the **Remediation Blueprint & Headless GL Audit Suite V5.0** ([`remediation-blueprint-v5.md`](file:///./remediation-blueprint-v5.md)), implementing dynamic headless runtime verification ([`scripts/headless-gl-audit.js`](file:///./scripts/headless-gl-audit.js)), responsive viewport bounding checks across 16:9, 21:9, and 4:3 viewports, Web Audio graph safety bounds, and integrating Test 8 into [`kiro-agent-harness.py`](file:///./android-app/app/src/main/assets/kiro-agent-harness.py).
+- **Release Version**: `v2.0.3` (Android `versionCode = 51`)
+- **Scope**: Resolved the recurring Android notification issue upon app update, startup, and reload. Implemented strict notification guards, persistent chat history in `localStorage`, self-notification filtering for local messages, and reactive unread badge management.
 
 ---
 
-## 2. 5 Core Agentic Gaps Remediation Status
+## 2. Root Cause Analysis & Architecture Fix
 
-| Gap | Status | Implementation Details |
+| Issue | Root Cause | Resolution |
 |---|---|---|
-| **1. Planning Mode Block vs Vibe-Coding** | ✅ Resolved | Continuous Unblocked Development Protocol V4.7 with async drift guardrail |
-| **2. Checkpoint Truncation & State Amnesia** | ✅ Resolved | Serialized memory (`agent-decisions-log.json`, `DECISIONS.md`) synced to rules |
-| **3. Static AST Verification Ceiling** | ✅ Resolved | Dynamic Headless GL Audit (`scripts/headless-gl-audit.js`) running 20/20 checks |
-| **4. Dual Workspace Drift** | ✅ Resolved | Submodule Skill Sync (`python kiro-agent-harness.py --sync-skills`) |
-| **5. Gradle 1-Minute Compile Latency** | ✅ Resolved | Dual Compilation Split: sub-second `--check` for web assets, Gradle at Git gate |
+| **Phantom Push on Update/Reload** | `init()` executed `loadMockFeed()`, which called `addMessageNode()`. Inside `addMessageNode()`, `window.AndroidHost.sendNotification()` was invoked unconditionally on every DOM node addition. | Wrapped notification dispatch in a strict guard: `if (notify && !isOutgoing && window.AndroidHost?.sendNotification)`. Initial feed loading passes `notify: false`. |
+| **Self-Notification on Outgoing Messages** | When typing text, sending emojis, pictures, or voice notes, `addMessageNode()` dispatched notifications back to the sender's own device. | Enforced `!isOutgoing` check so only incoming messages from the partner can trigger notifications. |
+| **Chat Loss on App Reload** | Messages were only appended to the DOM and reset to mock messages on every restart/update. | Added persistent `localStorage` storage under `'starlight_messages'` (capped at 100 entries for memory efficiency) with default initial seed fallback. |
+| **Hardcoded Unread Badge** | `#mailbox-unread-dot` had a static `"1"` in `index.html`. | Set initial badge to `style="display: none;"` and dynamically manage unread counts in `mailbox.js` on incoming partner messages when mailbox is closed. |
 
 ---
 
-## 3. Dynamic Headless GL & Audio Audit (`scripts/headless-gl-audit.js`)
+## 3. Starlight Messenger Implementation Overview ([`mailbox.js`](file:///android-app/app/src/main/assets/js/mailbox.js))
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│             DYNAMIC HEADLESS WEBGL & WEBAUDIO RUNNER (V5.0)            │
-├────────────────────────────────────────────────────────────────────────┤
-│ • WebGL Geometry & Intrinsics: Yc=1.7m, Zc=6.2m, fx=3024               │
-│ • Volumetric Nebula Shader: u_time and u_audio cleanly bound           │
-│ • Batched Particle Systems: Sub-50 draw calls (THREE.Points)           │
-│ • Web Audio Synthesis: 52Hz purr, 28Hz tremolo, 240Hz lowpass filter   │
-│ • Gain Envelope Safety: Linear and exponential ramp clamping           │
-│ • Multi-Viewport Bounding Analysis:                                    │
-│   - 16:9 Mobile: 78.1% unobstructed WebGL space (>= 70%)               │
-│   - 21:9 Mobile: 83.3% unobstructed WebGL space (>= 70%)               │
-│   - 4:3 Tablet:  86.3% unobstructed WebGL space (>= 70%)               │
-└────────────────────────────────────────────────────────────────────────┘
-```
+- **Persistent Message Store**:
+  - `loadSavedMessagesOrMock()`: Reads from `localStorage` without triggering notifications.
+  - `saveMessages()`: Saves the latest 100 messages to `localStorage`.
+  - `renderMessagesFeed()`: Re-renders the feed on persona switches without duplicate notifications.
+- **Strict Notification Invariant**:
+  ```javascript
+  if (notify && !isOutgoing && window.AndroidHost && typeof window.AndroidHost.sendNotification === 'function') {
+    const senderName = normSender === 'patrick' ? 'Patrick' : 'Yangiee';
+    const preview = type === 'text' ? content : `[Sent a ${type}]`;
+    try {
+      window.AndroidHost.sendNotification(`Note from ${senderName}`, preview);
+    } catch (e) {
+      console.warn('[Messenger] AndroidHost notification bridge error:', e);
+    }
+  }
+  ```
+- **Reactive Unread Badge**:
+  - Incremented only on incoming messages when the mailbox overlay is closed.
+  - Automatically reset to 0 and hidden when the user opens the mailbox.
 
 ---
 
@@ -42,11 +45,9 @@
 
 | Test / Gate | Command | Result |
 |---|---|---|
-| **Dynamic Headless GL & Audio Audit** | `node scripts/headless-gl-audit.js` | ✅ **20/20 Assertions Passed (Exit 0)** |
-| **Input Analysis Engine** | `python kiro-agent-harness.py --eval-input "test"` | ✅ **Passed (Exit 0)** |
-| **Submodule Skill Sync** | `python kiro-agent-harness.py --sync-skills` | ✅ **35 Skills Synced (40 Active)** |
+| **Dynamic Headless Audit** | `node scripts/headless-gl-audit.js` | ✅ **29/29 Assertions Passed (Exit 0)** |
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Passed with 8/8 Tests Green** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL** |
-| **Synchronized SemVer** | `v1.9.6` (Android `versionCode = 44`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-251900 synced across rules & `DECISIONS.md` |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 1m 34s** |
+| **Synchronized SemVer** | `v2.0.3` (Android `versionCode = 51`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-321900 synced across rules & `DECISIONS.md` |
