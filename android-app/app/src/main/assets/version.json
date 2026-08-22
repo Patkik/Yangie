@@ -1,6 +1,6 @@
 {
-  "version": "2.0.7",
-  "updatedAt": "2026-08-22T14:35:00+08:00",
-  "releaseNotes": "Release V7.7: Anime Realistic NPR Shading Architecture — Implemented high-contrast stepped Lambertian Cel-shading with glowing Fresnel atmosphere scattering, 3-layer watercolor parallax nebula with chromatic splitting, and procedural cloud bands across all celestial systems."
+  "version": "2.0.8",
+  "updatedAt": "2026-08-22T14:42:00+08:00",
+  "releaseNotes": "Release V7.8: Procedural Anime Inverted-Hull Outlines & Hand-Painted Character Shaders — Attached vertex-extruded inverted-hull screen-space contours and fBm watercolor grain cel-shading to Kiro's body and all orbiting planetary bodies."
 }
 

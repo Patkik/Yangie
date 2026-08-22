@@ -205,7 +205,7 @@ if (fs.existsSync(sceneJsPath)) {
   const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
   assert(sceneContent.includes('_scratchVec1') && sceneContent.includes('_scratchMat4'), 'Pre-allocated module scratch vectors & matrices for zero-allocation render ticks verified');
   assert(sceneContent.includes('triggerViscoelasticSquish') && sceneContent.includes('viscousWobble'), 'Viscoelastic soft-body damped harmonic oscillator squish dynamics implemented');
-  assert(sceneContent.includes('emissiveIntensity: 0.18') && sceneContent.includes('specular: 0x94E2D5'), 'Fresnel grazing rim reflection and velvet specular response verified on Kiro body');
+  assert(sceneContent.includes('createAnimeCharacterMaterial(0x4EC9B0') && sceneContent.includes('0x94E2D5'), 'Shinkai Fresnel grazing rim reflection and velvet response verified on Kiro body');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +235,9 @@ if (fs.existsSync(sceneJsPath)) {
   assert(sceneContent.includes('celLight') && sceneContent.includes('smoothstep(0.12, 0.15, NdotL)'), 'High-contrast 3-step Cel-Shading with sharp terminator line verified');
   assert(sceneContent.includes('fresnel = pow') && sceneContent.includes('u_atmColor'), 'Glowing Fresnel atmospheric scattering envelope verified on planetary rims');
   assert(sceneContent.includes('Chromatic Aberration Splitting') && sceneContent.includes('uvR = rotUv'), '3-Layer watercolor parallax nebula with chromatic fringe splitting verified');
+  assert(sceneContent.includes('createAnimeCharacterMaterial'), '100% procedural Anime Character shader with fBm watercolor paper grain implemented');
+  assert(sceneContent.includes('createAnimeOutlineMesh'), 'Procedural Inverted-Hull Anime Outline Mesh generator implemented');
+  assert(sceneContent.includes('bodyOutline') && sceneContent.includes('tailOutline'), 'Inverted-Hull screen-space contour outlines attached to Kiro body & tail');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

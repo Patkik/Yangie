@@ -1,41 +1,31 @@
-# 🌌 Kiro's Cosmic Haven — Anime Realistic Shaders & Cel-Shaded Celestial Systems (V7.7)
+# 🌌 Kiro's Cosmic Haven — Anime Inverted-Hull Outlines & Character Shaders (V7.8)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.0.7` (Android `versionCode = 55`)
-- **Scope**: Implemented a painterly "Anime Realistic" Non-Photorealistic Rendering (NPR) visual register for celestial systems in [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js). Combines 3-step Lambertian cel-shading with sharp terminators, glowing Fresnel atmospheric scattering rims, procedural fBm gaseous cloud bands, and a 3-layer watercolor parallax nebula with vortex swirling and chromatic fringe splitting.
-- **Zero Asset Dependency**: 100% procedural GLSL shaders and vector geometries with zero external image textures or audio files.
+- **Release Version**: `v2.0.8` (Android `versionCode = 56`)
+- **Scope**: Deployed a complete hand-painted anime NPR visual pipeline to Kiro's 3D companion dinosaur and all orbiting planetary bodies in [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js). Implemented vertex-extruded Inverted-Hull screen-space outlines, toon-ramp cel-shading with saturated transitions, Fractional Brownian Motion (fBm) watercolor paper grain, and Shinkai Fresnel backlighting rim glows.
+- **Zero Asset Dependency**: 100% mathematical GLSL shaders and procedural geometries with zero external PNG or audio files.
 
 ---
 
 ## 2. Mathematical & Procedural Shader Architecture
 
-### 2.1 Stepped Lambertian Cel-Shading & Fresnel Atmosphere ([`scene.js`](file:///android-app/app/src/main/assets/js/scene.js))
-- **3-Step Lambertian Light Curve**:
-  $$\text{CelLight} = \text{smoothstep}(0.12, 0.15, N \cdot L) \cdot 0.4 + \text{smoothstep}(0.48, 0.50, N \cdot L) \cdot 0.6$$
-- **Fresnel Atmosphere Envelope**:
-  $$\text{Fresnel} = (1.0 - \max(0.0, N \cdot V))^{3.8}$$
-- **Procedural Gaseous Bands**:
-  $$\text{WaveOffset} = \sin(v_{\text{uv}}.y \cdot \text{density} + t \cdot 0.4) \cdot 0.05$$
-  $$\text{BandNoise} = \sin((v_{\text{uv}}.x + \text{WaveOffset}) \cdot 16.0) \cdot 0.5 + 0.5$$
+### 2.1 Inverted-Hull Screen-Space Outlines ([`scene.js`](file:///android-app/app/src/main/assets/js/scene.js))
+- **Vertex Extrusion along Normals**:
+  $$\mathbf{p}_{\text{outline}} = \mathbf{p} + \mathbf{n} \cdot d_{\text{thickness}}$$
+  $$\mathbf{p}_{\text{clip}} = \mathbf{P} \cdot \mathbf{V} \cdot \mathbf{M} \cdot \mathbf{p}_{\text{outline}}$$
+- **Back-Face Rendering (`side: THREE.BackSide`)**: Front faces of original mesh draw over the expanded back faces, creating a clean screen-space contour in Velvet Midnight Navy (`#11111b`).
+- **Attached Nodes**:
+  - Kiro's Chubby Dino Body, Cream Belly Patch, Dino Tail, and Base Feet.
+  - Orbiting Keplerian Planets: Gliese 667, Kepler 186, and Trappist 1.
 
-### 2.2 3-Layer Parallax Nebula with Chromatic Aberration Splitting
-- **Vortex Rotation Field**:
-  $$\theta = \|\mathbf{uv}\| \cdot 0.7 - t \cdot 0.5$$
-  $$\mathbf{uv}_{\text{rot}} = \mathbf{R}(\theta) \cdot \mathbf{uv}$$
-- **Chromatic Aberration Splitting**:
-  - $\mathbf{uv}_R = \mathbf{uv}_{\text{rot}} + (0.012, 0.0)$ (Red channel fringe)
-  - $\mathbf{uv}_G = \mathbf{uv}_{\text{rot}}$ (Base channel)
-  - $\mathbf{uv}_B = \mathbf{uv}_{\text{rot}} - (0.012, 0.0)$ (Blue channel fringe)
-- **Twilight Color Blend**:
-  - Background: Velvety Midnight Navy (`#11111b`)
-  - Midground: Mint Teal (`#4ec9b0`)
-  - Foreground: Pastel Pink (`#f5c2e7`)
-  - Highlights: Golden Glow (`#f9e2af`) modulated by ambient Web Audio synth reactivity.
-
-### 2.3 Anime Starfield & Twinkling Bokeh
-- Distant stars animated with asynchronous LFO sine-phase twinkling:
-  $$\text{Twinkle}(t) = 0.55 + 0.45 \cdot \sin(t \cdot 2.2 + \phi) \cdot \cos(t \cdot 1.1 + 0.5\phi)$$
-- 4-point Anime Cross Lens Flares for brightest stars that react dynamically to procedural audio synth chords.
+### 2.2 Toon-Ramp Cel-Shading & Watercolor Grain
+- **Toon-Ramp Quantization**:
+  $$\text{CelTerminator} = \text{smoothstep}(0.15, 0.18, N \cdot L) \cdot 0.45 + \text{smoothstep}(0.50, 0.52, N \cdot L) \cdot 0.55$$
+- **Fractional Brownian Motion (fBm) Paper Grain**:
+  $$\text{Grain} = \left(\sum_{i=0}^{3} 0.5^i \cdot \text{Noise}(2^i \cdot \mathbf{uv} \cdot 32.0) - 0.5\right) \cdot 0.06$$
+- **Shinkai Fresnel Rim Glow**:
+  $$R_{\text{fresnel}} = (1.0 - \max(0.0, \mathbf{n} \cdot \mathbf{v}))^{\text{power}}$$
+  Flares into Mint Teal (`#94E2D5`), Warm Gold (`#F9E2AF`), or Rose (`#FFB6C1`) at grazing viewing angles.
 
 ---
 
@@ -44,17 +34,18 @@
 | Test / Gate | Command | Result |
 |---|---|---|
 | **Multi-Agent Orchestrator Test** | `node scripts/test-orchestrator.js` | ✅ **7/7 SOP Checks Passed** |
-| **Dynamic Headless WebGL Audit** | `node scripts/headless-gl-audit.js` | ✅ **48/48 Assertions Passed (Exit 0)** |
+| **Dynamic Headless WebGL Audit** | `node scripts/headless-gl-audit.js` | ✅ **51/51 Assertions Passed (Exit 0)** |
 | **Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **Passed with 8/8 Tests Green** |
 | **Android Unit & AndroidTest Compilation** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Exit Code 0** |
-| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 30s** |
-| **Synchronized SemVer** | `v2.0.7` (Android `versionCode = 55`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
-| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-361900 synced across rules & `DECISIONS.md` |
+| **Android APK Debug Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 22s** |
+| **Synchronized SemVer** | `v2.0.8` (Android `versionCode = 56`) | ✅ `version.json`, `index.html`, `state.js`, `build.gradle.kts` |
+| **Continuous Learning Rule Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ DEC-371900 synced across rules & `DECISIONS.md` |
 
 ---
 
 ## 4. Git Publication & Release Audit
-- **Commit**: `feat(graphics): anime realistic cel-shaded celestial shaders & bokeh starfield (v2.0.7)`
-- **Tag**: `v2.0.7`
+- **Commit**: `feat(graphics): anime inverted-hull outlines & hand-painted character shaders (v2.0.8)`
+- **Tag**: `v2.0.8`
 - **Branch**: `origin/main`
+
 

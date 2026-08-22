@@ -152,6 +152,124 @@ function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0)
   });
 }
 
+// Helper: 100% Procedural Anime Character Cel-Shading & Watercolor Grain Generator
+function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, fresnelPower = 3.5) {
+  const vertexShader = `
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+      vViewDir = normalize(-mvPos.xyz);
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float u_time;
+    uniform vec3 u_lightDir;
+    uniform vec3 u_baseColor;
+    uniform vec3 u_shadowColor;
+    uniform vec3 u_rimColor;
+    uniform float u_fresnelPower;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    varying vec2 vUv;
+
+    // Fractional Brownian Motion (fBm) watercolor paper grain
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      float a = hash(i);
+      float b = hash(i + vec2(1.0, 0.0));
+      float c = hash(i + vec2(0.0, 1.0));
+      float d = hash(i + vec2(1.0, 1.0));
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+
+    float fbm(vec2 p) {
+      float v = 0.0;
+      float a = 0.5;
+      for (int i = 0; i < 4; i++) {
+        v += a * noise(p);
+        p *= 2.0;
+        a *= 0.5;
+      }
+      return v;
+    }
+
+    void main() {
+      // 1. High-Contrast Toon-Ramp Mapping (Cel-Shading)
+      float NdotL = dot(vNormal, u_lightDir);
+      float celTerminator = smoothstep(0.15, 0.18, NdotL) * 0.45 + smoothstep(0.50, 0.52, NdotL) * 0.55;
+
+      // 2. Subtle Watercolor Paper Grain (fBm)
+      float grain = (fbm(vUv * 32.0 + vec2(u_time * 0.02, 0.0)) - 0.5) * 0.06;
+
+      // 3. Shinkai Fresnel Backlight Rim Glow
+      float fresnel = pow(1.0 - max(0.0, dot(vNormal, vViewDir)), u_fresnelPower);
+
+      // 4. Color Composition
+      vec3 surfaceColor = mix(u_shadowColor, u_baseColor, celTerminator) + grain;
+      vec3 finalColor = mix(surfaceColor, u_rimColor, fresnel * 0.85);
+
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `;
+
+  return new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      u_time: { value: 0.0 },
+      u_lightDir: { value: new THREE.Vector3(0.8, 1.2, 0.7).normalize() },
+      u_baseColor: { value: new THREE.Color(baseHex) },
+      u_shadowColor: { value: new THREE.Color(shadowHex) },
+      u_rimColor: { value: new THREE.Color(rimHex) },
+      u_fresnelPower: { value: fresnelPower }
+    }
+  });
+}
+
+// Helper: 100% Procedural Inverted-Hull Anime Outline Mesh Generator
+function createAnimeOutlineMesh(geometry, thickness = 0.022, outlineColor = 0x11111B) {
+  const outlineVertexShader = `
+    uniform float uOutlineThickness;
+    void main() {
+      vec3 transformed = position + normal * uOutlineThickness;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+    }
+  `;
+
+  const outlineFragmentShader = `
+    uniform vec3 uOutlineColor;
+    void main() {
+      gl_FragColor = vec4(uOutlineColor, 1.0);
+    }
+  `;
+
+  const outlineMaterial = new THREE.ShaderMaterial({
+    vertexShader: outlineVertexShader,
+    fragmentShader: outlineFragmentShader,
+    uniforms: {
+      uOutlineThickness: { value: thickness },
+      uOutlineColor: { value: new THREE.Color(outlineColor) }
+    },
+    side: THREE.BackSide,
+    depthWrite: true
+  });
+
+  return new THREE.Mesh(geometry, outlineMaterial);
+}
+
 export class KiroSceneManager {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
@@ -712,13 +830,16 @@ export class KiroSceneManager {
   buildRoamingPlanets() {
     this.roamingPlanets = [];
 
-    // Planet 1: Mint/Teal Ice World (Gliese 667) — Anime Cel & Atmosphere Shader
+    // Planet 1: Mint/Teal Ice World (Gliese 667) — Anime Cel & Atmosphere Shader + Inverted Hull Outline
     const geo1 = new THREE.SphereGeometry(0.52, 28, 28);
     const mat1 = createAnimePlanetMaterial(0x4EC9B0, 0x11111B, 0x94E2D5, 14.0);
     const p1 = new THREE.Mesh(geo1, mat1);
+    const p1Outline = createAnimeOutlineMesh(geo1, 0.024, 0x11111B);
+    p1.add(p1Outline);
     p1.userData = { id: 'gliese', semiMajor: 6.8, semiMinor: 4.5, tiltAngle: 0.22, baseDepth: -11.0, speed: 0.045, baseAngle: 0 };
     this.registerDisposable(geo1);
     this.registerDisposable(mat1);
+    this.registerDisposable(p1Outline.material);
     this.backgroundCelestialGroup.add(p1);
     this.roamingPlanets.push(p1);
 
@@ -727,6 +848,8 @@ export class KiroSceneManager {
     const geo2 = new THREE.SphereGeometry(0.76, 28, 28);
     const mat2 = createAnimePlanetMaterial(0xCBA6F7, 0x11111B, 0xF9E2AF, 10.0);
     const p2Mesh = new THREE.Mesh(geo2, mat2);
+    const p2Outline = createAnimeOutlineMesh(geo2, 0.024, 0x11111B);
+    p2Mesh.add(p2Outline);
     planet2Group.add(p2Mesh);
 
     const ringGeo = new THREE.RingGeometry(1.05, 1.68, 36);
@@ -744,6 +867,7 @@ export class KiroSceneManager {
     planet2Group.userData = { id: 'kepler', semiMajor: 8.2, semiMinor: 5.4, tiltAngle: 0.35, baseDepth: -12.5, speed: 0.028, baseAngle: 2.2 };
     this.registerDisposable(geo2);
     this.registerDisposable(mat2);
+    this.registerDisposable(p2Outline.material);
     this.registerDisposable(ringGeo);
     this.registerDisposable(ringMat);
     this.backgroundCelestialGroup.add(planet2Group);
@@ -753,9 +877,12 @@ export class KiroSceneManager {
     const geo3 = new THREE.SphereGeometry(0.46, 28, 28);
     const mat3 = createAnimePlanetMaterial(0xFFB6C1, 0x11111B, 0xF5C2E7, 18.0);
     const p3 = new THREE.Mesh(geo3, mat3);
+    const p3Outline = createAnimeOutlineMesh(geo3, 0.024, 0x11111B);
+    p3.add(p3Outline);
     p3.userData = { id: 'trappist', semiMajor: 5.6, semiMinor: 3.8, tiltAngle: -0.28, baseDepth: -13.5, speed: 0.065, baseAngle: 4.4 };
     this.registerDisposable(geo3);
     this.registerDisposable(mat3);
+    this.registerDisposable(p3Outline.material);
     this.backgroundCelestialGroup.add(p3);
     this.roamingPlanets.push(p3);
 
@@ -1353,49 +1480,45 @@ export class KiroSceneManager {
     this.kiroGroup.position.set(0, 0, 0);
     this.scene.add(this.kiroGroup);
 
-    // Soft Matte Plushie Materials (Velvety finish, Fresnel grazing glow, cozy Twilight mint & cream)
-    const mintMat = new THREE.MeshPhongMaterial({
-      color: 0x4EC9B0,
-      emissive: 0x1A4237,
-      emissiveIntensity: 0.18,
-      specular: 0x94E2D5,
-      shininess: 14
-    });
+    // 100% Procedural Anime Plushie Materials (Stepped Cel-Shading, Watercolor Paper Grain & Fresnel Rim Glow)
+    const mintMat = createAnimeCharacterMaterial(0x4EC9B0, 0x1A4237, 0x94E2D5, 3.2);
     this.registerDisposable(mintMat);
 
-    const bellyMat = new THREE.MeshPhongMaterial({
-      color: 0xFFF8EB,
-      emissive: 0x221E18,
-      emissiveIntensity: 0.08,
-      specular: 0x222222,
-      shininess: 4
-    });
+    const bellyMat = createAnimeCharacterMaterial(0xFFF8EB, 0x332A10, 0xF9E2AF, 4.0);
     this.registerDisposable(bellyMat);
 
-    const crestMat = new THREE.MeshPhongMaterial({
-      color: 0xFDE08B,
-      emissive: 0x332A10,
-      emissiveIntensity: 0.12,
-      specular: 0x333322,
-      shininess: 6
-    });
+    const crestMat = createAnimeCharacterMaterial(0xFDE08B, 0x332A10, 0xF9E2AF, 3.5);
     this.registerDisposable(crestMat);
 
-    // 1. Cute Rounded Chubby Spherical Dino Body
+    this.animeCharacterMaterials = [mintMat, bellyMat, crestMat];
+
+    // 1. Cute Rounded Chubby Spherical Dino Body + Inverted-Hull Outline
     const bodyGeo = new THREE.SphereGeometry(0.85, 36, 36);
     this.bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
     this.bodyMesh.scale.set(1.08, 0.98, 1.04);
     this.bodyMesh.position.set(0, 0, 0);
     this.kiroGroup.add(this.bodyMesh);
-    this.registerDisposable(bodyGeo);
 
-    // 2. Large Smooth Creamy Belly Patch (#FFF8EB)
+    this.bodyOutline = createAnimeOutlineMesh(bodyGeo, 0.024, 0x11111B);
+    this.bodyOutline.scale.set(1.08, 0.98, 1.04);
+    this.bodyOutline.position.set(0, 0, 0);
+    this.kiroGroup.add(this.bodyOutline);
+    this.registerDisposable(bodyGeo);
+    this.registerDisposable(this.bodyOutline.material);
+
+    // 2. Large Smooth Creamy Belly Patch (#FFF8EB) + Outline
     const bellyGeo = new THREE.SphereGeometry(0.58, 32, 24);
     this.bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
     this.bellyMesh.scale.set(1.04, 0.90, 0.44);
     this.bellyMesh.position.set(0, -0.16, 0.65);
     this.kiroGroup.add(this.bellyMesh);
+
+    this.bellyOutline = createAnimeOutlineMesh(bellyGeo, 0.020, 0x11111B);
+    this.bellyOutline.scale.set(1.04, 0.90, 0.44);
+    this.bellyOutline.position.set(0, -0.16, 0.65);
+    this.kiroGroup.add(this.bellyOutline);
     this.registerDisposable(bellyGeo);
+    this.registerDisposable(this.bellyOutline.material);
 
     // 3. Banana-Yellow 3-Lobed Scalloped Head Crest (Crown Spines)
     this.headCrests = [];
@@ -1414,13 +1537,19 @@ export class KiroSceneManager {
       this.registerDisposable(spGeo);
     });
 
-    // 4. Cute Chubby Dino Tail & Yellow Spines
+    // 4. Cute Chubby Dino Tail & Yellow Spines + Outline
     const tailGeo = new THREE.ConeGeometry(0.30, 0.72, 20);
     this.tailMesh = new THREE.Mesh(tailGeo, mintMat);
     this.tailMesh.position.set(0, -0.38, -0.80);
     this.tailMesh.rotation.set(-Math.PI / 2.6, 0, 0);
     this.kiroGroup.add(this.tailMesh);
+
+    this.tailOutline = createAnimeOutlineMesh(tailGeo, 0.020, 0x11111B);
+    this.tailOutline.position.set(0, -0.38, -0.80);
+    this.tailOutline.rotation.set(-Math.PI / 2.6, 0, 0);
+    this.kiroGroup.add(this.tailOutline);
     this.registerDisposable(tailGeo);
+    this.registerDisposable(this.tailOutline.material);
 
     const tailPlateGeo = new THREE.SphereGeometry(0.10, 14, 14);
     const tp1 = new THREE.Mesh(tailPlateGeo, crestMat);
@@ -1435,18 +1564,30 @@ export class KiroSceneManager {
     this.tailPlates = [tp1, tp2];
     this.registerDisposable(tailPlateGeo);
 
-    // 5. Two Cute Little Stubby Dinosaur Feet at Base
+    // 5. Two Cute Little Stubby Dinosaur Feet at Base + Outlines
     const footGeo = new THREE.SphereGeometry(0.18, 16, 16);
     this.leftFoot = new THREE.Mesh(footGeo, mintMat);
     this.leftFoot.scale.set(0.95, 0.60, 1.30);
     this.leftFoot.position.set(-0.36, -0.78, 0.30);
     this.kiroGroup.add(this.leftFoot);
 
+    this.leftFootOutline = createAnimeOutlineMesh(footGeo, 0.020, 0x11111B);
+    this.leftFootOutline.scale.set(0.95, 0.60, 1.30);
+    this.leftFootOutline.position.set(-0.36, -0.78, 0.30);
+    this.kiroGroup.add(this.leftFootOutline);
+
     this.rightFoot = new THREE.Mesh(footGeo, mintMat);
     this.rightFoot.scale.set(0.95, 0.60, 1.30);
     this.rightFoot.position.set(0.36, -0.78, 0.30);
     this.kiroGroup.add(this.rightFoot);
+
+    this.rightFootOutline = createAnimeOutlineMesh(footGeo, 0.020, 0x11111B);
+    this.rightFootOutline.scale.set(0.95, 0.60, 1.30);
+    this.rightFootOutline.position.set(0.36, -0.78, 0.30);
+    this.kiroGroup.add(this.rightFootOutline);
     this.registerDisposable(footGeo);
+    this.registerDisposable(this.leftFootOutline.material);
+    this.registerDisposable(this.rightFootOutline.material);
 
     // 6. Soulful Sparkling Anime/Chibi Starlight Eyes
     const eyeGeo = new THREE.SphereGeometry(0.138, 24, 24);
@@ -2679,6 +2820,15 @@ export class KiroSceneManager {
       const isSleeping = KiroState.get('isSleeping');
       const freq = isSleeping ? 0.8 : 2.2;
       const amp = isSleeping ? 0.02 : 0.045;
+
+      // Update Anime Character Materials Uniforms (fBm paper grain & dynamic lighting)
+      if (this.animeCharacterMaterials) {
+        this.animeCharacterMaterials.forEach(mat => {
+          if (mat && mat.uniforms && mat.uniforms.u_time) {
+            mat.uniforms.u_time.value = t;
+          }
+        });
+      }
 
       if (this.kiroGroup && !this.isPetting && !this.isChewing && !this.isPlayingIdle && !this.isTelescopeTransitioning) {
         // Apply Viscoelastic Damped Harmonic Oscillator deformation
