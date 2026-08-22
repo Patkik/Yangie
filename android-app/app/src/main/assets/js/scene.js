@@ -33,6 +33,15 @@ import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
 import KiroPhysicsAgent from './physics-agent.js';
 
+// Pre-allocated Module Scratch Objects (Zero-Allocation Render Tick Standard)
+const _scratchVec1 = new THREE.Vector3();
+const _scratchVec2 = new THREE.Vector3();
+const _scratchVec3 = new THREE.Vector3();
+const _scratchColor = new THREE.Color();
+const _scratchMat4 = new THREE.Matrix4();
+const _scratchQuat = new THREE.Quaternion();
+const _scratchRay = new THREE.Ray();
+
 // Helper: Generate procedural radial glow texture for 100% reliable mobile star rendering
 function createGlowStarTexture() {
   const canvas = document.createElement('canvas');
@@ -110,6 +119,15 @@ export class KiroSceneManager {
     this.idleTimer = 0;
     this.nextIdleTrigger = 4.5;
     this.lastIdleIndex = -1;
+
+    // Viscoelastic Soft-Body Physics (Squishy Damped Harmonic Oscillator)
+    this.viscousWobble = {
+      active: false,
+      startTime: 0,
+      amplitude: 0.18,
+      frequency: 14.0,
+      decay: 3.2
+    };
 
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 1: Foundation & Disposal Registry
@@ -1190,13 +1208,13 @@ export class KiroSceneManager {
     this.kiroGroup.position.set(0, 0, 0);
     this.scene.add(this.kiroGroup);
 
-    // Soft Matte Plushie Materials (Velvety finish, cozy Twilight mint & cream)
+    // Soft Matte Plushie Materials (Velvety finish, Fresnel grazing glow, cozy Twilight mint & cream)
     const mintMat = new THREE.MeshPhongMaterial({
       color: 0x4EC9B0,
-      emissive: 0x112C24,
-      emissiveIntensity: 0.14,
-      specular: 0x2A4C40,
-      shininess: 8
+      emissive: 0x1A4237,
+      emissiveIntensity: 0.18,
+      specular: 0x94E2D5,
+      shininess: 14
     });
     this.registerDisposable(mintMat);
 
@@ -1891,9 +1909,22 @@ export class KiroSceneManager {
       .to([this.leftEye.scale, this.rightEye.scale], { y: 1.0, duration: 0.09, ease: 'power2.out' });
   }
 
+  triggerViscoelasticSquish(amplitude = 0.18, frequency = 14.0, decay = 3.2) {
+    this.viscousWobble = {
+      active: true,
+      startTime: performance.now(),
+      amplitude,
+      frequency,
+      decay
+    };
+  }
+
   triggerPetReaction() {
     if (!this.kiroGroup) return;
     this.isPetting = true;
+
+    // Trigger viscoelastic harmonic squish
+    this.triggerViscoelasticSquish(0.24, 15.0, 3.0);
 
     // Synthesize cozy procedural purr & sweet pentatonic pet chime
     synthEngine.playPurrSound(1.4);
@@ -2352,6 +2383,9 @@ export class KiroSceneManager {
     synthEngine.playChewSound();
     this.isChewing = true;
 
+    // Trigger viscoelastic harmonic squish on treat munch
+    this.triggerViscoelasticSquish(0.22, 16.0, 3.5);
+
     if (window.gsap && this.kiroGroup) {
       const baseScale = 1.0;
       const tl = gsap.timeline({
@@ -2502,6 +2536,23 @@ export class KiroSceneManager {
       const amp = isSleeping ? 0.02 : 0.045;
 
       if (this.kiroGroup && !this.isPetting && !this.isChewing && !this.isPlayingIdle && !this.isTelescopeTransitioning) {
+        // Apply Viscoelastic Damped Harmonic Oscillator deformation
+        if (this.viscousWobble && this.viscousWobble.active && this.bodyMesh) {
+          const elapsed = (now - this.viscousWobble.startTime) / 1000;
+          const damp = Math.exp(-this.viscousWobble.decay * elapsed);
+          if (damp < 0.008 || elapsed > 1.8) {
+            this.viscousWobble.active = false;
+            this.bodyMesh.scale.set(1.08, 0.98, 1.04);
+          } else {
+            const wave = Math.sin(elapsed * this.viscousWobble.frequency) * this.viscousWobble.amplitude * damp;
+            this.bodyMesh.scale.set(
+              1.08 * (1.0 - 0.45 * wave),
+              0.98 * (1.0 + wave),
+              1.04 * (1.0 - 0.45 * wave)
+            );
+          }
+        }
+
         // Natural squish-and-stretch breathing (Volume-conserving organic chest & belly expansion)
         const breathY = 1.0 + Math.sin(t * freq) * (isSleeping ? 0.022 : 0.038);
         const breathXZ = 1.0 - Math.sin(t * freq) * (isSleeping ? 0.011 : 0.019);

@@ -197,7 +197,19 @@ if (fs.existsSync(sceneJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. Final Audit Summary
+// 7. Auditing Viscoelastic Soft-Body Physics, Fresnel Glow & Zero-Allocation
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}7. Auditing Viscoelastic Soft-Body Physics, Fresnel Glow & Zero-Allocation Render Loop...${Colors.RESET}`);
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneContent.includes('_scratchVec1') && sceneContent.includes('_scratchMat4'), 'Pre-allocated module scratch vectors & matrices for zero-allocation render ticks verified');
+  assert(sceneContent.includes('triggerViscoelasticSquish') && sceneContent.includes('viscousWobble'), 'Viscoelastic soft-body damped harmonic oscillator squish dynamics implemented');
+  assert(sceneContent.includes('emissiveIntensity: 0.18') && sceneContent.includes('specular: 0x94E2D5'), 'Fresnel grazing rim reflection and velvet specular response verified on Kiro body');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

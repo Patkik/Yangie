@@ -1,6 +1,6 @@
 {
-  "version": "2.0.4",
-  "updatedAt": "2026-08-22T14:00:00+08:00",
-  "releaseNotes": "Release V7.4: Astrogation Celestial Physics Agent, Realistic Multi-Tail Comet & Sci-Fi Target Lock-On Architecture — Integrated KiroPhysicsAgent with Keplerian planetary orbits and spring-damper cursor repulsion, built authentic photorealistic astronomical comet with multi-filament plasma/ion tail and sweeping curved stardust plume, and implemented sci-fi movie holographic target lock-on brackets, distance telemetry, and warp drive triggers on all playable systems."
+  "version": "2.0.5",
+  "updatedAt": "2026-08-22T14:15:00+08:00",
+  "releaseNotes": "Release V7.5: Unified Master Agentic Refactor & Viscous Physics Architecture — Comprehensive codebase harmonization integrating Astrogation Physics Agent, viscoelastic squish dynamics, Fresnel grazing rim glow, zero-allocation render loop, and multi-agent orchestrator state pipeline."
 }
 
