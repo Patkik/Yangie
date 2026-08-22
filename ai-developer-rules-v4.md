@@ -156,6 +156,7 @@ You must adhere to these rigid engineering implementations for the primary featu
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-581900]** Starlight Telemetry, Weather & Interactive Sky Simulation Station V7.0
 - **[DEC-571900]** Twin Sanctuary Weather, Rain & Umbrella Reminder Radar, Minigame SVG Anti-Distortion & Locked 120 FPS Background Pausing
 - **[DEC-561900]** Real-Time Capsule Diagnostics & Floating Telemetry HUD Overlay
 - **[DEC-551900]** Active User Top Bar Beacon, Pure Vector SVG UI & 3D Perspective Rotation

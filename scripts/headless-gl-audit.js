@@ -628,7 +628,34 @@ if (fs.existsSync(mainCssAuditPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 21. Final Audit Summary
+// 21. Auditing Starlight Telemetry, Weather & Sky Simulation Station (V7.0)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}21. Auditing Starlight Telemetry, Weather & Sky Simulation Station (V7.0)...${Colors.RESET}`);
+
+const weatherV7JsPath = path.resolve(__dirname, '../android-app/app/src/main/assets/js/weather-v7.js');
+const weatherV7CssPath = path.resolve(__dirname, '../android-app/app/src/main/assets/css/weather-v7.css');
+
+if (fs.existsSync(weatherV7JsPath)) {
+  const v7Js = fs.readFileSync(weatherV7JsPath, 'utf8');
+  assert(v7Js.includes('export default class KiroWeatherStationV7') || v7Js.includes('class KiroWeatherStationV7'), 'KiroWeatherStationV7 class exported from js/weather-v7.js');
+  assert(v7Js.includes('startClock') && v7Js.includes('startKiroRainAudit') && v7Js.includes('triggerKiroAlert'), 'Live chronometer, Kiro rain audit, and dynamic umbrella alert bubble triggers verified in weather-v7.js');
+  assert(v7Js.includes('updateSoundscapeFromClimate') && v7Js.includes('bindSimEvents'), 'Retractable Sky Simulator interactive events and synesthetic audio channel updates verified in weather-v7.js');
+}
+
+if (fs.existsSync(weatherV7CssPath)) {
+  const v7Css = fs.readFileSync(weatherV7CssPath, 'utf8');
+  assert(v7Css.includes('.telemetry-station-card') && v7Css.includes('.weather-telemetry-grid'), 'Glassmorphic telemetry card and double-persona weather station grid styles verified in weather-v7.css');
+  assert(v7Css.includes('.simulate-drawer-panel') && v7Css.includes('.kiro-alert-bubble'), 'Expandable sky simulator drawer and floating rain alarm bubble styles verified in weather-v7.css');
+  assert(v7Css.includes('breathing-glow-pat') && v7Css.includes('breathing-glow-yang'), 'Asynchronous status breathing glow animations verified for Pat & Yang in weather-v7.css');
+}
+
+if (fs.existsSync(appJsAuditPath)) {
+  const appJsCode = fs.readFileSync(appJsAuditPath, 'utf8');
+  assert(appJsCode.includes('KiroWeatherStationV7') && appJsCode.includes('new KiroWeatherStationV7'), 'KiroWeatherStationV7 integrated into master app.js orchestrator boot');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 22. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

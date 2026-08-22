@@ -1,0 +1,361 @@
+/**
+ * Starlight Telemetry, Weather & Simulation Station (css/weather-v7.css)
+ * Glassmorphic, highly polished UI dashboard cards for Space Capsule V5.0 / V7.0.
+ * Supports live chronometer ticking, breathing status dots, and retractable sky simulators.
+ */
+
+:root {
+  --station-glass: rgba(30, 30, 46, 0.78);
+  --station-border: rgba(148, 226, 213, 0.18);
+  --pat-accent: #4ec9b0; /* Mint-Teal */
+  --yang-accent: #f5c2e7; /* Pastel-Pink */
+  --gold-glow: #f9e2af; /* Gold-Glow */
+  --neon-emerald: #94e2d5; /* Emerald-Neon */
+  --velvet-midnight: #11111b;
+}
+
+/* 1. Dashboard Card Wrapper */
+.telemetry-station-card {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  border: 1px solid var(--station-border);
+  background: var(--station-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.telemetry-station-card:hover {
+  border-color: rgba(148, 226, 213, 0.35);
+  box-shadow: 0 16px 48px rgba(148, 226, 213, 0.15);
+}
+
+/* 2. Live Chronometer Section */
+.telemetry-clock-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  text-align: center;
+}
+
+.clock-label {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--yang-accent);
+  opacity: 0.9;
+}
+
+.clock-value {
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 1.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+  line-height: 1.1;
+}
+
+.clock-date {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold-glow);
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 10px rgba(249, 226, 175, 0.2);
+}
+
+.weather-separator {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--station-border), transparent);
+}
+
+/* 3. Double Weather Telemetry Grid */
+.weather-telemetry-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.6rem;
+  box-sizing: border-box;
+}
+
+.weather-station-pillar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pat-station {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.yang-station {
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* Connection Breathing Dots */
+.pillar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.yang-station .pillar-header {
+  flex-direction: row-reverse;
+}
+
+.pillar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
+.pat-dot {
+  background-color: var(--pat-accent);
+  color: var(--pat-accent);
+  animation: breathing-glow-pat 2.5s infinite alternate;
+}
+
+.yang-dot {
+  background-color: var(--yang-accent);
+  color: var(--yang-accent);
+  animation: breathing-glow-yang 2.5s infinite alternate;
+}
+
+@keyframes breathing-glow-pat {
+  from { opacity: 0.45; transform: scale(0.9); box-shadow: 0 0 4px var(--pat-accent); }
+  to { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--pat-accent); }
+}
+
+@keyframes breathing-glow-yang {
+  from { opacity: 0.45; transform: scale(0.9); box-shadow: 0 0 4px var(--yang-accent); }
+  to { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--yang-accent); }
+}
+
+.pillar-name {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  opacity: 0.95;
+}
+
+.pillar-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pillar-temp {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pat-station .pillar-temp {
+  color: var(--pat-accent);
+}
+
+.yang-station .pillar-temp {
+  color: var(--yang-accent);
+}
+
+.pillar-cond {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #cdd6f4;
+  opacity: 0.85;
+}
+
+.pillar-divider {
+  width: 1px;
+  height: 38px;
+  background-color: var(--station-border);
+  flex-shrink: 0;
+}
+
+/* 4. Retractable Sky Simulators HUD */
+.simulate-toggle-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.15rem;
+}
+
+.simulate-toggle-btn {
+  background: transparent;
+  border: 1px dashed var(--station-border);
+  border-radius: 12px;
+  padding: 0.35rem 0.85rem;
+  font-family: var(--font-heading, 'Fredoka', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold-glow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.simulate-toggle-btn:hover {
+  background: rgba(249, 226, 175, 0.1);
+  border-color: var(--gold-glow);
+  transform: scale(1.03);
+}
+
+.simulate-drawer-panel {
+  max-height: 0px;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.simulate-drawer-panel.open {
+  max-height: 200px; /* expands slide open */
+}
+
+.simulate-section-header {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #cdd6f4;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.1rem;
+}
+
+.simulate-pills-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.sim-pill {
+  flex: 1;
+  min-width: 65px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--station-border);
+  border-radius: 10px;
+  padding: 0.3rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #cdd6f4;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pat Simulated Weather Accents */
+.pat-pills-col .sim-pill:hover, .pat-pills-col .sim-pill.active {
+  background: rgba(78, 201, 176, 0.15);
+  border-color: var(--pat-accent);
+  color: var(--pat-accent);
+  box-shadow: 0 0 8px rgba(78, 201, 176, 0.25);
+  transform: scale(1.04);
+}
+
+/* Yang Simulated Weather Accents */
+.yang-pills-col .sim-pill:hover, .yang-pills-col .sim-pill.active {
+  background: rgba(245, 194, 231, 0.15);
+  border-color: var(--yang-accent);
+  color: var(--yang-accent);
+  box-shadow: 0 0 8px rgba(245, 194, 231, 0.25);
+  transform: scale(1.04);
+}
+
+/* 5. Kiro Umbrella Reminds Alert Bubble */
+.kiro-alert-bubble {
+  position: absolute;
+  top: 104%; /* Displays cleanly sliding below the station card */
+  left: 3%;
+  width: 94%;
+  background: rgba(24, 24, 37, 0.98);
+  border: 1px solid var(--gold-glow);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
+  border-radius: 16px;
+  padding: 0.75rem 1rem;
+  display: none;
+  z-index: 3000;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.kiro-alert-bubble.active {
+  display: flex;
+}
+
+.bubble-triangle {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--gold-glow);
+}
+
+.bubble-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.kiro-emoji {
+  font-size: 1.75rem;
+  animation: umbrella-pulse 2.0s infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes umbrella-pulse {
+  from { transform: scale(1) rotate(-5deg); }
+  to { transform: scale(1.18) rotate(12deg); }
+}
+
+.bubble-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.bubble-title {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--gold-glow);
+  letter-spacing: 0.5px;
+}
+
+.bubble-desc {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #cdd6f4;
+  font-weight: 600;
+}

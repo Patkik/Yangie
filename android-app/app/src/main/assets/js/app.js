@@ -13,6 +13,7 @@ import { StarlightMessenger } from './mailbox.js';
 import { KiroAgenticOrchestrator } from './orchestrator.js';
 import { ARTEngine, TelemetryHUD } from './art-engine.js';
 import { minigameEngine, PointerShield } from './minigames.js';
+import KiroWeatherStationV7 from './weather-v7.js';
 
 // ============================================================================
 // 1. Native Lifecycle & Notification Bridges
@@ -208,6 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 0. Boot Kiro's Agentic Orchestration Engine (Supervisor-Specialist MAS)
   const orchestrator = new KiroAgenticOrchestrator(synthEngine, sceneManager);
+
+  // 0b. Instantiate Starlight Telemetry & Interactive Simulation Weather Station (V7.0)
+  const weatherStation = new KiroWeatherStationV7('app-ui', synthEngine);
+  window.kiroWeatherStation = weatherStation;
 
   // 1. Dynamic Single-Identity Profile Architecture & Weather System
   function getSanctuaryWeather() {
