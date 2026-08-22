@@ -757,7 +757,8 @@ export default class KiroWeatherStationV7 {
         if (umbrellaPillEl) {
             if (weather.needsUmbrella || weather.isRaining) {
                 umbrellaPillEl.style.display = 'inline-flex';
-                umbrellaPillEl.textContent = weather.isRaining ? '☂️ Rain • Umbrella' : `☂️ Rain in ${weather.rainInHours || 2}h`;
+                umbrellaPillEl.textContent = '☂️';
+                umbrellaPillEl.title = weather.isRaining ? 'Rain detected • Bring Umbrella' : `Rain in ${weather.rainInHours || 2}h • Bring Umbrella`;
             } else {
                 umbrellaPillEl.style.display = 'none';
             }

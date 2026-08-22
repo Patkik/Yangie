@@ -1,10 +1,10 @@
 {
-  "version": "2.4.4",
-  "build": 82,
+  "version": "2.4.5",
+  "build": 83,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.2 — Unified Care & Vitals Core, Kepler-186 Outpost Shop & Viscoelastic Physics Degradation",
+  "description": "Space Capsule V8.3 — Single-Row Top Bar Dynamic Island Geometry & Currency Pill Overlap Resolution",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.2: Implemented the biological & psychological Unidirectional Tri-Vital System (Food, Hydration, Energy) with exact differential decay equations, Metabolic Crisis Drag, minigame vital tax (-10% F, -15% H, -12% E), viscoelastic Pong/character physics degradation (gamma=0.72, k=0.012), 6-hour sleep Well-Rested Buff (1.5x golden payout), Kepler-186 Outpost Shop with Cost-Scarcity Index pricing and care petal stock counters."
+  "changelog": "V8.3: Fixed top header partner beacon pill flex overflow that was spilling hidden location/weather badges behind the translucent currency pill. Enforced overflow protection, compact mobile beacon representation, and opaque glassmorphic currency isolation."
 }
 

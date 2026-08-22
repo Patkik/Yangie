@@ -122,6 +122,7 @@ Commands:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-621900]** Single-Row Top Bar Dynamic Island Geometry & Currency Pill Overlap Resolution V8.3
 - **[DEC-611900]** Unified Care & Vitals Core, Kepler-186 Outpost Shop & Viscoelastic Physics Degradation V8.2
 - **[DEC-601900]** Precision Reticle NDC Focal Alignment & Minigame Engine Sound Silencing V8.1
 - **[DEC-591900]** Single-Row Cosmic Dynamic Island HUD & Unobstructed 3D Viewport Calibration V8.0

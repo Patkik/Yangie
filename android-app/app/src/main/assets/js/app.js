@@ -295,9 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
       weatherBadgeEl.textContent = `${activeWeather.temp} ${activeWeather.isRaining ? '🌧️' : '⛅'}`;
     }
     if (umbrellaPillEl && activeWeather) {
-      if (activeWeather.needsUmbrella) {
+      if (activeWeather.needsUmbrella || activeWeather.isRaining) {
         umbrellaPillEl.style.display = 'inline-flex';
-        umbrellaPillEl.textContent = activeWeather.isRaining ? '☂️ Raining • Umbrella' : `☂️ Rain in ${activeWeather.rainInHours}h`;
+        umbrellaPillEl.textContent = '☂️';
+        umbrellaPillEl.title = activeWeather.isRaining ? 'Raining • Bring Umbrella' : `Rain in ${activeWeather.rainInHours}h • Bring Umbrella`;
       } else {
         umbrellaPillEl.style.display = 'none';
       }

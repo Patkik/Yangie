@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-621900] Single-Row Top Bar Dynamic Island Geometry & Currency Pill Overlap Resolution V8.3
+- **Timestamp**: `2026-08-22T22:06:00.000000`
+- **Strategy & Synthesis**: Resolved top header partner beacon pill text overflow that was spilling hidden location and weather badges underneath the translucent currency pill. Enforced overflow isolation, compact mobile beacon representation, and opaque glassmorphic currency styling.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Restored pristine visual clarity to the top Dynamic Island HUD. The partner beacon pill now cleanly displays the active partner profile without text overflow or clipped elements bleeding behind the currency pill.
+  - **Performance**: Score 5/5: Enforced strict flexbox boundaries with flex-shrink: 0, overflow: hidden, and opaque glassmorphism (rgba(30, 30, 46, 0.92)) with zero subpixel text reflow overhead.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.4.5 (Build 83) across version.json, index.html, state.js, and build.gradle.kts for instant WebView OTA asset cache eviction.
+  - **Structural**: Score 5/5: Decoupled compact top-bar beacon representation from the rich bottom sheet telemetry, ensuring long weather strings and umbrella notices render strictly within their designated containers.
+  - **Gamification**: Score 5/5: Crisp and unobstructed economy HUD tracker (Stardust Shards & Cosmic Essence) with tap-to-expand access to Exoplanet Milestones and Arcade.
+
+---
+
 ### [DEC-611900] Unified Care & Vitals Core, Kepler-186 Outpost Shop & Viscoelastic Physics Degradation V8.2
 - **Timestamp**: `2026-08-22T22:02:00.000000`
 - **Strategy & Synthesis**: Implemented the biological & psychological Unidirectional Tri-Vital System (Food, Hydration, Energy) with exact differential decay equations, Metabolic Crisis Drag, minigame vital tax, viscoelastic Pong/character physics degradation, 6-hour sleep Well-Rested Buff, Kepler-186 Outpost Shop with Cost-Scarcity Index pricing and care petal stock counters.

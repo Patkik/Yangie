@@ -192,11 +192,11 @@ html, body {
 .partner-beacon-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: rgba(17, 17, 27, 0.78);
   border: 1px solid rgba(148, 226, 213, 0.25);
   border-radius: 9999px;
-  padding: 5px 10px 5px 8px;
+  padding: 4px 8px;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 
@@ -206,8 +206,11 @@ html, body {
   transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
   user-select: none;
-  flex-shrink: 1;
-  min-width: 0;
+  flex-shrink: 0;
+  max-width: fit-content;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .partner-beacon-pill:hover {
@@ -253,9 +256,9 @@ html, body {
 
 .beacon-meta-info {
   display: flex;
-  flex-direction: column;
-  gap: 0;
+  align-items: center;
   min-width: 0;
+  overflow: hidden;
 }
 
 .beacon-primary-row {
@@ -268,6 +271,7 @@ html, body {
   color: #FFFFFF;
   letter-spacing: 0.2px;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .beacon-sparkle {
@@ -289,11 +293,13 @@ html, body {
 .beacon-sep {
   color: rgba(205, 214, 244, 0.4);
   font-size: 8px;
+  display: none;
 }
 
 .beacon-location-name {
   color: var(--color-pink-blush);
   font-weight: 600;
+  display: none;
 }
 
 .beacon-weather-badge {
@@ -305,6 +311,7 @@ html, body {
   border: 1px solid rgba(249, 226, 175, 0.35);
   border-radius: 5px;
   padding: 1px 3.5px;
+  display: none;
 }
 
 .beacon-secondary-row {
@@ -321,13 +328,26 @@ html, body {
   background: rgba(148, 226, 213, 0.18);
   border: 1px solid rgba(148, 226, 213, 0.40);
   border-radius: 5px;
-  padding: 0.5px 3.5px;
+  padding: 0.5px 3px;
   animation: rainPulse 2s ease-in-out infinite;
+  display: none;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes rainPulse {
   0%, 100% { opacity: 0.85; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 4px #94E2D5); }
+}
+
+@media (min-width: 520px) {
+  .beacon-location-name,
+  .beacon-sep {
+    display: inline-block;
+  }
+  .beacon-weather-badge {
+    display: inline-flex;
+  }
 }
 
 .sanctuary-live-clock {
@@ -1633,17 +1653,19 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(30, 30, 46, 0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(148, 226, 213, 0.28);
+  background: rgba(30, 30, 46, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 226, 213, 0.35);
   border-radius: 9999px;
-  padding: 4px 8px;
+  padding: 4px 9px;
   pointer-events: auto;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .sanctuary-currency-pill:hover {
