@@ -750,6 +750,36 @@ document.addEventListener('DOMContentLoaded', () => {
     updateArtTelemetryUI(telemetry);
   });
 
+  // 6.3 Cozy Eco-Battery Mode & Thermal Saver HUD Controller
+  const ecoToggleBtn = document.getElementById('eco-toggle-btn');
+  const ecoStatusBadge = document.getElementById('settings-eco-status-badge');
+
+  const updateEcoUI = (isEco) => {
+    if (ecoToggleBtn) {
+      ecoToggleBtn.classList.toggle('eco-active', isEco);
+      ecoToggleBtn.textContent = isEco ? '🔋 ECO MODE ON (COZY)' : '⚡ PERFORMANCE MODE';
+    }
+    if (ecoStatusBadge) {
+      ecoStatusBadge.textContent = isEco ? 'ECO 30 FPS' : '60 FPS CAP';
+      ecoStatusBadge.style.color = isEco ? '#F9E2AF' : '#4EC9B0';
+      ecoStatusBadge.style.borderColor = isEco ? 'rgba(249, 226, 175, 0.35)' : 'rgba(78, 201, 176, 0.35)';
+      ecoStatusBadge.style.background = isEco ? 'rgba(249, 226, 175, 0.15)' : 'rgba(78, 201, 176, 0.15)';
+    }
+  };
+
+  if (ecoToggleBtn) {
+    ecoToggleBtn.addEventListener('click', () => {
+      const nextEco = !KiroState.get('ecoModeActive');
+      KiroState.setEcoMode(nextEco);
+      synthEngine.playChimeSound(nextEco ? 440 : 880);
+    });
+  }
+
+  updateEcoUI(Boolean(KiroState.get('ecoModeActive')));
+  KiroState.on('change:ecoModeActive', ({ newValue }) => {
+    updateEcoUI(Boolean(newValue));
+  });
+
   // 7. Ephemeral Vibe Soundscape Petals
   const soundOceanBtn = document.getElementById('btn-audio-waves') || document.getElementById('btn-sound-ocean');
   const soundRainBtn = document.getElementById('btn-audio-rain') || document.getElementById('btn-sound-rain');

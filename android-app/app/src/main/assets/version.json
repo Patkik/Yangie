@@ -1,10 +1,10 @@
 {
-  "version": "2.2.0",
-  "build": 65,
+  "version": "2.2.1",
+  "build": 66,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V5.0 — Comprehensive Gamification, Economic Model & Cozy Minigame Suite",
+  "description": "Space Capsule V5.0 — Cozy Eco-Battery Mode & 4-Step Thermal Mitigation Engine",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.7: Comprehensive Gamification & Economic Model with dual-currency framework, State-Write Interceptor, 4 procedural minigames (Celestial Tetris, Starlight Pong, Nebula Dodge, Cosmic Runner), 7 Exoplanet milestones, and Pointer Interaction Shield."
+  "changelog": "V8.8: Cozy Eco-Battery Mode & 4-Step Thermal Mitigation Plan with High-DPI Fill-Rate clamping (1.0x-1.25x), 60 FPS Delta-Time frame throttle, dynamic fBm nebula shader simplification, Web Audio duty-cycle sleeping, and automated Battery-Level API listener (< 20%)."
 }
 

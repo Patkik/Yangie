@@ -95,6 +95,22 @@ export class CosmicSynthEngine {
         this.stopThruster();
       }
     });
+
+    // Cozy Eco-Battery Audio & Duty-Cycle Sleep Subscriptions
+    this.isEcoAudio = KiroState.get('ecoModeActive') || false;
+    this.isDutyCycleAsleep = false;
+
+    KiroState.on('change:ecoModeActive', ({ newValue }) => {
+      this.setEcoAudioMode(Boolean(newValue));
+    });
+
+    KiroState.on('sound:duty_cycle_sleep', () => {
+      this.enterDutyCycleSleep();
+    });
+
+    KiroState.on('sound:duty_cycle_wake', () => {
+      this.wakeFromDutyCycleSleep();
+    });
   }
 
   init() {
@@ -171,6 +187,67 @@ export class CosmicSynthEngine {
   suspend() {
     if (this.ctx && this.ctx.state === 'running') {
       this.ctx.suspend();
+    }
+  }
+
+  /**
+   * Cozy Eco-Battery Audio Mode Toggle
+   * Smoothly silences continuous background loops to save mobile CPU cycles
+   */
+  setEcoAudioMode(enable) {
+    this.isEcoAudio = Boolean(enable);
+    if (!this.ctx) return;
+
+    if (this.isEcoAudio) {
+      // Smoothly ramp ambient channels to zero
+      Object.values(this.channels).forEach(ch => {
+        if (ch.gainNode && this.ctx) {
+          ch.gainNode.gain.setTargetAtTime(0, this.ctx.currentTime, 0.2);
+        }
+      });
+    } else {
+      // Restore ambient channel volumes
+      Object.keys(this.channels).forEach(name => {
+        const ch = this.channels[name];
+        if (ch.gainNode && this.ctx && ch.volume > 0) {
+          ch.gainNode.gain.setTargetAtTime(ch.volume, this.ctx.currentTime, 0.2);
+        }
+      });
+      this.resume();
+    }
+  }
+
+  /**
+   * Web Audio Duty-Cycle Sleeping
+   * Suspends AudioContext when device is idle (>2 mins) or asleep to let CPU sleep
+   */
+  enterDutyCycleSleep() {
+    if (this.isDutyCycleAsleep || !this.ctx) return;
+    this.isDutyCycleAsleep = true;
+
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.15);
+      setTimeout(() => {
+        if (this.isDutyCycleAsleep && this.ctx && this.ctx.state === 'running') {
+          this.ctx.suspend();
+        }
+      }, 200);
+    }
+  }
+
+  /**
+   * Wakes AudioContext immediately upon user interaction
+   */
+  wakeFromDutyCycleSleep() {
+    if (!this.isDutyCycleAsleep || !this.ctx) return;
+    this.isDutyCycleAsleep = false;
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setTargetAtTime(this.masterVolume, this.ctx.currentTime, 0.15);
     }
   }
 

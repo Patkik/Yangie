@@ -132,6 +132,9 @@ export class AdaptiveResourceThrottlingEngine {
 
       // User Interaction Signal (Touch, Click, Key)
       const markInteraction = () => {
+        if (this.telemetry.userIdleSeconds >= 120) {
+          KiroState.emit('sound:duty_cycle_wake');
+        }
         this.lastUserInteractionTime = Date.now();
         this.telemetry.userIdleSeconds = 0;
       };
@@ -165,6 +168,14 @@ export class AdaptiveResourceThrottlingEngine {
           this.telemetry.batteryLevel = battery.level;
           this.telemetry.isBatteryCharging = battery.charging;
           this.checkThermalStrain();
+
+          // 1. Automated Battery-Level Trigger (Auto-Eco under 20% on discharge)
+          if (!battery.charging && battery.level <= 0.20) {
+            if (!KiroState.get('ecoModeActive')) {
+              console.log('[ART] Auto-activating Eco Mode: Battery <= 20% discharging');
+              KiroState.setEcoMode(true);
+            }
+          }
         };
         updateBattery();
         battery.addEventListener('levelchange', updateBattery);
@@ -209,11 +220,19 @@ export class AdaptiveResourceThrottlingEngine {
   scanUserIdleState() {
     const idleMs = Date.now() - this.lastUserInteractionTime;
     this.telemetry.userIdleSeconds = Math.floor(idleMs / 1000);
+
+    // 4. Web Audio Duty-Cycle Sleeping & Idle Interventions (> 2 mins)
+    if (this.telemetry.userIdleSeconds >= 120) {
+      KiroState.emit('sound:duty_cycle_sleep');
+      if (this.mode === 'auto' && this.currentTier !== ART_TIERS.ECO) {
+        this.applyImmediateIntervention(ART_TIERS.ECO, 'User Inactive > 2m (CPU Duty Cycle Sleep)');
+      }
+    }
   }
 
   checkThermalStrain() {
     // Thermal stress proxy: high frame time + discharging battery < 20%
-    const isLowBattery = !this.telemetry.isBatteryCharging && this.telemetry.batteryLevel < 0.20;
+    const isLowBattery = !this.telemetry.isBatteryCharging && this.telemetry.batteryLevel <= 0.20;
     const isFrameLagging = this.rollingAverageMs > 24.0;
     this.telemetry.isThermalStrained = Boolean(isLowBattery && isFrameLagging);
   }

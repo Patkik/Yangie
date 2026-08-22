@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.2.0',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.2.1',
       isOtaActive: false,
 
       // Wellbeing & Real-time Vitals
@@ -105,6 +105,7 @@ class KiroStateManager extends StateEmitter {
 
       // Synthesizer & Sensor Preferences
       gyroEnabled: true,
+      ecoModeActive: localStorage.getItem('kiro_eco_mode') === 'true',
       artMode: localStorage.getItem('kiro_art_mode') || 'auto', // 'auto' | 'optimal' | 'balanced' | 'performance' | 'eco'
       artTelemetry: {
         currentTierId: 'OPTIMAL',
@@ -548,6 +549,23 @@ class KiroStateManager extends StateEmitter {
     } catch (e) {}
     this.emit('art:mode', mode);
     this.emit('change:artMode', { newValue: mode });
+  }
+
+  setEcoMode(enabled) {
+    const isEco = Boolean(enabled);
+    this.state.ecoModeActive = isEco;
+    try {
+      localStorage.setItem('kiro_eco_mode', isEco ? 'true' : 'false');
+    } catch (e) {}
+    this.emit('eco:change', isEco);
+    this.emit('change:ecoModeActive', { newValue: isEco });
+
+    // Synchronize ART tier mode
+    if (isEco) {
+      this.setArtMode('eco');
+    } else if (this.state.artMode === 'eco') {
+      this.setArtMode('auto');
+    }
   }
 }
 

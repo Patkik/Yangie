@@ -2075,6 +2075,46 @@ body.pointer-locked * {
   transform: scale(1.04);
 }
 
+/* ============================================================================
+   18. Cozy Eco-Battery & Thermal Mitigation Styling
+   ============================================================================ */
+.eco-settings-group {
+  border-left: 3px solid #F9E2AF !important;
+}
+
+.eco-toggle-btn {
+  background: rgba(78, 201, 176, 0.15);
+  border: 1px solid #4EC9B0;
+  color: #4EC9B0;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.eco-toggle-btn:hover {
+  background: rgba(78, 201, 176, 0.28);
+  transform: translateY(-1px);
+}
+
+.eco-toggle-btn.eco-active {
+  background: rgba(249, 226, 175, 0.22);
+  border-color: #F9E2AF;
+  color: #F9E2AF;
+  box-shadow: 0 0 12px rgba(249, 226, 175, 0.3);
+}
+
+.eco-toggle-btn.eco-active:hover {
+  background: rgba(249, 226, 175, 0.32);
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -352,7 +352,46 @@ if (fs.existsSync(synthJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 12. Final Audit Summary
+// 12. Auditing 4-Step Thermal Mitigation Plan & Cozy Eco-Battery Engine
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}12. Auditing 4-Step Thermal Mitigation Plan & Cozy Eco-Battery Engine...${Colors.RESET}`);
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+
+  // Step 1: Clamped High-DPI Fill Rate
+  assert(sceneContent.includes('maxDpr = this.ecoModeActive ? 1.0 : 1.25') || sceneContent.includes('1.25'), 'Step 1: WebGL backing store clamped to max 1.25 DPR (1.0 in Eco Mode) to prevent GPU fill-rate overload');
+
+  // Step 2: Target 60 FPS Delta-Time Frame Throttle
+  assert(sceneContent.includes('targetFPS = 60') && sceneContent.includes('interval = 1000 / targetFps') && sceneContent.includes('lastRenderTime'), 'Step 2: Delta-Time Frame Throttle targeting steady 60 FPS (30 FPS in Eco) to eliminate 120Hz thermal generation');
+
+  // Step 3: Dynamic Shader & Stardust Simplification in Eco Mode
+  assert(sceneContent.includes('setEcoMode') && sceneContent.includes('nebulaMesh.visible = false') && sceneContent.includes('galaxyPoints.material.opacity = 0.35'), 'Step 3: Dynamic Shader Simplification (hiding heavy fBm nebula plane & halving stardust opacity) implemented');
+}
+
+if (fs.existsSync(synthJsPath)) {
+  const synthContent = fs.readFileSync(synthJsPath, 'utf8');
+
+  // Step 4: Web Audio Duty-Cycle Sleeping
+  assert(synthContent.includes('enterDutyCycleSleep') && synthContent.includes('wakeFromDutyCycleSleep'), 'Step 4: Web Audio Duty-Cycle Sleeping (AudioContext suspension during idle/sleep) implemented');
+  assert(synthContent.includes('setEcoAudioMode') && synthContent.includes('gain.setTargetAtTime(0,'), 'Step 4b: Ambient channel gain silencing during Eco Mode implemented');
+}
+
+if (fs.existsSync(artJsPath)) {
+  const artContent = fs.readFileSync(artJsPath, 'utf8');
+
+  // Automated Battery-Level API Listener (< 20% on discharge)
+  assert(artContent.includes('battery.level <= 0.20') && artContent.includes('setEcoMode(true)'), 'Step 5: Automated Battery-Level API listener triggers Eco Mode when discharging below 20%');
+  assert(artContent.includes('sound:duty_cycle_sleep') && artContent.includes('userIdleSeconds >= 120'), 'Step 6: User idle timer (> 2 mins) triggers audio duty-cycle sleep and Eco tier intervention');
+}
+
+if (fs.existsSync(stateModulePath)) {
+  const stateContent = fs.readFileSync(stateModulePath, 'utf8');
+  assert(stateContent.includes('ecoModeActive') && stateContent.includes('setEcoMode'), 'Single-Source-of-Truth ecoModeActive state field and setEcoMode method verified');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

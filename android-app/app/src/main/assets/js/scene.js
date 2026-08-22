@@ -335,7 +335,10 @@ export class KiroSceneManager {
     this.fpsHistory = [];
     this.devFpsBadge = null;
 
-    // Adaptive Resource Throttling (ART) State
+    // Adaptive Resource Throttling (ART) & Eco-Battery Thermal Mitigation State
+    this.targetFPS = 60; // 60 FPS target cap to eliminate thermal generation
+    this.lastRenderTime = performance.now();
+    this.ecoModeActive = localStorage.getItem('kiro_eco_mode') === 'true';
     this.artDprScale = 1.0;
     this.artParticleScale = 1.0;
     this.physicsSubstep = 1;
@@ -481,7 +484,8 @@ export class KiroSceneManager {
     });
     this.renderer.setClearColor(0x11111b, 1.0);
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
 
     if (!existingCanvas) {
       this.renderer.domElement.id = 'webgl-canvas';
@@ -2121,6 +2125,57 @@ export class KiroSceneManager {
     KiroState.on('art:scale_change', ({ dprScale, particleScale, physicsSubstep }) => {
       this.applyArtScaling(dprScale, particleScale, physicsSubstep);
     });
+
+    // Cozy Eco-Battery Mode State Synchronizer
+    KiroState.on('change:ecoModeActive', ({ newValue }) => {
+      this.setEcoMode(Boolean(newValue));
+    });
+
+    if (this.ecoModeActive) {
+      this.setEcoMode(true);
+    }
+  }
+
+  setEcoMode(enable) {
+    this.ecoModeActive = Boolean(enable);
+
+    if (this.ecoModeActive) {
+      // Drop pixel scaling to native 1.0 (slashes GPU fill-rate by up to 75%)
+      if (this.renderer) {
+        this.renderer.setPixelRatio(1.0);
+      }
+
+      // Hide the heavy procedural multi-octave fBm nebula background plane
+      if (this.nebulaMesh) {
+        this.nebulaMesh.visible = false;
+      }
+
+      // Halve/dim active background twinkling stardust
+      if (this.galaxyPoints && this.galaxyPoints.material) {
+        this.galaxyPoints.material.opacity = 0.35;
+      }
+      if (this.distantStars && this.distantStars.material) {
+        this.distantStars.material.opacity = 0.35;
+      }
+    } else {
+      // Restore beautiful high-end visual styles
+      if (this.renderer) {
+        const maxDpr = 1.25;
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr) * (this.artDprScale || 1.0));
+      }
+
+      if (this.nebulaMesh) {
+        this.nebulaMesh.visible = true;
+      }
+      if (this.galaxyPoints && this.galaxyPoints.material) {
+        this.galaxyPoints.material.opacity = 0.85;
+      }
+      if (this.distantStars && this.distantStars.material) {
+        this.distantStars.material.opacity = 1.0;
+      }
+    }
+
+    this.resize();
   }
 
   applyArtScaling(dprScale = 1.0, particleScale = 1.0, physicsSubstep = 1) {
@@ -2129,8 +2184,8 @@ export class KiroSceneManager {
     this.physicsSubstep = physicsSubstep;
 
     if (this.renderer) {
-      const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
-      this.renderer.setPixelRatio(baseDpr * dprScale);
+      const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr) * dprScale);
     }
 
     // Dynamic Celestial Geometry Pruning without GPU reallocation
@@ -2139,9 +2194,9 @@ export class KiroSceneManager {
       this.distantStars.geometry.setDrawRange(0, drawn);
     }
 
-    if (this.galaxyStars && this.galaxyStars.geometry) {
+    if (this.galaxyPoints && this.galaxyPoints.geometry) {
       const drawn = Math.max(150, Math.floor(800 * particleScale));
-      this.galaxyStars.geometry.setDrawRange(0, drawn);
+      this.galaxyPoints.geometry.setDrawRange(0, drawn);
     }
   }
 
@@ -2159,8 +2214,8 @@ export class KiroSceneManager {
       : 5.4;
 
     this.renderer.setSize(width, height);
-    const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.renderer.setPixelRatio(baseDpr * (this.artDprScale || 1.0));
+    const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr) * (this.artDprScale || 1.0));
 
     if (this.physicsAgent) {
       this.physicsAgent.updateViewport(width, height, this.PINHOLE_FOCAL_PX);
@@ -2867,18 +2922,28 @@ export class KiroSceneManager {
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
-     Main Render Loop (Single requestAnimationFrame)
+     Main Render Loop (Single requestAnimationFrame with Frame Throttle)
      ───────────────────────────────────────────────────────────────────────── */
-  animate() {
+  animate(timestamp) {
     if (this.isDisposed) return;
-    this.animationFrameId = requestAnimationFrame(() => this.animate());
+    this.animationFrameId = requestAnimationFrame((ts) => this.animate(ts));
+
+    // Enforce target frame budget (16.6ms for 60 FPS in standard, 33.3ms for 30 FPS in eco mode)
+    const now = (typeof timestamp === 'number' && timestamp > 0) ? timestamp : performance.now();
+    const targetFps = this.ecoModeActive ? 30 : (this.targetFPS || 60);
+    const interval = 1000 / targetFps;
+    const deltaMs = now - this.lastRenderTime;
+
+    if (deltaMs < interval - 0.5) {
+      return; // Skip this frame to let CPU/GPU rest and cool down
+    }
+    this.lastRenderTime = now - (deltaMs % interval);
 
     this.frameCount = (this.frameCount || 0) + 1;
     const delta = this.clock.getDelta();
     this._elapsedTime += delta;
     const t = this._elapsedTime;
-    const now = performance.now();
-    const frameMs = now - this.lastFrameTime;
+    const frameMs = deltaMs;
     this.lastFrameTime = now;
 
     // Feed Adaptive Resource Throttling (ART) Engine
@@ -3117,8 +3182,8 @@ export class KiroSceneManager {
     this.camera.updateProjectionMatrix();
     this.camera.position.set(this.gyro.x, this.baseCameraY + this.gyro.y, this.baseCameraZ);
     this.renderer.setSize(width, height);
-    const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.renderer.setPixelRatio(baseDpr * (this.artDprScale || 1.0));
+    const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr) * (this.artDprScale || 1.0));
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
