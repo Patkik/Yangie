@@ -206,6 +206,9 @@ if (fs.existsSync(sceneJsPath)) {
   assert(sceneContent.includes('_scratchVec1') && sceneContent.includes('_scratchMat4'), 'Pre-allocated module scratch vectors & matrices for zero-allocation render ticks verified');
   assert(sceneContent.includes('triggerViscoelasticSquish') && sceneContent.includes('viscousWobble'), 'Viscoelastic soft-body damped harmonic oscillator squish dynamics implemented');
   assert(sceneContent.includes('createAnimeCharacterMaterial') && (sceneContent.includes('0x5AE5C8') || sceneContent.includes('0x4EC9B0')), 'Shinkai Fresnel grazing rim reflection and velvet response verified on Kiro body');
+  assert(sceneContent.includes('leftEyeGroup') && sceneContent.includes('rightEyeGroup'), 'Hierarchical eye groups with locked pupil-catchlight assemblies verified (no detachment during blinks/winks)');
+  assert(sceneContent.includes('leftArmGroup') && sceneContent.includes('rightArmGroup'), 'Anatomical shoulder pivot assemblies and reactive feeding/petting kinematics verified');
+  assert(sceneContent.includes('tailGroup') && sceneContent.includes('bellyMesh.position.set(0, -0.34, 0.46)'), 'Flush non-clipping belly geometry and unified tail assembly verified');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

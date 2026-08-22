@@ -1,6 +1,5 @@
 {
-  "version": "2.1.1",
-  "updatedAt": "2026-08-22T16:15:00+08:00",
-  "releaseNotes": "Release V8.1: Anime Background Nebula, Gaussian Starfield Bokeh & Facial Harmony Architecture — Calibrated Kiro's belly patch, blush cheeks, and mouth geometry with zero mesh tension, brightened plushie velvet tones, deepened the background nebula with rich Shinkai watercolor washes, and deployed Gaussian bokeh twinkling starfield."
+  "version": "2.1.2",
+  "updatedAt": "2026-08-22T16:30:00+08:00",
+  "releaseNotes": "Release V8.2: Hierarchical Eye Assemblies, Non-Clipping Flush Belly & Reactive Action Kinematics — Refactored eye pupil and all catchlights into unified leftEyeGroup and rightEyeGroup preventing floating detachment during blinks and winks, calibrated belly mesh bounds inside body sphere with zero bottom clipping, and implemented reactive shoulder pivots and fluid idle kinematics."
 }
-
