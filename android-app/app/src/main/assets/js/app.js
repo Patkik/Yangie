@@ -214,44 +214,59 @@ document.addEventListener('DOMContentLoaded', () => {
   const weatherStation = new KiroWeatherStationV7('app-ui', synthEngine);
   window.kiroWeatherStation = weatherStation;
 
-  // 1. Dynamic Single-Identity Profile Architecture & Weather System
+  // 1. Dynamic Single-Identity Profile Architecture & Meteorological Weather System
   function getSanctuaryWeather() {
+    const livePat = KiroState.get('weather.pat');
+    const liveYang = KiroState.get('weather.yang');
+
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const pst = new Date(utc + (3600000 * 8));
     const hour = pst.getHours();
 
-    // Patrick in Malaybalay, Bukidnon (Highland tropical climate, elevation 600m)
-    const isMalaybalayRain = (hour >= 13 && hour <= 19) || (hour >= 21 && hour <= 23);
-    const malaybalayTemp = hour >= 10 && hour <= 16 ? 26 : (hour >= 6 && hour <= 9 ? 22 : 20);
-    const malaybalayRainInHours = isMalaybalayRain ? 0 : (hour < 13 ? 13 - hour : 21 - hour);
+    const fallbackPat = {
+      location: 'Malaybalay',
+      name: 'Patrick',
+      temp: '23°C',
+      condition: hour >= 6 && hour <= 17 ? 'Partly Cloudy ⛅' : 'Starry Night ✨',
+      isRaining: false,
+      rainInHours: 0,
+      rainAlert: 'Clear Skies (No rain in sight)',
+      needsUmbrella: false
+    };
 
-    // Yangiee in Capas, Tarlac (Central Luzon plain, warm sunshine)
-    const isCapasRain = (hour >= 16 && hour <= 18);
-    const capasTemp = hour >= 10 && hour <= 16 ? 32 : (hour >= 6 && hour <= 9 ? 28 : 26);
-    const capasRainInHours = isCapasRain ? 0 : (hour < 16 ? 16 - hour : 24 - hour + 16);
+    const fallbackYang = {
+      location: 'Capas',
+      name: 'Yangiee',
+      temp: '27°C',
+      condition: hour >= 6 && hour <= 17 ? 'Sunny Clouds ⛅' : 'Clear Twilight 🌙',
+      isRaining: false,
+      rainInHours: 0,
+      rainAlert: 'Clear Skies (No rain in sight)',
+      needsUmbrella: false
+    };
 
     return {
-      pat: {
-        location: 'Malaybalay',
+      pat: livePat ? {
+        location: livePat.location || 'Malaybalay',
         name: 'Patrick',
-        temp: `${malaybalayTemp}°C`,
-        condition: isMalaybalayRain ? 'Rain Showers 🌧️' : (hour >= 6 && hour <= 17 ? 'Partly Cloudy ⛅' : 'Starry Night ✨'),
-        isRaining: isMalaybalayRain,
-        rainInHours: malaybalayRainInHours,
-        rainAlert: isMalaybalayRain ? 'Raining now • Bring Umbrella!' : (malaybalayRainInHours <= 3 ? `Rain in ${malaybalayRainInHours}h • Bring Umbrella!` : 'Clear Skies (No Rain)'),
-        needsUmbrella: isMalaybalayRain || malaybalayRainInHours <= 3
-      },
-      yang: {
-        location: 'Capas',
+        temp: livePat.temp || '23°C',
+        condition: livePat.condition || 'Partly Cloudy ⛅',
+        isRaining: livePat.isRaining || false,
+        rainInHours: livePat.rainInHours || 0,
+        rainAlert: livePat.rainAlert || 'Clear Skies',
+        needsUmbrella: livePat.needsUmbrella || false
+      } : fallbackPat,
+      yang: liveYang ? {
+        location: liveYang.location || 'Capas',
         name: 'Yangiee',
-        temp: `${capasTemp}°C`,
-        condition: isCapasRain ? 'Rain Showers 🌧️' : (hour >= 6 && hour <= 17 ? 'Sunny Clouds ⛅' : 'Clear Twilight 🌙'),
-        isRaining: isCapasRain,
-        rainInHours: capasRainInHours,
-        rainAlert: isCapasRain ? 'Raining now • Bring Umbrella!' : (capasRainInHours <= 3 ? `Rain in ${capasRainInHours}h • Bring Umbrella!` : 'Clear Skies (No Rain)'),
-        needsUmbrella: isCapasRain || capasRainInHours <= 3
-      }
+        temp: liveYang.temp || '27°C',
+        condition: liveYang.condition || 'Sunny Clouds ⛅',
+        isRaining: liveYang.isRaining || false,
+        rainInHours: liveYang.rainInHours || 0,
+        rainAlert: liveYang.rainAlert || 'Clear Skies',
+        needsUmbrella: liveYang.needsUmbrella || false
+      } : fallbackYang
     };
   }
 
@@ -334,6 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updatePersonaProfile();
   KiroState.on('persona:change', updatePersonaProfile);
   KiroState.on('change:persona', updatePersonaProfile);
+  KiroState.on('change:weather.pat', updatePersonaProfile);
+  KiroState.on('change:weather.yang', updatePersonaProfile);
 
   // 2. Dynamic Timezone Greeting & Live Clock (Philippine Standard Time UTC+8)
   function updateClockAndGreeting() {

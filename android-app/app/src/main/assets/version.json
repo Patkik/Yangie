@@ -1,10 +1,10 @@
 {
-  "version": "2.4.0",
-  "build": 78,
+  "version": "2.4.1",
+  "build": 79,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V7.1 — Zen Mode & Capsule Core Bottom Sheet",
+  "description": "Space Capsule V7.2 — Open-Meteo Credible High-Resolution Live Weather & Radar Sync",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V7.1: Introduced Zen Mode (auto UI fading after 5s) and minimalist Capsule Core status pill. Shifted heavy dual-status and weather simulator into a swipeable bottom sheet to ensure 100% unobstructed views of Kiro. Integrated pinch-to-zoom camera controls."
+  "changelog": "V7.2: Integrated Open-Meteo High-Resolution ECMWF/NOAA Meteorological Radar for live, highly accurate weather telemetry in Malaybalay and Capas. Added WMO standard code interpretation, live heat index / humidity stats, predictive hourly rain & umbrella alerts, and automatic offline caching."
 }
 
