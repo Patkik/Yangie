@@ -367,12 +367,12 @@ export function createNebulaShaderMaterial() {
       vec2 uvG = rotUv;
       vec2 uvB = rotUv - vec2(0.015, 0.0);
 
-      // Multi-layer polar fBm noise representing swirling auroral curtains
-      float n1 = snoise(uvG * 1.2 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
-      float n2 = snoise(uvR * 2.4 - vec2(t * 0.4, t * 0.15)) * 0.5 + 0.5;
-      float n3 = snoise(uvB * 3.6 + vec2(t * 0.1, t * 0.35)) * 0.5 + 0.5;
+      // Single-pass GPU polar fBm noise with fast analytical harmonic dispersion
+      float n1 = snoise(uvG * 1.35 + vec2(t * 0.25, t * 0.15)) * 0.5 + 0.5;
+      float n2 = (sin(uvR.x * 2.8 + t * 0.7) * cos(uvR.y * 2.2 - t * 0.35) * 0.5 + 0.5) * 0.6 + n1 * 0.4;
+      float n3 = (sin(uvB.y * 3.6 - t * 0.55 + uvB.x * 1.8) * 0.5 + 0.5) * 0.6 + n1 * 0.4;
 
-      float auroraPattern = pow(n1 * 0.6 + n2 * 0.3 + n3 * 0.1, 1.8);
+      float auroraPattern = pow(n1 * 0.55 + n2 * 0.30 + n3 * 0.15, 1.6);
 
       // 3. Sovngarde Celestial Palette (Ethereal Cyan, Mystic Violet, Starlight Gold, Aurora Rose)
       vec3 sovngardeCyan   = vec3(0.58, 0.89, 0.83); // #94E2D5
@@ -3054,14 +3054,59 @@ export class KiroSceneManager {
 
   setMinigameActive(active) {
     this.minigameActive = Boolean(active);
-    if (this.backgroundCelestialGroup) {
-      this.backgroundCelestialGroup.visible = !this.minigameActive;
-    }
-    if (this.cockpitGroup && this.minigameActive) {
-      this.cockpitGroup.visible = false;
-    }
+    const isTelescope = Boolean(KiroState.get('telescopeActive'));
+
     if (this.minigameActive) {
+      if (this.backgroundCelestialGroup) {
+        this.backgroundCelestialGroup.visible = false;
+      }
+      if (this.cockpitGroup) {
+        this.cockpitGroup.visible = false;
+      }
+      if (this.kiroGroup) {
+        this.kiroGroup.visible = false;
+      }
       synthEngine.stopThruster(0.05);
+    } else {
+      // Exiting Minigame: Strictly respect current mode (Shuttle / Telescope vs Sanctuary)
+      if (this.backgroundCelestialGroup) {
+        this.backgroundCelestialGroup.visible = true;
+      }
+      if (isTelescope) {
+        // In Telescope / Shuttle Flight mode: Kiro, Pedestal and Rings MUST REMAIN LOWERED & HIDDEN!
+        if (this.kiroGroup) {
+          this.kiroGroup.visible = false;
+          this.kiroGroup.position.y = -4;
+        }
+        if (this.pedestal) {
+          this.pedestal.visible = false;
+          this.pedestal.position.y = -5;
+        }
+        if (this.neonRing) {
+          this.neonRing.visible = false;
+          this.neonRing.position.y = -5;
+        }
+        if (this.cockpitGroup) {
+          this.cockpitGroup.visible = true;
+        }
+      } else {
+        // In Sanctuary mode: Restore Kiro and Pedestal
+        if (this.kiroGroup) {
+          this.kiroGroup.visible = true;
+          this.kiroGroup.position.y = 0;
+        }
+        if (this.pedestal) {
+          this.pedestal.visible = true;
+          this.pedestal.position.y = -1.08;
+        }
+        if (this.neonRing) {
+          this.neonRing.visible = true;
+          this.neonRing.position.y = -0.92;
+        }
+        if (this.cockpitGroup) {
+          this.cockpitGroup.visible = false;
+        }
+      }
     }
   }
 
@@ -3236,10 +3281,8 @@ export class KiroSceneManager {
 
     // 0. High-Efficiency Early Exit for Active Minigames (Locked 120 FPS Background Pausing)
     if (this.minigameActive) {
-      if (this.kiroGroup) {
-        this.kiroGroup.position.y = 0.05 * Math.sin(now * 0.002);
-      }
-      this.renderer.render(this.scene, this.camera);
+      // Completely pause 3D WebGL render loop while 2D canvas minigame runs!
+      // This eliminates GPU draw collisions and grants 100% of frame budget to the minigame.
       return;
     }
 
@@ -3251,10 +3294,15 @@ export class KiroSceneManager {
     this.camera.position.z = this.baseCameraZ;
 
     // 2. Space Shuttle Steering & Unified Rigid-Body Celestial Parallax (Phase 5.2)
-    const isTelescope = KiroState.get('telescopeActive');
+    const isTelescope = Boolean(KiroState.get('telescopeActive'));
     const steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
 
     if (isTelescope) {
+      // In Telescope / Shuttle Flight mode: Kiro must stay lowered and hidden
+      if (this.kiroGroup && this.kiroGroup.position.y > -3.5) {
+        this.kiroGroup.position.y = -4;
+        this.kiroGroup.visible = false;
+      }
       const targetGroupX = -(steering.yaw || 0) * 0.12;
       const targetGroupY = -(steering.pitch || 0) * 0.12;
       this.backgroundCelestialGroup.position.x += (targetGroupX - this.backgroundCelestialGroup.position.x) * 0.10;

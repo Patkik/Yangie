@@ -156,6 +156,7 @@ You must adhere to these rigid engineering implementations for the primary featu
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-661900]** Telescope Mode Minigame Return State Guard & Minigame 120 FPS WebGL Frame Budget Isolation V8.7
 - **[DEC-651900]** Skyrim Sovngarde Polar Celestial Vortex Shader, Vision of the Tenth Eye Glow, Pure Black Cosmic Void, Anime JRPG Dialogue Box & Hidden Mystery Keystones V8.6
 - **[DEC-641900]** ES6 Module Scope Hardening, Milestone Caps Restoration & Black Screen Resolution V8.5
 - **[DEC-631900]** Cor Amoris Scavenger Hunt Edition, Double-Ledger Wallets & Memorial Archive V8.4
