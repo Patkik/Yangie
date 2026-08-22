@@ -372,15 +372,20 @@ document.addEventListener('DOMContentLoaded', () => {
     shuttleSteerBtn.addEventListener('click', () => {
       const active = !KiroState.get('telescopeActive');
       KiroState.set('telescopeActive', active);
-      shuttleSteerBtn.classList.toggle('active', active);
-      if (joystickHud) joystickHud.style.display = active ? 'flex' : 'none';
-      if (!active && telescopeAlignedScreen) {
-        telescopeAlignedScreen.style.display = 'none';
-        KiroState.set('cockpitSteering.aligned', false);
-        KiroState.set('cockpitSteering.currentTarget', null);
-      }
     });
   }
+
+  // Reactive Telescope Mode Synchronization
+  KiroState.on('change:telescopeActive', ({ newValue }) => {
+    const active = Boolean(newValue);
+    if (shuttleSteerBtn) shuttleSteerBtn.classList.toggle('active', active);
+    if (joystickHud) joystickHud.style.display = active ? 'flex' : 'none';
+    if (!active && telescopeAlignedScreen) {
+      telescopeAlignedScreen.style.display = 'none';
+      KiroState.set('cockpitSteering.aligned', false);
+      KiroState.set('cockpitSteering.currentTarget', null);
+    }
+  });
 
   // D-Pad Steering Joystick Handlers
   if (joystickHud) {
@@ -404,7 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Telescope Lock-On Target Alert Card (Sci-Fi Movie System HUD)
   KiroState.on('change:cockpitSteering.aligned', ({ newValue }) => {
-    if (newValue && telescopeAlignedScreen) {
+    const isTelescope = KiroState.get('telescopeActive');
+    if (newValue && isTelescope && telescopeAlignedScreen) {
       const targetId = KiroState.get('cockpitSteering.currentTarget');
       const systemCatalog = {
         butterfly: { name: 'Butterfly Galaxy (NGC 6302)', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', game: 'Nebula Dodge' },
@@ -447,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       }
-    } else if (!newValue && telescopeAlignedScreen) {
+    } else if (telescopeAlignedScreen) {
       telescopeAlignedScreen.style.display = 'none';
     }
   });

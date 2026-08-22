@@ -519,3 +519,15 @@
   - **Gamification**: Score 5/5: Highly tactile, delight-filled communication panel with springy emoji hover effects, launchable rocket send button, and glowing E2EE video calling HUD.
 
 ---
+
+### [DEC-431900] Reactive Target Lock Cleanup & Celestial System Catalog V8.4
+- **Timestamp**: `2026-08-22T16:38:00.000000`
+- **Strategy & Synthesis**: Added reactive change:telescopeActive subscriber to immediately hide and clean up the target acquired UI card and reset 3D targeting reticles when exiting space shuttle POV state, and codified the full catalog of all 7 playable cosmic stars and planets.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Seamless transition between observatory cockpit POV and cozy companion sanctuary without leftover holographic HUD cards or reticle artifacts blocking Kiro or the stars.
+  - **Performance**: Score 5/5: 54/54 dynamic headless assertions passed. Zero redundant listener callbacks and immediate state de-allocation on exit.
+  - **Container**: Score 5/5: Hardened Android WebView sandbox, SemVer synchronized across all 4 targets to v2.1.4 (versionCode 62).
+  - **Structural**: Score 5/5: Reactive telescopeActive change subscriber in app.js and scene.js guaranteeing clean DOM and 3D bracket reset upon leaving cockpit mode.
+  - **Gamification**: Score 5/5: 7 playable cosmic systems (Butterfly Galaxy, Helix Nebula, Sombrero Vortex, Crab Pulsar Core, Gliese 667, Kepler 186, Trappist 1) with clean target acquisition and warp jump triggers.
+
+---

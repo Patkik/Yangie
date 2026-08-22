@@ -1423,6 +1423,12 @@ export class KiroSceneManager {
           KiroState.set('cockpitSteering.currentTarget', null);
         }
       }
+    } else {
+      if (this.lastAlignedTargetId !== null) {
+        this.lastAlignedTargetId = null;
+        KiroState.set('cockpitSteering.aligned', false);
+        KiroState.set('cockpitSteering.currentTarget', null);
+      }
     }
   }
 
@@ -2052,6 +2058,20 @@ export class KiroSceneManager {
         this.triggerWarpAcceleration();
       } else {
         this.exitWarpAcceleration();
+        this.lastAlignedTargetId = null;
+        KiroState.set('cockpitSteering.aligned', false);
+        KiroState.set('cockpitSteering.currentTarget', null);
+        this.targetSystemMeshes.forEach(target => {
+          target.userData.isLocked = false;
+          if (target.userData.bracketMesh) {
+            target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
+            target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
+            target.userData.bracketMesh.material.opacity = 0.50;
+          }
+          if (target.userData.glowMesh) {
+            target.userData.glowMesh.material.opacity = 0.25;
+          }
+        });
       }
 
       if (window.gsap && this.kiroGroup && this.pedestal && this.neonRing) {
