@@ -101,35 +101,70 @@ export class CorAmorisEngine {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 2. Monologue Opening Invitation HUD
+  // 2. Monologue Opening Invitation Anime RPG Box
   // ─────────────────────────────────────────────────────────────────────────
 
   showOpeningMonologue() {
     const modal = document.getElementById('cor-amoris-monologue-modal');
     const textEl = document.getElementById('cor-amoris-monologue-text');
+    const promptArrow = document.getElementById('anime-prompt-arrow');
+    const dialogueCard = document.getElementById('anime-dialogue-card');
     if (!modal || !textEl) return;
 
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+      this.typewriterInterval = null;
+    }
+
     modal.classList.remove('hidden');
-    const fullText = 'Yang, the stars have aligned to form a bridge back to where it all began. Kiro has found fragments of a date scattered across the Kepler and Trappist systems. Only your resonance can anchor them. Will you join Pat in the Haven to reclaim our Genesis Year?';
+    if (promptArrow) promptArrow.style.display = 'none';
+
+    const fullText = "Yang, the celestial stars have aligned to form a bridge back to where our universe began. Kiro has detected three sacred keystones scattered across the Kepler and Trappist systems. Only your resonance can anchor them. Will you join Pat to reclaim our Genesis Year?";
     
     textEl.textContent = '';
     let charIdx = 0;
     synthEngine.playCrystalChime(523.25);
 
-    const typeInterval = setInterval(() => {
+    let isComplete = false;
+    const completeDialogue = () => {
+      if (isComplete) return;
+      isComplete = true;
+      if (this.typewriterInterval) {
+        clearInterval(this.typewriterInterval);
+        this.typewriterInterval = null;
+      }
+      textEl.textContent = fullText;
+      if (promptArrow) promptArrow.style.display = 'block';
+      synthEngine.playCrystalChime(659.25);
+    };
+
+    if (dialogueCard) {
+      dialogueCard.onclick = (e) => {
+        if (e.target.closest('#monologue-close-btn') || e.target.closest('#monologue-begin-btn')) return;
+        if (!isComplete) {
+          completeDialogue();
+        }
+      };
+    }
+
+    this.typewriterInterval = setInterval(() => {
       if (charIdx < fullText.length) {
         textEl.textContent += fullText[charIdx];
-        if (charIdx % 4 === 0) {
-          synthEngine.playAlienChirp(synthEngine.ctx, 1.4);
+        if (charIdx % 3 === 0 && fullText[charIdx] !== ' ') {
+          synthEngine.playAlienChirp(synthEngine.ctx, 1.35 + (charIdx % 5) * 0.05);
         }
         charIdx++;
       } else {
-        clearInterval(typeInterval);
+        completeDialogue();
       }
-    }, 28);
+    }, 24);
   }
 
   hideOpeningMonologue() {
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+      this.typewriterInterval = null;
+    }
     const modal = document.getElementById('cor-amoris-monologue-modal');
     if (modal) modal.classList.add('hidden');
   }
@@ -378,15 +413,63 @@ export class CorAmorisEngine {
     const slot27 = document.getElementById('stargate-slot-27');
     const slot2024 = document.getElementById('stargate-slot-2024');
 
-    if (slot01) slot01.classList.toggle('locked', Boolean(corState.fragments['01']));
-    if (slot27) slot27.classList.toggle('locked', Boolean(corState.fragments['27']));
-    if (slot2024) slot2024.classList.toggle('locked', Boolean(corState.fragments['2024']));
+    const f01 = Boolean(corState.fragments['01']);
+    const f27 = Boolean(corState.fragments['27']);
+    const f2024 = Boolean(corState.fragments['2024']);
+    const count = (f01 ? 1 : 0) + (f27 ? 1 : 0) + (f2024 ? 1 : 0);
+
+    if (slot01) {
+      const glyph = slot01.querySelector('.stargate-slot-glyph');
+      const label = slot01.querySelector('.stargate-slot-label');
+      if (f01) {
+        slot01.className = 'stargate-slot slot-unlocked';
+        if (glyph) glyph.textContent = '01';
+        if (label) label.textContent = 'Touch (Kepler)';
+      } else {
+        slot01.className = 'stargate-slot slot-locked';
+        if (glyph) glyph.textContent = '??';
+        if (label) label.textContent = 'Kepler Keystone';
+      }
+    }
+
+    if (slot27) {
+      const glyph = slot27.querySelector('.stargate-slot-glyph');
+      const label = slot27.querySelector('.stargate-slot-label');
+      if (f27) {
+        slot27.className = 'stargate-slot slot-unlocked';
+        if (glyph) glyph.textContent = '27';
+        if (label) label.textContent = 'Rhythm (Trappist)';
+      } else {
+        slot27.className = 'stargate-slot slot-locked';
+        if (glyph) glyph.textContent = '??';
+        if (label) label.textContent = 'Trappist Keystone';
+      }
+    }
+
+    if (slot2024) {
+      const glyph = slot2024.querySelector('.stargate-slot-glyph');
+      const label = slot2024.querySelector('.stargate-slot-label');
+      if (f2024) {
+        slot2024.className = 'stargate-slot slot-unlocked';
+        if (glyph) glyph.textContent = '2024';
+        if (label) label.textContent = 'Genesis Stardate';
+      } else {
+        slot2024.className = 'stargate-slot slot-locked';
+        if (glyph) glyph.textContent = '????';
+        if (label) label.textContent = 'Genesis Keystone';
+      }
+    }
 
     const alignBtn = document.getElementById('btn-align-stargate');
-    const allCollected = corState.fragments['01'] && corState.fragments['27'] && corState.fragments['2024'];
+    const allCollected = f01 && f27 && f2024;
     if (alignBtn) {
       alignBtn.disabled = !allCollected;
-      alignBtn.textContent = allCollected ? '✦ Synchronize Resonance Lock ✦' : 'Gather All 3 Fragments (01-27-2024)';
+      if (allCollected) {
+        alignBtn.innerHTML = '<span>✦ Synchronize Resonance Lock ✦</span>';
+      } else {
+        const remaining = 3 - count;
+        alignBtn.innerHTML = `<span>${remaining} Sacred Keystone${remaining > 1 ? 's' : ''} Remaining (${count}/3 Found)</span>`;
+      }
     }
   }
 
@@ -554,9 +637,51 @@ export class CorAmorisEngine {
     const frag27 = document.getElementById('satchel-item-27');
     const frag2024 = document.getElementById('satchel-item-2024');
 
-    if (frag01) frag01.classList.toggle('collected', Boolean(corState.fragments['01']));
-    if (frag27) frag27.classList.toggle('collected', Boolean(corState.fragments['27']));
-    if (frag2024) frag2024.classList.toggle('collected', Boolean(corState.fragments['2024']));
+    const f01 = Boolean(corState.fragments['01']);
+    const f27 = Boolean(corState.fragments['27']);
+    const f2024 = Boolean(corState.fragments['2024']);
+
+    if (frag01) {
+      const glyph = frag01.querySelector('.stargate-slot-glyph');
+      const label = frag01.querySelector('.stargate-slot-label');
+      if (f01) {
+        frag01.className = 'stargate-slot collected';
+        if (glyph) glyph.textContent = '01';
+        if (label) label.textContent = 'Kepler Keystone';
+      } else {
+        frag01.className = 'stargate-slot slot-locked';
+        if (glyph) glyph.textContent = '??';
+        if (label) label.textContent = 'Locked Keystone';
+      }
+    }
+
+    if (frag27) {
+      const glyph = frag27.querySelector('.stargate-slot-glyph');
+      const label = frag27.querySelector('.stargate-slot-label');
+      if (f27) {
+        frag27.className = 'stargate-slot collected';
+        if (glyph) glyph.textContent = '27';
+        if (label) label.textContent = 'Trappist Keystone';
+      } else {
+        frag27.className = 'stargate-slot slot-locked';
+        if (glyph) glyph.textContent = '??';
+        if (label) label.textContent = 'Locked Keystone';
+      }
+    }
+
+    if (frag2024) {
+      const glyph = frag2024.querySelector('.stargate-slot-glyph');
+      const label = frag2024.querySelector('.stargate-slot-label');
+      if (f2024) {
+        frag2024.className = 'stargate-slot collected';
+        if (glyph) glyph.textContent = '2024';
+        if (label) label.textContent = 'Genesis Keystone';
+      } else {
+        frag2024.className = 'stargate-slot slot-locked';
+        if (glyph) glyph.textContent = '????';
+        if (label) label.textContent = 'Locked Keystone';
+      }
+    }
   }
 
   openResonanceWalletModal() {

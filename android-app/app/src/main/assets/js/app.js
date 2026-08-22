@@ -1434,6 +1434,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Top Bar Cor Amoris Nav Button
+  const btnNavCorAmoris = document.getElementById('btn-nav-cor-amoris');
+  if (btnNavCorAmoris) {
+    btnNavCorAmoris.addEventListener('click', () => {
+      const corState = KiroState.getCorAmorisState();
+      if (corState && corState.unlocked) {
+        corAmorisEngine.openMemorialArchiveModal();
+      } else {
+        corAmorisEngine.openStargateDialModal();
+      }
+    });
+  }
+
   // Memorial Archive Buttons
   const archiveCloseBtn = document.getElementById('archive-close-btn');
   const submitNoteBtn = document.getElementById('btn-submit-note');

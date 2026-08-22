@@ -1,10 +1,10 @@
 {
-  "version": "2.4.7",
-  "build": 85,
+  "version": "2.4.8",
+  "build": 86,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.5 — ES6 Module Scope Hardening & Milestone Caps Fix",
+  "description": "Space Capsule V8.6 — Skyrim Sovngarde Polar Celestial Vortex & Anime RPG Dialogue Box",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.5: Hardened ES6 module AST scope execution, eliminated duplicate keplerShopModal identifier declaration in app.js, implemented missing refreshMilestoneCaps and checkStarCandyDailyRestock in KiroStateManager, resolved Android WebView black screen initialization blocker, and added runtime instantiation testing to headless verification suite."
+  "changelog": "V8.6: Implemented Skyrim Sovngarde polar celestial vortex shader with 100% GPU-bound polar coordinate matrices, Tenth Eye dreamy illusion glow, deep obsidian pure black space void, 2,200 multi-magnitude starfield, authentic Anime JRPG Dialogue Box for Kiro with cute avatar portrait and typewriter audio SFX, non-overlapping Cor Amoris navigation, and mystery masked Stargate keystones to prevent spoilers."
 }
 

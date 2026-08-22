@@ -308,7 +308,7 @@ export function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
   });
 }
 
-// Helper: 100% Procedural Volumetric Nebula Shader Generator
+// Helper: 100% Procedural Skyrim Sovngarde Celestial Polar Vortex & Tenth Eye Illusion Glow Shader
 export function createNebulaShaderMaterial() {
   const nebulaVertexShader = `
     varying vec2 vUv;
@@ -321,6 +321,8 @@ export function createNebulaShaderMaterial() {
   const nebulaFragmentShader = `
     uniform float u_time;
     uniform float u_audio;
+    uniform vec3 u_color1;
+    uniform vec3 u_color2;
     varying vec2 vUv;
 
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -351,39 +353,47 @@ export function createNebulaShaderMaterial() {
     }
 
     void main() {
-      vec2 uv = vUv * 2.0 - 1.0;
-      float t = u_time * 0.03;
+      vec2 p = vUv * 2.0 - 1.0;
+      float r = length(p);
+      float phi = atan(p.y, p.x);
+      float t = u_time * 0.04;
 
-      // Swirling celestial vortex field
-      float r = length(uv);
-      float theta = r * 0.65 - t * 0.4;
-      mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
-      vec2 rotUv = rot * uv;
+      // 1. Skyrim Sovngarde Polar Coordinate Vortex Spiral & Chromatic Aberration Splitting
+      float spiral = phi + 2.4 / (r + 0.38) - t * 0.55;
+      vec2 rotUv = vec2(r * 2.2, spiral * 0.65);
 
-      // Chromatic Aberration Splitting at cloud fringes
-      vec2 uvR = rotUv + vec2(0.008, 0.0);
+      // 2. Vision of the Tenth Eye Chromatic Fringe Dispersion
+      vec2 uvR = rotUv + vec2(0.015, 0.0);
       vec2 uvG = rotUv;
-      vec2 uvB = rotUv - vec2(0.008, 0.0);
+      vec2 uvB = rotUv - vec2(0.015, 0.0);
 
-      float nR = snoise(uvR * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
-      float nG = snoise(uvG * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
-      float nB = snoise(uvB * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
+      // Multi-layer polar fBm noise representing swirling auroral curtains
+      float n1 = snoise(uvG * 1.2 + vec2(t * 0.3, t * 0.2)) * 0.5 + 0.5;
+      float n2 = snoise(uvR * 2.4 - vec2(t * 0.4, t * 0.15)) * 0.5 + 0.5;
+      float n3 = snoise(uvB * 3.6 + vec2(t * 0.1, t * 0.35)) * 0.5 + 0.5;
 
-      vec3 deepMidnight   = vec3(0.055, 0.055, 0.095);
-      vec3 twilightViolet = vec3(0.13, 0.10, 0.25);
-      vec3 duskyRose      = vec3(0.36, 0.18, 0.32);
-      vec3 starlightMint  = vec3(0.12, 0.38, 0.34);
-      vec3 auroralGold    = vec3(0.68, 0.58, 0.36);
+      float auroraPattern = pow(n1 * 0.6 + n2 * 0.3 + n3 * 0.1, 1.8);
 
-      vec3 col = mix(deepMidnight, twilightViolet, smoothstep(0.20, 0.70, nG));
-      col = mix(col, duskyRose, smoothstep(0.38, 0.85, nR) * 0.65);
-      col = mix(col, starlightMint, smoothstep(0.45, 0.88, nB) * 0.55);
-      col = mix(col, auroralGold, smoothstep(0.62, 0.95, (nR + nG) * 0.5) * (0.15 + u_audio * 0.30));
+      // 3. Sovngarde Celestial Palette (Ethereal Cyan, Mystic Violet, Starlight Gold, Aurora Rose)
+      vec3 sovngardeCyan   = vec3(0.58, 0.89, 0.83); // #94E2D5
+      vec3 mysticViolet    = vec3(0.79, 0.65, 0.97); // #CBA6F7
+      vec3 auroraRose      = vec3(0.96, 0.72, 0.75); // #F5B7C0
+      vec3 celestialGold   = vec3(0.98, 0.89, 0.69); // #F9E2AF
 
-      float vignette = smoothstep(1.5, 0.2, r);
-      float alpha = smoothstep(0.15, 0.80, (nR + nG + nB) / 3.0) * 0.70 * vignette;
+      vec3 c1 = mix(sovngardeCyan, u_color1, 0.65);
+      vec3 c2 = mix(mysticViolet, u_color2, 0.65);
 
-      gl_FragColor = vec4(col, alpha);
+      // Swirling ribbon blend
+      vec3 col = mix(c1, c2, smoothstep(0.25, 0.75, n2));
+      col = mix(col, auroraRose, smoothstep(0.40, 0.85, n3) * 0.60);
+      col = mix(col, celestialGold, smoothstep(0.60, 0.95, n1) * (0.35 + u_audio * 0.45));
+
+      // 4. Tenth Eye Refractive Shimmering & Radial Decay (Keeps outer space pure void black)
+      float radialMask = pow(clamp(1.0 - r * 0.68, 0.0, 1.0), 1.5);
+      float intensity = auroraPattern * radialMask * 0.85;
+
+      // Additive luminance onto pure black void
+      gl_FragColor = vec4(col * intensity, intensity);
     }
   `;
 
@@ -392,10 +402,12 @@ export function createNebulaShaderMaterial() {
     fragmentShader: nebulaFragmentShader,
     uniforms: {
       u_time: { value: 0.0 },
-      u_audio: { value: 0.0 }
+      u_audio: { value: 0.0 },
+      u_color1: { value: new THREE.Color(0x94E2D5) },
+      u_color2: { value: new THREE.Color(0xCBA6F7) }
     },
     transparent: true,
-    blending: THREE.NormalBlending,
+    blending: THREE.AdditiveBlending,
     depthWrite: false
   });
 }
@@ -457,9 +469,9 @@ export class KiroSceneManager {
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 2: Celestial Body Subsystems
     // ─────────────────────────────────────────────────────────────────────────
-    // 2.0 Deep Distant Cosmic Starfield (1400 stars across vast 3D hemisphere)
+    // 2.0 Deep Distant Cosmic Starfield (2200 multi-magnitude stars across vast 3D space)
     this.distantStars = null;
-    this.distantStarCount = 1400;
+    this.distantStarCount = 2200;
     this.distantStarOriginalPositions = [];
     this.distantStarPhases = [];
 
@@ -587,7 +599,7 @@ export class KiroSceneManager {
     this.camera = new THREE.PerspectiveCamera(46, aspect, 0.1, 200);
     this.camera.position.set(0, this.baseCameraY, this.baseCameraZ);
 
-    // Pre-rendered Canvas Binding
+    // Pre-rendered Canvas Binding (Pure Cosmic Deep Black Space #000000)
     const existingCanvas = document.getElementById('webgl-canvas');
     this.renderer = new THREE.WebGLRenderer({
       canvas: existingCanvas || undefined,
@@ -595,7 +607,7 @@ export class KiroSceneManager {
       alpha: false,
       powerPreference: 'high-performance'
     });
-    this.renderer.setClearColor(0x11111b, 1.0);
+    this.renderer.setClearColor(0x000000, 1.0);
     this.renderer.setSize(width, height);
     const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
@@ -818,100 +830,10 @@ export class KiroSceneManager {
     this.backgroundCelestialGroup.add(this.distantStars);
   }
 
-  // 2.1 3-Layer Parallax Nebula with Chromatic Aberration & Vortex Swirl (Z = -18.0)
+  // 2.1 Skyrim Sovngarde Polar Celestial Vortex & Tenth Eye Illusion Glow (Z = -18.0)
   buildVolumetricNebula() {
-    const nebulaVertexShader = `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `;
-
-    const nebulaFragmentShader = `
-      uniform float u_time;
-      uniform float u_audio;
-      varying vec2 vUv;
-
-      vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-      vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-      vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
-
-      float snoise(vec2 v) {
-        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-        vec2 i  = floor(v + dot(v, C.yy));
-        vec2 x0 = v -   i + dot(i, C.xx);
-        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-        vec4 x12 = x0.xyxy + C.xxzz;
-        x12.xy -= i1;
-        i = mod289(i);
-        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
-        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-        m = m*m;
-        m = m*m;
-        vec3 x = 2.0 * fract(p * C.www) - 1.0;
-        vec3 h = abs(x) - 0.5;
-        vec3 ox = floor(x + 0.5);
-        vec3 a0 = x - ox;
-        m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
-        vec3 g;
-        g.x  = a0.x  * x0.x  + h.x  * x0.y;
-        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-        return 130.0 * dot(m, g);
-      }
-
-      void main() {
-        vec2 uv = vUv * 2.0 - 1.0;
-        float t = u_time * 0.03;
-
-        // Swirling celestial vortex field
-        float r = length(uv);
-        float theta = r * 0.65 - t * 0.4;
-        mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
-        vec2 rotUv = rot * uv;
-
-        // Chromatic Aberration Splitting at cloud fringes (Soft watercolor fringe sampling)
-        vec2 uvR = rotUv + vec2(0.008, 0.0);
-        vec2 uvG = rotUv;
-        vec2 uvB = rotUv - vec2(0.008, 0.0);
-
-        float nR = snoise(uvR * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
-        float nG = snoise(uvG * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
-        float nB = snoise(uvB * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
-
-        // Deep Velvety Twilight Palette (Zero blown-out white haze)
-        vec3 deepMidnight   = vec3(0.055, 0.055, 0.095); // #0E0E18
-        vec3 twilightViolet = vec3(0.13, 0.10, 0.25);   // #211A40
-        vec3 duskyRose      = vec3(0.36, 0.18, 0.32);   // #5C2E52
-        vec3 starlightMint  = vec3(0.12, 0.38, 0.34);   // #1F6157
-        vec3 auroralGold    = vec3(0.68, 0.58, 0.36);   // #AD945C
-
-        // Painterly Watercolor Layering
-        vec3 col = mix(deepMidnight, twilightViolet, smoothstep(0.20, 0.70, nG));
-        col = mix(col, duskyRose, smoothstep(0.38, 0.85, nR) * 0.65);
-        col = mix(col, starlightMint, smoothstep(0.45, 0.88, nB) * 0.55);
-        col = mix(col, auroralGold, smoothstep(0.62, 0.95, (nR + nG) * 0.5) * (0.15 + u_audio * 0.30));
-
-        // Gentle cosmic vignette towards borders
-        float vignette = smoothstep(1.5, 0.2, r);
-        float alpha = smoothstep(0.15, 0.80, (nR + nG + nB) / 3.0) * 0.70 * vignette;
-
-        gl_FragColor = vec4(col, alpha);
-      }
-    `;
-
-    const nebulaGeo = new THREE.PlaneGeometry(120, 80);
-    this.nebulaMaterial = new THREE.ShaderMaterial({
-      vertexShader: nebulaVertexShader,
-      fragmentShader: nebulaFragmentShader,
-      uniforms: {
-        u_time: { value: 0.0 },
-        u_audio: { value: 0.0 }
-      },
-      transparent: true,
-      blending: THREE.NormalBlending,
-      depthWrite: false
-    });
+    const nebulaGeo = new THREE.PlaneGeometry(140, 95);
+    this.nebulaMaterial = createNebulaShaderMaterial();
 
     this.registerDisposable(nebulaGeo);
     this.registerDisposable(this.nebulaMaterial);

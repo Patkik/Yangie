@@ -114,6 +114,15 @@
             </svg>
           </button>
 
+          <!-- Cor Amoris Sanctuary Quest Beacon -->
+          <button class="comms-icon-btn" id="btn-nav-cor-amoris" title="Cor Amoris Sanctuary Quest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F5C2E7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(245, 194, 231, 0.25)"/>
+              <circle cx="12" cy="12" r="2.5" fill="#F9E2AF"/>
+            </svg>
+            <span class="comms-unread-badge" id="cor-amoris-quest-dot" style="display: none;">!</span>
+          </button>
+
           <!-- Sanctuary Settings & Updates -->
           <button class="comms-icon-btn" id="btn-nav-settings" title="Sanctuary Settings & Updates">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -680,12 +689,12 @@
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
               Software Updates
             </span>
-            <span id="settings-current-ver-badge" class="settings-version-badge">v2.4.7</span>
+            <span id="settings-current-ver-badge" class="settings-version-badge">v2.4.8</span>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: #A6ADC8;">
             <span>Installed Version:</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.4.7</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.4.8</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>
@@ -900,7 +909,7 @@
           </button>
         </div>
 
-        <!-- 4. Cosmic Memory Squishy (Quest 1 Fragment 01) -->
+        <!-- 4. Cosmic Memory Squishy (Quest Item) -->
         <div class="shop-item-card" data-item="memory_squishy">
           <div class="item-icon-box" style="background: rgba(245, 194, 231, 0.15); border: 1px solid rgba(245, 194, 231, 0.4);">
             <svg viewBox="0 0 24 24" fill="none" stroke="#F5C2E7" stroke-width="2">
@@ -909,8 +918,8 @@
             </svg>
           </div>
           <div class="item-info">
-            <div class="item-name">Memory Squishy <span class="scarce-badge" style="background: rgba(245, 194, 231, 0.2); color: #F5C2E7; border-color: rgba(245, 194, 231, 0.4);">QUEST 01</span></div>
-            <div class="item-effect">+10% All Vitals • Tap 3x to Uncover</div>
+            <div class="item-name">Memory Squishy <span class="scarce-badge" style="background: rgba(245, 194, 231, 0.2); color: #F5C2E7; border-color: rgba(245, 194, 231, 0.4);">QUEST ITEM</span></div>
+            <div class="item-effect">+10% All Vitals • Tap 3x to Resonate</div>
             <div class="item-stock">Stock: <span id="shop-stock-memory_squishy">0</span> / 5</div>
           </div>
           <button class="shop-buy-btn" id="btn-buy-memory_squishy" data-item="memory_squishy" style="border-color: #F5C2E7; color: #F5C2E7;">
@@ -930,68 +939,110 @@
   <div id="pointer-shield" class="pointer-shield"></div>
 
   <!-- ═════════════════════════════════════════════════════════════════════════
-       COR AMORIS: SCAVENGER HUNT & MEMORIAL ARCHIVE UI (01-27-2024)
+       COR AMORIS: SCAVENGER HUNT & MEMORIAL ARCHIVE UI
        ═════════════════════════════════════════════════════════════════════════ -->
 
-  <!-- 1. Bottom Navigation Constellation Dock (✧ ✧ ✧) -->
-  <nav id="cor-amoris-constellation-dock" class="constellation-dock" aria-label="Celestial Constellation Dock">
-    <button id="dock-star-resonance" class="dock-star-btn" title="Resonance Wallets">
-      <span class="dock-star-icon">✧</span>
-      <span class="dock-star-label">Resonance</span>
-    </button>
-    <button id="dock-star-satchel" class="dock-star-btn" title="Satchel Pouch">
-      <span class="dock-star-icon">✧</span>
-      <span class="dock-star-label">Satchel</span>
-    </button>
-    <button id="dock-star-archive" class="dock-star-btn" title="Memorial Archive">
-      <span class="dock-star-icon">✧</span>
-      <span class="dock-star-label">Archive</span>
-    </button>
+  <!-- 1. Floating Contextual Hint Bubble (Non-overlapping top position) -->
+  <div id="kiro-idle-hint-bubble" class="kiro-idle-hint-bubble hidden">
+    <div class="hint-kiro-avatar">
+      <svg viewBox="0 0 32 32" fill="none" style="width: 24px; height: 24px;">
+        <ellipse cx="16" cy="18" rx="12" ry="10" fill="#4EC9B0"/>
+        <circle cx="12" cy="16" r="2" fill="#11111B"/>
+        <circle cx="20" cy="16" r="2" fill="#11111B"/>
+        <path d="M14 20 Q16 22 18 20" stroke="#11111B" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <div class="hint-text-content" id="kiro-idle-hint-text">
+      ✦ A squishy memory in Kepler-186 Outpost holds the spark of our beginning... 3 taps reveal its warmth.
+    </div>
+  </div>
+
+  <!-- Hidden Constellation Dock Elements (Preserves event routing without bottom overlap) -->
+  <nav id="cor-amoris-constellation-dock" class="constellation-dock" style="display: none;" aria-hidden="true">
+    <button id="dock-star-resonance" class="dock-star-btn"><span class="dock-star-icon">✧</span></button>
+    <button id="dock-star-satchel" class="dock-star-btn"><span class="dock-star-icon">✧</span></button>
+    <button id="dock-star-archive" class="dock-star-btn"><span class="dock-star-icon">✧</span></button>
   </nav>
 
-  <!-- 2. Idle Contextual Hint Bubble -->
-  <div id="kiro-idle-hint-bubble" class="kiro-idle-hint-bubble hidden">
-    <div class="hint-kiro-avatar">🦖</div>
-    <div class="hint-text-content" id="kiro-idle-hint-text">
-      ✦ A squishy memory in Kepler-186 Outpost holds the spark of the beginning... 3 taps reveal its warmth.
-    </div>
-  </div>
-
-  <!-- 3. Floating 2024 Physics Detached Element -->
+  <!-- 2. Floating 2024 Physics Detached Element -->
   <div id="floating-2024-fragment" class="floating-2024-fragment hidden">
-    ✦ 2024 ✦
+    ✦ ???? ✦
   </div>
 
-  <!-- 4. Opening Monologue Modal -->
+  <!-- 3. Kiro's Authentic Anime RPG Dialogue Box -->
   <div id="cor-amoris-monologue-modal" class="cor-amoris-modal-backdrop hidden">
-    <div class="cor-amoris-card">
-      <div class="cor-card-header">
-        <span class="cor-card-title">🛰️ Kiro's Navigational Directive</span>
-        <button class="cor-card-close" id="monologue-close-btn">&times;</button>
+    <div class="anime-dialogue-card" id="anime-dialogue-card">
+      <div class="anime-corner anime-corner-tl"></div>
+      <div class="anime-corner anime-corner-tr"></div>
+      <div class="anime-corner anime-corner-bl"></div>
+      <div class="anime-corner anime-corner-br"></div>
+      
+      <!-- Character Info Header -->
+      <div class="anime-dialogue-header">
+        <div class="anime-nameplate">
+          <span class="nameplate-glyph">✦</span>
+          <span class="nameplate-main">KIRO</span>
+          <span class="nameplate-jp">[キロ]</span>
+          <span class="nameplate-sub">• Celestial Guide</span>
+        </div>
+        <button class="anime-dialogue-close" id="monologue-close-btn">&times;</button>
       </div>
-      <div style="display: flex; gap: 14px; align-items: flex-start;">
-        <div class="hint-kiro-avatar" style="width: 44px; height: 44px; font-size: 24px;">🦖</div>
-        <p id="cor-amoris-monologue-text" style="font-size: 13px; line-height: 1.6; color: #CDD6F4; margin: 0; font-style: italic;"></p>
+
+      <!-- Dialogue Body with Anime Portrait and Typewriter Speech -->
+      <div class="anime-dialogue-body">
+        <div class="anime-portrait-frame">
+          <div class="anime-portrait-glow"></div>
+          <svg class="anime-kiro-svg" viewBox="0 0 100 100" fill="none">
+            <!-- Plushie Dinosaur Face -->
+            <ellipse cx="50" cy="54" rx="38" ry="34" fill="#4EC9B0"/>
+            <ellipse cx="50" cy="62" rx="26" ry="20" fill="#94E2D5"/>
+            <!-- Starlight Eyes -->
+            <ellipse cx="36" cy="48" rx="6" ry="8" fill="#11111B"/>
+            <ellipse cx="64" cy="48" rx="6" ry="8" fill="#11111B"/>
+            <circle cx="34" cy="45" r="2.5" fill="#FFFFFF"/>
+            <circle cx="62" cy="45" r="2.5" fill="#FFFFFF"/>
+            <circle cx="38" cy="51" r="1.2" fill="#F9E2AF"/>
+            <circle cx="66" cy="51" r="1.2" fill="#F9E2AF"/>
+            <!-- Rosy Cheeks -->
+            <ellipse cx="26" cy="58" rx="6" ry="3.5" fill="#F5C2E7" opacity="0.85"/>
+            <ellipse cx="74" cy="58" rx="6" ry="3.5" fill="#F5C2E7" opacity="0.85"/>
+            <!-- Cute Anime Smile -->
+            <path d="M44 58 Q50 63 56 58" stroke="#11111B" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <!-- Little Celestial Horn -->
+            <polygon points="50 18 44 30 56 30" fill="#F9E2AF"/>
+          </svg>
+        </div>
+
+        <div class="anime-speech-content" id="anime-speech-content">
+          <p id="cor-amoris-monologue-text" class="anime-typewriter-text"></p>
+          <div class="anime-prompt-arrow" id="anime-prompt-arrow">▼</div>
+        </div>
       </div>
-      <button id="monologue-begin-btn" class="settings-btn-primary" style="margin-top: 10px;">
-        <span>Begin Scavenger Hunt ✦</span>
-      </button>
+
+      <!-- Dialogue Action Bar -->
+      <div class="anime-dialogue-footer">
+        <button id="monologue-begin-btn" class="anime-action-btn">
+          <span class="btn-sparkle">✦</span>
+          <span>Begin Scavenger Hunt</span>
+          <span class="btn-arrow">▶</span>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- 5. Quest 1: Cosmic Memory Squishy Modal -->
+  <!-- 4. Quest 1: Cosmic Memory Squishy Modal -->
   <div id="cor-amoris-squishy-modal" class="cor-amoris-modal-backdrop hidden">
     <div class="cor-amoris-card">
       <div class="cor-card-header">
-        <span class="cor-card-title">✦ Cosmic Memory Squishy (01)</span>
+        <span class="cor-card-title">✦ Cosmic Memory Squishy</span>
         <button class="cor-card-close" id="squishy-close-btn">&times;</button>
       </div>
       <div style="font-size: 12px; color: #A6ADC8;">
-        Tap the squishy memory 3 times to channel warm resonance and uncover the "01" fragment.
+        Tap the squishy memory 3 times to resonate with warm memories and awaken its hidden keystone.
       </div>
       <div id="squishy-canvas-wrapper" class="squishy-canvas-wrapper">
         <canvas id="squishy-shader-canvas" width="360" height="220"></canvas>
-        <div id="squishy-revealed-glyph" class="squishy-revealed-glyph hidden">01</div>
+        <div id="squishy-revealed-glyph" class="squishy-revealed-glyph hidden">??</div>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span id="squishy-tap-progress-badge" class="settings-version-badge">Resonance Taps: 0/3</span>
@@ -1002,7 +1053,7 @@
     </div>
   </div>
 
-  <!-- 6. Stargate Resonance Dial Modal -->
+  <!-- 5. Stargate Resonance Dial Modal -->
   <div id="cor-amoris-stargate-modal" class="cor-amoris-modal-backdrop hidden">
     <div class="cor-amoris-card">
       <div class="cor-card-header">
@@ -1010,29 +1061,29 @@
         <button class="cor-card-close" id="stargate-close-btn">&times;</button>
       </div>
       <div style="font-size: 12px; color: #A6ADC8; text-align: center;">
-        Align all 3 numerical keys from your Satchel into the Stargate dial to awaken Cor Amoris.
+        Align the 3 sacred keystones discovered across the cosmos to awaken Cor Amoris.
       </div>
       <div class="stargate-dial-container">
-        <div class="stargate-slot" id="stargate-slot-01">
-          <span class="stargate-slot-glyph">01</span>
-          <span class="stargate-slot-label">Touch</span>
+        <div class="stargate-slot slot-locked" id="stargate-slot-01">
+          <span class="stargate-slot-glyph">??</span>
+          <span class="stargate-slot-label">Kepler Memory</span>
         </div>
-        <div class="stargate-slot" id="stargate-slot-27">
-          <span class="stargate-slot-glyph">27</span>
-          <span class="stargate-slot-label">Rhythm</span>
+        <div class="stargate-slot slot-locked" id="stargate-slot-27">
+          <span class="stargate-slot-glyph">??</span>
+          <span class="stargate-slot-label">Trappist Catch</span>
         </div>
-        <div class="stargate-slot" id="stargate-slot-2024">
-          <span class="stargate-slot-glyph">2024</span>
-          <span class="stargate-slot-label">Genesis</span>
+        <div class="stargate-slot slot-locked" id="stargate-slot-2024">
+          <span class="stargate-slot-glyph">????</span>
+          <span class="stargate-slot-label">Genesis Stardate</span>
         </div>
       </div>
-      <button id="btn-align-stargate" class="settings-btn-primary">
-        <span>✦ Synchronize Resonance Lock ✦</span>
+      <button id="btn-align-stargate" class="settings-btn-primary" disabled>
+        <span>3 Sacred Keystones Required (0/3 Found)</span>
       </button>
     </div>
   </div>
 
-  <!-- 7. Cutscene Fullscreen Overlay -->
+  <!-- 6. Cutscene Fullscreen Overlay -->
   <div id="cor-amoris-cutscene-overlay" class="cor-amoris-cutscene-overlay hidden">
     <!-- Scene 1: Shatter -->
     <div id="cutscene-scene-shatter" class="cutscene-scene-container hidden">
@@ -1050,26 +1101,34 @@
         🪐 COR AMORIS 🪐
       </div>
       <div style="font-size: 14px; color: #CDD6F4;">
-        The Crystal Bridge Spans Twin Suns • Liquid Starlight Cascades
+        THE TWIN SUNS OF 01-27-2024 EMBRACE
       </div>
     </div>
 
     <!-- Scene 3: The Declaration -->
     <div id="cutscene-scene-declaration" class="cutscene-scene-container hidden">
-      <div class="declaration-letter-text">
-        “Yang, every star in this universe brought me to you. Through every trial, every growth, and every quiet moment, my heart has found its home. I love you beyond all measure—always and forever, Pat.”
+      <div class="cutscene-declaration-box">
+        <p class="cutscene-declaration-text">
+          "Two souls across different sanctuaries, forever bound under the same sky."
+        </p>
       </div>
     </div>
 
     <!-- Scene 4: Core Lock Badge -->
     <div id="cutscene-scene-badge" class="cutscene-scene-container hidden">
-      <div class="core-lock-badge-artifact">
-        ✦ STARDATE 2024.01.27 — YANG'S HEART: SECURED ✦
+      <div class="core-lock-badge-glow">
+        <div style="font-size: 48px;">💍</div>
+        <div style="font-size: 18px; font-weight: 700; color: #F9E2AF; margin-top: 10px;">
+          COR AMORIS CITIZENSHIP
+        </div>
+        <div style="font-size: 12px; color: #94E2D5; margin-top: 4px;">
+          ETERNAL TWIN RESONANCE UNLOCKED
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 8. Memorial Archive Modal -->
+  <!-- 7. Memorial Archive Modal -->
   <div id="cor-amoris-archive-modal" class="cor-amoris-modal-backdrop hidden">
     <div class="cor-amoris-card">
       <div class="cor-card-header">
@@ -1090,7 +1149,7 @@
     </div>
   </div>
 
-  <!-- 9. Satchel Modal -->
+  <!-- 8. Satchel Modal -->
   <div id="cor-amoris-satchel-modal" class="cor-amoris-modal-backdrop hidden">
     <div class="cor-amoris-card">
       <div class="cor-card-header">
@@ -1098,20 +1157,20 @@
         <button class="cor-card-close" id="satchel-close-btn">&times;</button>
       </div>
       <div style="font-size: 12px; color: #A6ADC8;">
-        Collected fragments of the Anniversary Key (01-27-2024):
+        Discovered Sacred Keystones from your celestial journey:
       </div>
       <div class="stargate-dial-container">
-        <div class="stargate-slot" id="satchel-item-01">
-          <span class="stargate-slot-glyph">01</span>
-          <span class="stargate-slot-label">Kepler Shop</span>
+        <div class="stargate-slot slot-locked" id="satchel-item-01">
+          <span class="stargate-slot-glyph">??</span>
+          <span class="stargate-slot-label">Kepler Keystone</span>
         </div>
-        <div class="stargate-slot" id="satchel-item-27">
-          <span class="stargate-slot-glyph">27</span>
-          <span class="stargate-slot-label">Trappist Catch</span>
+        <div class="stargate-slot slot-locked" id="satchel-item-27">
+          <span class="stargate-slot-glyph">??</span>
+          <span class="stargate-slot-label">Trappist Keystone</span>
         </div>
-        <div class="stargate-slot" id="satchel-item-2024">
-          <span class="stargate-slot-glyph">2024</span>
-          <span class="stargate-slot-label">Stardate Anchor</span>
+        <div class="stargate-slot slot-locked" id="satchel-item-2024">
+          <span class="stargate-slot-glyph">????</span>
+          <span class="stargate-slot-label">Genesis Keystone</span>
         </div>
       </div>
       <button id="btn-open-stargate-from-satchel" class="settings-btn-primary">
@@ -1120,7 +1179,7 @@
     </div>
   </div>
 
-  <!-- 10. Double-Ledger Resonance Wallet Modal -->
+  <!-- 9. Double-Ledger Resonance Wallet Modal -->
   <div id="cor-amoris-wallet-modal" class="cor-amoris-modal-backdrop hidden">
     <div class="cor-amoris-card">
       <div class="cor-card-header">
@@ -1147,7 +1206,7 @@
     </div>
   </div>
 
-  <!-- 11. Quest Toast Notification -->
+  <!-- 10. Quest Toast Notification -->
   <div id="cor-amoris-quest-toast" class="kiro-idle-hint-bubble hidden" style="bottom: 140px; border-color: #4EC9B0;">
     <div class="hint-kiro-avatar">✨</div>
     <div class="hint-text-content" id="cor-amoris-toast-msg" style="color: #4EC9B0; font-weight: 700;">
