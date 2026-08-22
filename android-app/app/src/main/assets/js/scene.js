@@ -152,20 +152,18 @@ function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0)
   });
 }
 
-// Helper: 100% Procedural Cozy Velvety Fur & Matte Character Shader Generator
-function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, furFuzzIntensity = 0.055) {
+// Helper: 100% Procedural Clean Velvet Plushie & Cozy Soft Character Material Generator
+function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, rimPower = 2.4) {
   const vertexShader = `
     varying vec3 vNormal;
     varying vec3 vViewDir;
     varying vec2 vUv;
-    varying vec3 vWorldPosition;
 
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
       vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
       vViewDir = normalize(-mvPos.xyz);
-      vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
       gl_Position = projectionMatrix * mvPos;
     }
   `;
@@ -176,55 +174,24 @@ function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, furFuzzIntensi
     uniform vec3 u_baseColor;
     uniform vec3 u_shadowColor;
     uniform vec3 u_rimColor;
-    uniform float u_furFuzz;
+    uniform float u_rimPower;
     varying vec3 vNormal;
     varying vec3 vViewDir;
     varying vec2 vUv;
-    varying vec3 vWorldPosition;
-
-    // Procedural multi-scale pseudo-random noise for micro-fur fibers
-    float hash(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-    }
-
-    float noise(vec2 p) {
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      f = f * f * (3.0 - 2.0 * f);
-      float a = hash(i);
-      float b = hash(i + vec2(1.0, 0.0));
-      float c = hash(i + vec2(0.0, 1.0));
-      float d = hash(i + vec2(1.0, 1.0));
-      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-    }
-
-    float furNoise(vec2 p) {
-      float v = 0.0;
-      float a = 0.55;
-      for (int i = 0; i < 3; i++) {
-        v += a * noise(p);
-        p *= 2.1;
-        a *= 0.45;
-      }
-      return v;
-    }
 
     void main() {
-      // 1. Soft Subsurface Wrap Lighting (Matte Fur / Velvet Fiber Diffusion, Zero Plastic Specular)
+      // 1. Soft Half-Lambert Velvet Light Wrap (Zero dirt/noise, 100% clean plushie diffusion)
       float NdotL = dot(vNormal, u_lightDir);
-      float wrapNdotL = (NdotL + 0.35) / 1.35; // Soft wrap diffusion through hair fibers
-      float furTerminator = smoothstep(0.18, 0.55, wrapNdotL);
+      float wrap = (NdotL + 0.38) / 1.38;
+      float diff = smoothstep(0.08, 0.92, wrap);
 
-      // 2. High-Frequency Micro-Fur / Felt Fiber Texture
-      float microFur = (furNoise(vUv * 64.0 + vec2(u_time * 0.015, 0.0)) - 0.5) * u_furFuzz;
+      // 2. Soft Velvet Peach-Fuzz Retro-Reflective Sheen (Luminous grazing glow, zero plastic glare)
+      float grazing = 1.0 - max(0.0, dot(vNormal, vViewDir));
+      float sheen = pow(grazing, u_rimPower) * 0.38;
 
-      // 3. Velvet Peach-Fuzz Sheen (Soft grazing fiber backscatter, NOT plastic specular)
-      float grazingAngle = 1.0 - max(0.0, dot(vNormal, vViewDir));
-      float peachFuzz = pow(grazingAngle, 2.6) * 0.28;
-
-      // 4. Matte Velvet Color Composition (Absorbs harsh highlights, diffuses soft warmth)
-      vec3 furBase = mix(u_shadowColor, u_baseColor, furTerminator) + microFur;
-      vec3 finalColor = mix(furBase, u_rimColor, peachFuzz);
+      // 3. Smooth, Cuddly Velvet Color Blend
+      vec3 surface = mix(u_shadowColor, u_baseColor, diff);
+      vec3 finalColor = mix(surface, u_rimColor, sheen);
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -239,7 +206,7 @@ function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, furFuzzIntensi
       u_baseColor: { value: new THREE.Color(baseHex) },
       u_shadowColor: { value: new THREE.Color(shadowHex) },
       u_rimColor: { value: new THREE.Color(rimHex) },
-      u_furFuzz: { value: furFuzzIntensity }
+      u_rimPower: { value: rimPower }
     }
   });
 }
@@ -1485,45 +1452,33 @@ export class KiroSceneManager {
     this.kiroGroup.position.set(0, 0, 0);
     this.scene.add(this.kiroGroup);
 
-    // 100% Procedural Anime Plushie Materials (Stepped Cel-Shading, Watercolor Paper Grain & Fresnel Rim Glow)
-    const mintMat = createAnimeCharacterMaterial(0x4EC9B0, 0x1A4237, 0x94E2D5, 3.2);
+    // 100% Procedural Velvet Plushie Materials (Clean Half-Lambert Wrap & Peach-Fuzz Sheen, Zero Dirt Artifacts)
+    const mintMat = createAnimeCharacterMaterial(0x4EC9B0, 0x267262, 0x94E2D5, 2.2);
     this.registerDisposable(mintMat);
 
-    const bellyMat = createAnimeCharacterMaterial(0xFFF8EB, 0x332A10, 0xF9E2AF, 4.0);
+    const bellyMat = createAnimeCharacterMaterial(0xFFF8EB, 0xEADECA, 0xFFFFFF, 2.6);
     this.registerDisposable(bellyMat);
 
-    const crestMat = createAnimeCharacterMaterial(0xFDE08B, 0x332A10, 0xF9E2AF, 3.5);
+    const crestMat = createAnimeCharacterMaterial(0xFDE08B, 0xD4A032, 0xFFF4A8, 2.4);
     this.registerDisposable(crestMat);
 
     this.animeCharacterMaterials = [mintMat, bellyMat, crestMat];
 
-    // 1. Cute Rounded Chubby Spherical Dino Body + Inverted-Hull Outline
+    // 1. Cute Rounded Chubby Spherical Dino Body
     const bodyGeo = new THREE.SphereGeometry(0.85, 36, 36);
     this.bodyMesh = new THREE.Mesh(bodyGeo, mintMat);
     this.bodyMesh.scale.set(1.08, 0.98, 1.04);
     this.bodyMesh.position.set(0, 0, 0);
     this.kiroGroup.add(this.bodyMesh);
-
-    this.bodyOutline = createAnimeOutlineMesh(bodyGeo, 0.024, 0x11111B);
-    this.bodyOutline.scale.set(1.08, 0.98, 1.04);
-    this.bodyOutline.position.set(0, 0, 0);
-    this.kiroGroup.add(this.bodyOutline);
     this.registerDisposable(bodyGeo);
-    this.registerDisposable(this.bodyOutline.material);
 
-    // 2. Large Smooth Creamy Belly Patch (#FFF8EB) + Outline
+    // 2. Large Smooth Creamy Belly Patch (#FFF8EB)
     const bellyGeo = new THREE.SphereGeometry(0.58, 32, 24);
     this.bellyMesh = new THREE.Mesh(bellyGeo, bellyMat);
     this.bellyMesh.scale.set(1.04, 0.90, 0.44);
     this.bellyMesh.position.set(0, -0.16, 0.65);
     this.kiroGroup.add(this.bellyMesh);
-
-    this.bellyOutline = createAnimeOutlineMesh(bellyGeo, 0.020, 0x11111B);
-    this.bellyOutline.scale.set(1.04, 0.90, 0.44);
-    this.bellyOutline.position.set(0, -0.16, 0.65);
-    this.kiroGroup.add(this.bellyOutline);
     this.registerDisposable(bellyGeo);
-    this.registerDisposable(this.bellyOutline.material);
 
     // 3. Banana-Yellow 3-Lobed Scalloped Head Crest (Crown Spines)
     this.headCrests = [];
@@ -1542,19 +1497,13 @@ export class KiroSceneManager {
       this.registerDisposable(spGeo);
     });
 
-    // 4. Cute Chubby Dino Tail & Yellow Spines + Outline
+    // 4. Cute Chubby Dino Tail & Yellow Spines
     const tailGeo = new THREE.ConeGeometry(0.30, 0.72, 20);
     this.tailMesh = new THREE.Mesh(tailGeo, mintMat);
     this.tailMesh.position.set(0, -0.38, -0.80);
     this.tailMesh.rotation.set(-Math.PI / 2.6, 0, 0);
     this.kiroGroup.add(this.tailMesh);
-
-    this.tailOutline = createAnimeOutlineMesh(tailGeo, 0.020, 0x11111B);
-    this.tailOutline.position.set(0, -0.38, -0.80);
-    this.tailOutline.rotation.set(-Math.PI / 2.6, 0, 0);
-    this.kiroGroup.add(this.tailOutline);
     this.registerDisposable(tailGeo);
-    this.registerDisposable(this.tailOutline.material);
 
     const tailPlateGeo = new THREE.SphereGeometry(0.10, 14, 14);
     const tp1 = new THREE.Mesh(tailPlateGeo, crestMat);
@@ -1569,30 +1518,18 @@ export class KiroSceneManager {
     this.tailPlates = [tp1, tp2];
     this.registerDisposable(tailPlateGeo);
 
-    // 5. Two Cute Little Stubby Dinosaur Feet at Base + Outlines
+    // 5. Two Cute Little Stubby Dinosaur Feet at Base
     const footGeo = new THREE.SphereGeometry(0.18, 16, 16);
     this.leftFoot = new THREE.Mesh(footGeo, mintMat);
     this.leftFoot.scale.set(0.95, 0.60, 1.30);
     this.leftFoot.position.set(-0.36, -0.78, 0.30);
     this.kiroGroup.add(this.leftFoot);
 
-    this.leftFootOutline = createAnimeOutlineMesh(footGeo, 0.020, 0x11111B);
-    this.leftFootOutline.scale.set(0.95, 0.60, 1.30);
-    this.leftFootOutline.position.set(-0.36, -0.78, 0.30);
-    this.kiroGroup.add(this.leftFootOutline);
-
     this.rightFoot = new THREE.Mesh(footGeo, mintMat);
     this.rightFoot.scale.set(0.95, 0.60, 1.30);
     this.rightFoot.position.set(0.36, -0.78, 0.30);
     this.kiroGroup.add(this.rightFoot);
-
-    this.rightFootOutline = createAnimeOutlineMesh(footGeo, 0.020, 0x11111B);
-    this.rightFootOutline.scale.set(0.95, 0.60, 1.30);
-    this.rightFootOutline.position.set(0.36, -0.78, 0.30);
-    this.kiroGroup.add(this.rightFootOutline);
     this.registerDisposable(footGeo);
-    this.registerDisposable(this.leftFootOutline.material);
-    this.registerDisposable(this.rightFootOutline.material);
 
     // 6. Soulful Sparkling Anime/Chibi Starlight Eyes
     const eyeGeo = new THREE.SphereGeometry(0.138, 24, 24);

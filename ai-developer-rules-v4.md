@@ -162,3 +162,4 @@ You must adhere to these rigid engineering implementations for the primary featu
 - **[DEC-361900]** Anime Realistic Shaders, Cel-Shading & Watercolor Parallax Nebula V7.7
 - **[DEC-371900]** Anime Inverted-Hull Outlines & Hand-Painted Character Shaders V7.8
 - **[DEC-381900]** Cozy Matte Fur & Velvet Microfiber Shader Architecture V7.9
+- **[DEC-391900]** Clean Plushie Velvet & Soft Half-Lambert Wrap Architecture V8.0
