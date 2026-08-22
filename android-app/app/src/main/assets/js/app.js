@@ -446,18 +446,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const shopStarStock = document.getElementById('shop-stock-star');
     const shopDonutStock = document.getElementById('shop-stock-donut');
     const shopWaterStock = document.getElementById('shop-stock-water');
+    const shopSquishyStock = document.getElementById('shop-stock-memory_squishy');
     const shopCostStar = document.getElementById('shop-cost-star');
     const shopCostDonut = document.getElementById('shop-cost-donut');
     const shopCostWater = document.getElementById('shop-cost-water');
+    const shopCostSquishy = document.getElementById('shop-cost-memory_squishy');
     const shopVaultShards = document.getElementById('shop-vault-shards');
 
     if (shopStarStock) shopStarStock.textContent = inv.star ?? 0;
     if (shopDonutStock) shopDonutStock.textContent = inv.donut ?? 0;
     if (shopWaterStock) shopWaterStock.textContent = inv.water ?? 0;
+    if (shopSquishyStock) shopSquishyStock.textContent = inv.memory_squishy ?? 0;
 
     if (shopCostStar) shopCostStar.textContent = `${KiroState.getItemCost('star')} ✦`;
     if (shopCostDonut) shopCostDonut.textContent = `${KiroState.getItemCost('donut')} ✦`;
     if (shopCostWater) shopCostWater.textContent = `${KiroState.getItemCost('water')} ✦`;
+    if (shopCostSquishy) shopCostSquishy.textContent = `${KiroState.getItemCost('memory_squishy')} ✦`;
 
     if (shopVaultShards) shopVaultShards.textContent = `${KiroState.get('stardustShards') ?? 350} ✦`;
   };
@@ -498,6 +502,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result.success) {
         synthEngine.playAuraFlare();
         updateInventoryBadges();
+        if (itemId === 'memory_squishy') {
+          closeShop();
+          corAmorisEngine.openMemorySquishyModal();
+        }
       } else {
         synthEngine.playSadWhimper();
         if (typeof window !== 'undefined' && window.KiroApp && typeof window.KiroApp.spawnNetworkAlertBanner === 'function') {
@@ -1369,63 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetZenTimer();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 10. Kepler-186 Outpost Shop & Shared Stockpile Handlers
-  // ─────────────────────────────────────────────────────────────────────────
-  const keplerShopModal = document.getElementById('kepler-shop-modal');
-  const shopCloseBtn = document.getElementById('shop-close-btn');
-
-  const updateShopUI = () => {
-    const inv = KiroState.get('inventory') || {};
-    const shards = KiroState.get('stardustShards') || 0;
-    const vaultShardsEl = document.getElementById('shop-vault-shards');
-    if (vaultShardsEl) vaultShardsEl.textContent = `${shards} ✦`;
-
-    ['water', 'donut', 'star', 'memory_squishy'].forEach(item => {
-      const stockEl = document.getElementById(`shop-stock-${item}`);
-      const costEl = document.getElementById(`shop-cost-${item}`);
-      if (stockEl) stockEl.textContent = inv[item] || 0;
-      if (costEl) costEl.textContent = `${KiroState.getItemCost(item)} ✦`;
-    });
-  };
-
-  const openKeplerShop = () => {
-    updateShopUI();
-    if (keplerShopModal) keplerShopModal.style.display = 'flex';
-    synthEngine.playAuraFlare();
-  };
-
-  if (shopCloseBtn) {
-    shopCloseBtn.addEventListener('click', () => {
-      if (keplerShopModal) keplerShopModal.style.display = 'none';
-    });
-  }
-
-  // Shop Buy Buttons
-  ['water', 'donut', 'star', 'memory_squishy'].forEach(item => {
-    const btn = document.getElementById(`btn-buy-${item}`);
-    if (btn) {
-      btn.addEventListener('click', () => {
-        const res = KiroState.buyItem(item);
-        if (res.success) {
-          synthEngine.playShardPickup();
-          updateShopUI();
-          if (item === 'memory_squishy') {
-            if (keplerShopModal) keplerShopModal.style.display = 'none';
-            corAmorisEngine.openMemorySquishyModal();
-          }
-        } else {
-          synthEngine.playSadWhimper();
-          alert(res.reason || 'Cannot purchase item.');
-        }
-      });
-    }
-  });
-
-  KiroState.on('change:inventory', () => updateShopUI());
-  KiroState.on('change:stardustShards', () => updateShopUI());
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // 11. Cor Amoris Constellation Dock & Modals Bindings
+  // 10. Cor Amoris Constellation Dock & Modals Bindings
   // ─────────────────────────────────────────────────────────────────────────
   const dockResonanceBtn = document.getElementById('dock-star-resonance');
   const dockSatchelBtn = document.getElementById('dock-star-satchel');

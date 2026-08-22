@@ -500,21 +500,29 @@ if (fs.existsSync(agentsMdPath) && fs.existsSync(geminiMdPath) && fs.existsSync(
 console.log(`\n${Colors.TEAL}16. Auditing ES6 Module Syntax & AST Integrity across Asset Suite...${Colors.RESET}`);
 
 const jsDir = path.resolve(__dirname, '../android-app/app/src/main/assets/js');
+const { spawnSync } = require('child_process');
+
 if (fs.existsSync(jsDir)) {
   const jsFiles = fs.readdirSync(jsDir).filter(f => f.endsWith('.js'));
   for (const jsFile of jsFiles) {
     const fullPath = path.join(jsDir, jsFile);
     const content = fs.readFileSync(fullPath, 'utf8');
     try {
-      new vm.Script(content, { filename: jsFile, displayErrors: true });
-      assert(true, `ES6 AST Syntax check passed for: js/${jsFile}`);
-    } catch (e) {
-      // If error is purely top-level import/export (module syntax in classic script), try as Module
-      if (e.message.includes("Cannot use import statement") || e.message.includes("Unexpected token 'export'")) {
-        assert(true, `ES6 Module declaration parsed for: js/${jsFile}`);
+      if (typeof vm.SourceTextModule === 'function') {
+        new vm.SourceTextModule(content, { identifier: jsFile });
+        assert(true, `ES6 Deep AST Syntax & Scope check passed for: js/${jsFile}`);
       } else {
-        assert(false, `Syntax error detected in js/${jsFile}: ${e.message}`);
+        const testScript = "const fs = require('fs'); const vm = require('vm'); const code = fs.readFileSync(process.argv[1], 'utf8'); new vm.SourceTextModule(code);";
+        const res = spawnSync(process.execPath, ['--experimental-vm-modules', '-e', testScript, fullPath], { encoding: 'utf8' });
+        if (res.status === 0) {
+          assert(true, `ES6 Deep AST Syntax & Scope check passed for: js/${jsFile}`);
+        } else {
+          const errLine = (res.stderr || res.stdout || 'Unknown Syntax Error').split('\n').filter(l => l.trim().length > 0 && !l.includes('ExperimentalWarning')).join(' | ');
+          assert(false, `Syntax error in js/${jsFile}: ${errLine}`);
+        }
       }
+    } catch (e) {
+      assert(false, `Syntax / scope error detected in js/${jsFile}: ${e.message}`);
     }
   }
 }
