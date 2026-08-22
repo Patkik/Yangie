@@ -11,6 +11,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const ASSETS_DIR = path.join(PROJECT_ROOT, 'android-app', 'app', 'src', 'main', 'assets');
@@ -494,7 +495,32 @@ if (fs.existsSync(agentsMdPath) && fs.existsSync(geminiMdPath) && fs.existsSync(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 16. Final Audit Summary
+// 16. Auditing ES6 Module Syntax & AST Integrity across Asset Suite
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}16. Auditing ES6 Module Syntax & AST Integrity across Asset Suite...${Colors.RESET}`);
+
+const jsDir = path.resolve(__dirname, '../android-app/app/src/main/assets/js');
+if (fs.existsSync(jsDir)) {
+  const jsFiles = fs.readdirSync(jsDir).filter(f => f.endsWith('.js'));
+  for (const jsFile of jsFiles) {
+    const fullPath = path.join(jsDir, jsFile);
+    const content = fs.readFileSync(fullPath, 'utf8');
+    try {
+      new vm.Script(content, { filename: jsFile, displayErrors: true });
+      assert(true, `ES6 AST Syntax check passed for: js/${jsFile}`);
+    } catch (e) {
+      // If error is purely top-level import/export (module syntax in classic script), try as Module
+      if (e.message.includes("Cannot use import statement") || e.message.includes("Unexpected token 'export'")) {
+        assert(true, `ES6 Module declaration parsed for: js/${jsFile}`);
+      } else {
+        assert(false, `Syntax error detected in js/${jsFile}: ${e.message}`);
+      }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 17. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

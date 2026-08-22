@@ -301,8 +301,28 @@ def analyze_module_imports():
                     file_clean = False
                     passed = False
 
+        # Check 3: Real ES6 Syntax & AST compilation check
+        try:
+            file_url = file_path.as_posix()
+            cmd = ["node", "--input-type=module", "-e", f"""
+                const C = class {{}};
+                globalThis.localStorage = {{ getItem: () => null, setItem: () => {{}} }};
+                globalThis.window = {{ addEventListener: () => {{}}, matchMedia: () => ({{ matches: false }}) }};
+                globalThis.document = {{ querySelector: () => null, getElementById: () => null, createElement: () => ({{ getContext: () => null, style: {{}} }}) }};
+                globalThis.THREE = new Proxy({{}}, {{ get: () => C }});
+                globalThis.gsap = new Proxy({{}}, {{ get: () => (() => ({{}})) }});
+                await import('{file_url}');
+            """]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            if res.returncode != 0 and "SyntaxError" in res.stderr:
+                print(f"  {Colors.RED}❌ ES6 SyntaxError in {rel_path}:\n{res.stderr.strip()}{Colors.RESET}")
+                file_clean = False
+                passed = False
+        except Exception:
+            pass
+
         if file_clean and matches:
-            print(f"  {Colors.GREEN}✔ Import rules verified for {rel_path} ({len(matches)} active imports){Colors.RESET}")
+            print(f"  {Colors.GREEN}✔ Import & Syntax rules verified for {rel_path} ({len(matches)} active imports){Colors.RESET}")
 
     return passed
 

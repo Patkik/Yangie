@@ -1546,7 +1546,8 @@ export class KiroSceneManager {
           KiroState.set('cockpitSteering.currentTarget', null);
         }
       }
-    } else {
+    }
+
     // 7. Sleeping ZZZ Floating Particles Animation
     if (this.zzzGroup && this.zzzParticles) {
       if (isSleeping) {
