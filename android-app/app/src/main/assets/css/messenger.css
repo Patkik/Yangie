@@ -65,7 +65,7 @@
   font-family: var(--font-display, serif);
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-pink-blush, #F5B7C0);
+  color: var(--color-pink-blush, #ffb6c1);
   display: flex;
   align-items: center;
   gap: 8px;

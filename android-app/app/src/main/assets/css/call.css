@@ -195,7 +195,7 @@
 .call-status-badge.awaiting {
   background: rgba(245, 183, 192, 0.15);
   border: 1px solid rgba(245, 183, 192, 0.4);
-  color: var(--color-pink-blush, #F5B7C0);
+  color: var(--color-pink-blush, #ffb6c1);
   animation: statusPulse 2s ease-in-out infinite;
 }
 
@@ -216,7 +216,7 @@
 .call-status-badge.ended {
   background: rgba(235, 77, 75, 0.12);
   border: 1px solid rgba(235, 77, 75, 0.3);
-  color: #f5b7c0;
+  color: #ffb6c1;
   animation: none;
 }
 
@@ -368,7 +368,7 @@
 .call-hud-btn.active-red {
   background: rgba(235, 77, 75, 0.22);
   border-color: rgba(235, 77, 75, 0.55);
-  color: #f5b7c0;
+  color: #ffb6c1;
 }
 
 /* End call — prominent red */
