@@ -46,6 +46,9 @@ export default class KiroWeatherStationV7 {
         const existing = document.getElementById('starlight-telemetry-station');
         if (existing) existing.remove();
 
+        const existingSheet = document.getElementById('capsule-core-bottom-sheet');
+        if (existingSheet) existingSheet.remove();
+
         let mountPoint = document.getElementById('hero-center') || 
                          document.getElementById('starlight-weather-mount') ||
                          document.getElementById('center-sanctuary-stage') ||
@@ -53,86 +56,99 @@ export default class KiroWeatherStationV7 {
 
         const weatherCard = document.createElement('div');
         weatherCard.id = 'starlight-telemetry-station';
-        weatherCard.className = 'glass-card telemetry-station-card interactive-element';
+        weatherCard.className = 'capsule-core-status-pill interactive-element';
 
+        weatherCard.innerHTML = `
+            <span class="kiro-emoji">🌌</span>
+            <span class="pill-text">Capsule Core</span>
+        `;
+
+        if (mountPoint.firstChild) {
+            mountPoint.insertBefore(weatherCard, mountPoint.firstChild);
+        } else {
+            mountPoint.appendChild(weatherCard);
+        }
+
+        // Add the swipeable bottom sheet globally to body (above the webgl canvas and regular UI)
+        const bottomSheet = document.createElement('div');
+        bottomSheet.id = 'capsule-core-bottom-sheet';
+        bottomSheet.className = 'capsule-core-bottom-sheet';
+        
         const patWeather = KiroState.get('weather.pat') || { temp: '24°C', condition: 'Cosmic Rain' };
         const yangWeather = KiroState.get('weather.yang') || { temp: '26°C', condition: 'Nebula Fog' };
 
-        weatherCard.innerHTML = `
-            <!-- Live Ticking Chronometer -->
-            <div class="telemetry-clock-row">
-                <span class="clock-label">CAPSULE CORE TIME</span>
-                <span id="telemetry-live-clock" class="clock-value">00:00:00 AM</span>
-                <span id="telemetry-live-date" class="clock-date">STARDATE 2026.08.22</span>
-            </div>
-
-            <div class="weather-separator"></div>
-
-            <!-- Double-Persona Weather Stations -->
-            <div class="weather-telemetry-grid">
-                <!-- Patrick (Pats) Station -->
-                <div class="weather-station-pillar pat-station">
-                    <div class="pillar-header">
-                        <span class="pillar-dot pat-dot"></span>
-                        <span class="pillar-name">Pats (Pat)</span>
-                    </div>
-                    <div class="pillar-stats">
-                        <span id="pat-temp" class="pillar-temp">${patWeather.temp}</span>
-                        <span id="pat-cond" class="pillar-cond">${patWeather.condition}</span>
-                    </div>
-                </div>
-
-                <div class="pillar-divider"></div>
-
-                <!-- Yangiee (Yang) Station -->
-                <div class="weather-station-pillar yang-station">
-                    <div class="pillar-header">
-                        <span class="pillar-dot yang-dot"></span>
-                        <span class="pillar-name">Yangiee (Yang)</span>
-                    </div>
-                    <div class="pillar-stats">
-                        <span id="yang-temp" class="pillar-temp">${yangWeather.temp}</span>
-                        <span id="yang-cond" class="pillar-cond">${yangWeather.condition}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="weather-separator"></div>
-
-            <!-- Expandable Weather Simulator Controls -->
-            <div class="simulate-toggle-row">
-                <button type="button" id="simulate-sky-toggle" class="simulate-toggle-btn">
-                    🌌 Simulate Sky State ▾
-                </button>
-            </div>
-
-            <div id="simulate-drawer" class="simulate-drawer-panel">
-                <div class="weather-separator"></div>
+        bottomSheet.innerHTML = `
+            <div class="bottom-sheet-handle"></div>
+            
+            <div class="bottom-sheet-content">
+                <div class="simulate-section-header" style="text-align: center; margin-bottom: 12px; font-size: 0.8rem;">Capsule Dual-Status</div>
                 
-                <!-- Pat Sky Simulator -->
-                <div class="pat-pills-col">
-                    <div class="simulate-section-header">Pats' Local Sky</div>
-                    <div class="simulate-pills-row">
-                        <span class="sim-pill pat-sim" data-persona="pat" data-cond="Sunny" data-temp="25°C" data-text="Sunny Nebula">☀️ Sunny</span>
-                        <span class="sim-pill pat-sim" data-persona="pat" data-cond="Rain" data-temp="21°C" data-text="Cosmic Rain">🌧️ Rain</span>
-                        <span class="sim-pill pat-sim" data-persona="pat" data-cond="Blizzard" data-temp="-5°C" data-text="Stardust Blizzard">❄️ Blizzard</span>
-                        <span class="sim-pill pat-sim" data-persona="pat" data-cond="Gale" data-temp="32°C" data-text="Supernova Gale">🌀 Gale</span>
+                <!-- Double-Persona Weather Stations -->
+                <div class="weather-telemetry-grid">
+                    <!-- Patrick (Pats) Station -->
+                    <div class="weather-station-pillar pat-station">
+                        <div class="pillar-header">
+                            <span class="pillar-dot pat-dot"></span>
+                            <span class="pillar-name">Pats (Pat)</span>
+                        </div>
+                        <div class="pillar-stats">
+                            <span id="pat-temp" class="pillar-temp">${patWeather.temp}</span>
+                            <span id="pat-cond" class="pillar-cond">${patWeather.condition}</span>
+                        </div>
+                    </div>
+
+                    <div class="pillar-divider"></div>
+
+                    <!-- Yangiee (Yang) Station -->
+                    <div class="weather-station-pillar yang-station">
+                        <div class="pillar-header">
+                            <span class="pillar-dot yang-dot"></span>
+                            <span class="pillar-name">Yangiee (Yang)</span>
+                        </div>
+                        <div class="pillar-stats">
+                            <span id="yang-temp" class="pillar-temp">${yangWeather.temp}</span>
+                            <span id="yang-cond" class="pillar-cond">${yangWeather.condition}</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Yangiee Sky Simulator -->
-                <div class="yang-pills-col">
-                    <div class="simulate-section-header">Yangiee's Local Sky</div>
-                    <div class="simulate-pills-row">
-                        <span class="sim-pill yang-sim" data-persona="yang" data-cond="Sunny" data-temp="27°C" data-text="Sunny Nebula">☀️ Sunny</span>
-                        <span class="sim-pill yang-sim" data-persona="yang" data-cond="Rain" data-temp="22°C" data-text="Cosmic Rain">🌧️ Rain</span>
-                        <span class="sim-pill yang-sim" data-persona="yang" data-cond="Blizzard" data-temp="-3°C" data-text="Stardust Blizzard">❄️ Blizzard</span>
-                        <span class="sim-pill yang-sim" data-persona="yang" data-cond="Gale" data-temp="34°C" data-text="Supernova Gale">🌀 Gale</span>
+                <div class="weather-separator" style="margin: 15px 0;"></div>
+                
+                <!-- Expandable Weather Simulator Controls -->
+                <div class="simulate-toggle-row">
+                    <button type="button" id="simulate-sky-toggle" class="simulate-toggle-btn" style="border-color: rgba(255, 255, 255, 0.2); color: #fff;">
+                        🌌 Simulate Sky State ▾
+                    </button>
+                </div>
+
+                <div id="simulate-drawer" class="simulate-drawer-panel">
+                    <div class="weather-separator" style="margin: 10px 0;"></div>
+                    
+                    <!-- Pat Sky Simulator -->
+                    <div class="pat-pills-col">
+                        <div class="simulate-section-header">Pats' Local Sky</div>
+                        <div class="simulate-pills-row">
+                            <span class="sim-pill pat-sim" data-persona="pat" data-cond="Sunny" data-temp="25°C" data-text="Sunny Nebula">☀️ Sunny</span>
+                            <span class="sim-pill pat-sim" data-persona="pat" data-cond="Rain" data-temp="21°C" data-text="Cosmic Rain">🌧️ Rain</span>
+                            <span class="sim-pill pat-sim" data-persona="pat" data-cond="Blizzard" data-temp="-5°C" data-text="Stardust Blizzard">❄️ Blizzard</span>
+                            <span class="sim-pill pat-sim" data-persona="pat" data-cond="Gale" data-temp="32°C" data-text="Supernova Gale">🌀 Gale</span>
+                        </div>
+                    </div>
+
+                    <!-- Yangiee Sky Simulator -->
+                    <div class="yang-pills-col">
+                        <div class="simulate-section-header" style="margin-top: 10px;">Yangiee's Local Sky</div>
+                        <div class="simulate-pills-row">
+                            <span class="sim-pill yang-sim" data-persona="yang" data-cond="Sunny" data-temp="27°C" data-text="Sunny Nebula">☀️ Sunny</span>
+                            <span class="sim-pill yang-sim" data-persona="yang" data-cond="Rain" data-temp="22°C" data-text="Cosmic Rain">🌧️ Rain</span>
+                            <span class="sim-pill yang-sim" data-persona="yang" data-cond="Blizzard" data-temp="-3°C" data-text="Stardust Blizzard">❄️ Blizzard</span>
+                            <span class="sim-pill yang-sim" data-persona="yang" data-cond="Gale" data-temp="34°C" data-text="Supernova Gale">🌀 Gale</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hidden, slide-down Kiro dynamic bubble alert -->
+            <!-- Hidden, slide-down Kiro dynamic bubble alert (now attached to the bottom sheet) -->
             <div id="kiro-rain-warning-bubble" class="kiro-alert-bubble">
                 <div class="bubble-triangle"></div>
                 <div class="bubble-content">
@@ -144,48 +160,40 @@ export default class KiroWeatherStationV7 {
                 </div>
             </div>
         `;
+        document.body.appendChild(bottomSheet);
 
-        if (mountPoint.firstChild) {
-            mountPoint.insertBefore(weatherCard, mountPoint.firstChild);
-        } else {
-            mountPoint.appendChild(weatherCard);
+        // Bind the pill click to open the bottom sheet
+        weatherCard.addEventListener('click', () => {
+            bottomSheet.classList.add('open');
+        });
+
+        // Bind the handle and background area to close the sheet
+        const handle = bottomSheet.querySelector('.bottom-sheet-handle');
+        if (handle) {
+            handle.addEventListener('click', () => {
+                bottomSheet.classList.remove('open');
+            });
+            // Handle basic swipe-down to close
+            let startY = 0;
+            handle.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            });
+            handle.addEventListener('touchend', (e) => {
+                const endY = e.changedTouches[0].clientY;
+                if (endY - startY > 30) {
+                    bottomSheet.classList.remove('open');
+                }
+            });
         }
 
         if (window.gsap) {
-            gsap.fromTo(weatherCard, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" });
+            gsap.fromTo(weatherCard, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)" });
         }
     }
 
     startClock() {
-        const clockEl = document.getElementById('telemetry-live-clock');
-        const dateEl = document.getElementById('telemetry-live-date');
-        
-        const updateTime = () => {
-            const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const pst = new Date(utc + (3600000 * 8));
-
-            const hours = pst.getHours();
-            const mins = pst.getMinutes();
-            const secs = pst.getSeconds();
-
-            const hours12 = hours % 12 || 12;
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const hStr = String(hours12).padStart(2, '0');
-            const mStr = String(mins).padStart(2, '0');
-            const sStr = String(secs).padStart(2, '0');
-
-            if (clockEl) clockEl.textContent = `${hStr}:${mStr}:${sStr} ${ampm}`;
-
-            const year = pst.getFullYear();
-            const month = String(pst.getMonth() + 1).padStart(2, '0');
-            const day = String(pst.getDate()).padStart(2, '0');
-            if (dateEl) dateEl.textContent = `STARDATE ${year}.${month}.${day}`;
-        };
-
-        updateTime();
-        if (this.clockInterval) clearInterval(this.clockInterval);
-        this.clockInterval = setInterval(updateTime, 1000);
+        // Redundant giant clock has been completely removed to keep Kiro visible.
+        // Clock functionality is already handled perfectly in the top-left widget.
     }
 
     startKiroRainAudit() {

@@ -1,10 +1,10 @@
 {
-  "version": "2.3.9",
-  "build": 77,
+  "version": "2.4.0",
+  "build": 78,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V7.0 — Starlight Telemetry, Weather & Interactive Simulation HUD",
+  "description": "Space Capsule V7.1 — Zen Mode & Capsule Core Bottom Sheet",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.9: Integrated KiroWeatherStationV7 & weather-v7.css featuring a live ticking digital chronometer with dynamic Stardate, double-persona localized weather stations for Patrick (Pats) and Yangiee (Yang) with breathing status connection dots, automatic Kiro 'Umbrella' rain alarm triggers with ascending Mi->La chimes and floating alert bubble, and an expandable Sky Simulator with synesthetic Web Audio synthesis."
+  "changelog": "V7.1: Introduced Zen Mode (auto UI fading after 5s) and minimalist Capsule Core status pill. Shifted heavy dual-status and weather simulator into a swipeable bottom sheet to ensure 100% unobstructed views of Kiro. Integrated pinch-to-zoom camera controls."
 }
 

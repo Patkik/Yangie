@@ -2237,20 +2237,50 @@ export class KiroSceneManager {
       onFlightEnd();
     });
 
+    let initialPinchDist = null;
+    let initialFov = null;
+
     window.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches[0]) {
+      if (e.touches && e.touches.length === 2) {
+        // Start pinch-to-zoom
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        initialPinchDist = Math.sqrt(dx * dx + dy * dy);
+        initialFov = this.camera ? this.camera.fov : 45;
+      } else if (e.touches && e.touches[0]) {
         onFlightStart(e.touches[0].clientX, e.touches[0].clientY);
         onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     }, { passive: true });
+
     window.addEventListener('touchmove', (e) => {
-      if (e.touches && e.touches[0]) {
+      if (e.touches && e.touches.length === 2 && initialPinchDist !== null && this.camera) {
+        // Handle pinch-to-zoom
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentPinchDist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Calculate new FOV (inverse relationship: distance grows -> FOV shrinks (zoom in))
+        const scale = initialPinchDist / currentPinchDist;
+        let newFov = initialFov * scale;
+        
+        // Clamp FOV between 20 (zoomed in) and 75 (zoomed out)
+        newFov = Math.max(20, Math.min(75, newFov));
+        this.camera.fov = newFov;
+        this.camera.updateProjectionMatrix();
+      } else if (e.touches && e.touches[0]) {
         onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     }, { passive: true });
-    window.addEventListener('touchend', () => {
-      this.pointerInCanvas = false;
-      onFlightEnd();
+
+    window.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        initialPinchDist = null;
+      }
+      if (e.touches.length === 0) {
+        this.pointerInCanvas = false;
+        onFlightEnd();
+      }
     }, { passive: true });
 
     // Interactive Kiro Petting Raycast

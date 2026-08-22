@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.3.9',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.0',
       isOtaActive: false,
 
       // Wellbeing & Real-time Vitals

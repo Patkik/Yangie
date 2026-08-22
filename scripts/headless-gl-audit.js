@@ -644,7 +644,7 @@ if (fs.existsSync(weatherV7JsPath)) {
 
 if (fs.existsSync(weatherV7CssPath)) {
   const v7Css = fs.readFileSync(weatherV7CssPath, 'utf8');
-  assert(v7Css.includes('.telemetry-station-card') && v7Css.includes('.weather-telemetry-grid'), 'Glassmorphic telemetry card and double-persona weather station grid styles verified in weather-v7.css');
+  assert(v7Css.includes('.capsule-core-status-pill') && v7Css.includes('.capsule-core-bottom-sheet'), 'Glassmorphic telemetry card and double-persona weather station grid styles verified in weather-v7.css');
   assert(v7Css.includes('.simulate-drawer-panel') && v7Css.includes('.kiro-alert-bubble'), 'Expandable sky simulator drawer and floating rain alarm bubble styles verified in weather-v7.css');
   assert(v7Css.includes('breathing-glow-pat') && v7Css.includes('breathing-glow-yang'), 'Asynchronous status breathing glow animations verified for Pat & Yang in weather-v7.css');
 }

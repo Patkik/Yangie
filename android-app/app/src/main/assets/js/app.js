@@ -1235,6 +1235,47 @@ document.addEventListener('DOMContentLoaded', () => {
   KiroState.on('change:cosmicEssence', () => updateCurrencyUI());
   KiroState.on('change:unlockedPlanets', () => renderExoplanetModal());
 
+  // 8.6 Zen Mode (Auto-Fade UI)
+  let zenTimer = null;
+  const ZEN_DELAY = 5000;
+  const uiElementsToFade = [
+    document.querySelector('.sanctuary-top-bar'),
+    document.querySelector('.satellite-orbital-dock'),
+    document.getElementById('starlight-telemetry-station')
+  ];
+  
+  const resetZenTimer = () => {
+    // Wake up UI
+    uiElementsToFade.forEach(el => {
+      if (el) {
+        el.style.transition = 'opacity 0.3s ease';
+        el.style.opacity = '1';
+      }
+    });
+
+    // Start timer for Zen Mode
+    if (zenTimer) clearTimeout(zenTimer);
+    zenTimer = setTimeout(() => {
+      // Re-fetch the pill because it might be injected after DOMContentLoaded
+      const pill = document.getElementById('starlight-telemetry-station');
+      if (pill && !uiElementsToFade.includes(pill)) {
+        uiElementsToFade.push(pill);
+      }
+      uiElementsToFade.forEach(el => {
+        if (el) {
+          el.style.transition = 'opacity 1.5s ease';
+          el.style.opacity = '0.3';
+        }
+      });
+    }, ZEN_DELAY);
+  };
+
+  // Bind wake events
+  document.addEventListener('pointerdown', resetZenTimer);
+  document.addEventListener('pointermove', resetZenTimer);
+  document.addEventListener('touchstart', resetZenTimer, { passive: true });
+  resetZenTimer();
+
   // 9. Rigid Viewport Lock — Prevent screen bounce/scrolling
   document.addEventListener('touchmove', (e) => {
     const isScrollable = e.target.closest('.mailbox-feed, .settings-card, .intro-portals-stage, .call-panel, .exoplanet-systems-grid, .minigame-card');
