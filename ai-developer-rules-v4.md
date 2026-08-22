@@ -171,3 +171,4 @@ You must adhere to these rigid engineering implementations for the primary featu
 - **[DEC-451900]** Adaptive Resource Throttling (ART) Engine & 5-Signal Predictive Telemetry Architecture V8.6
 - **[DEC-461900]** Comprehensive Gamification, Cozy Minigame Suite & Economic Progression Architecture V8.7
 - **[DEC-471900]** Cozy Eco-Battery Mode & 4-Step Thermal Mitigation Architecture V8.8
+- **[DEC-481900]** WebGL Shader Preloader & Running Kiro Warm-Up Engine V8.9

@@ -1,10 +1,10 @@
 {
-  "version": "2.2.1",
-  "build": 66,
+  "version": "2.2.2",
+  "build": 67,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V5.0 — Cozy Eco-Battery Mode & 4-Step Thermal Mitigation Engine",
+  "description": "Space Capsule V5.0 — WebGL Shader Preloader & Running Kiro Warm-Up Engine",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.8: Cozy Eco-Battery Mode & 4-Step Thermal Mitigation Plan with High-DPI Fill-Rate clamping (1.0x-1.25x), 60 FPS Delta-Time frame throttle, dynamic fBm nebula shader simplification, Web Audio duty-cycle sleeping, and automated Battery-Level API listener (< 20%)."
+  "changelog": "V8.9: WebGL Shader Preloader & Warm-Up Engine (V5.0) featuring offscreen GPU shader compilation pass (renderer.compile), procedural 3D running Kiro trigonometric animation loop, starry-gold progress HUD, and cinematic leap forward radial clip-path transition."
 }
 

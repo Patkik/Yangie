@@ -95,7 +95,7 @@ function createGlowStarTexture() {
 }
 
 // Helper: 100% Procedural Anime Cel-Shading & Atmosphere Shader Generator
-function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0) {
+export function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0) {
   const vertexShader = `
     varying vec3 vNormal;
     varying vec3 vViewDir;
@@ -146,15 +146,24 @@ function createAnimePlanetMaterial(baseHex, darkHex, atmHex, bandDensity = 12.0)
       u_time: { value: 0.0 },
       u_lightDir: { value: new THREE.Vector3(0.8, 1.0, 0.6).normalize() },
       u_baseColor: { value: new THREE.Color(baseHex) },
-      u_darkColor: { value: new THREE.Color(darkHex) },
-      u_atmColor: { value: new THREE.Color(atmHex) },
+      u_darkColor: { value: new THREE.Color(darkHex || baseHex) },
+      u_atmColor: { value: new THREE.Color(atmHex || baseHex) },
       u_bands: { value: bandDensity }
     }
   });
 }
 
+// Alias helper for anime planet shader
+export function createPlanetShaderMaterial(color = '#4EC9B0', lightDir = new THREE.Vector3(1, 1, 1)) {
+  const mat = createAnimePlanetMaterial(color, '#11111b', '#F5C2E7', 12.0);
+  if (mat.uniforms && mat.uniforms.u_lightDir) {
+    mat.uniforms.u_lightDir.value = lightDir.normalize();
+  }
+  return mat;
+}
+
 // Helper: 100% Procedural Clean Velvet Plushie & Cozy Soft Character Material Generator
-function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, rimPower = 2.4) {
+export function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, rimPower = 2.4) {
   const vertexShader = `
     varying vec3 vNormal;
     varying vec3 vViewDir;
@@ -213,7 +222,7 @@ function createAnimeCharacterMaterial(baseHex, shadowHex, rimHex, rimPower = 2.4
 }
 
 // Helper: 100% Procedural Inverted-Hull Anime Outline Mesh Generator
-function createAnimeOutlineMesh(geometry, thickness = 0.022, outlineColor = 0x11111B) {
+export function createAnimeOutlineMesh(geometry, thickness = 0.022, outlineColor = 0x11111B) {
   const outlineVertexShader = `
     uniform float uOutlineThickness;
     void main() {
@@ -244,7 +253,7 @@ function createAnimeOutlineMesh(geometry, thickness = 0.022, outlineColor = 0x11
 }
 
 // Helper: 100% Procedural Soft Twinkling Star Bokeh Shader Material
-function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
+export function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
   const vertexShader = `
     attribute float aPhase;
     attribute float aScale;
@@ -286,6 +295,98 @@ function createAnimeStarfieldShaderMaterial(baseSize = 0.40) {
     },
     transparent: true,
     blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+}
+
+// Helper: 100% Procedural Volumetric Nebula Shader Generator
+export function createNebulaShaderMaterial() {
+  const nebulaVertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+
+  const nebulaFragmentShader = `
+    uniform float u_time;
+    uniform float u_audio;
+    varying vec2 vUv;
+
+    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+    float snoise(vec2 v) {
+      const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+      vec2 i  = floor(v + dot(v, C.yy));
+      vec2 x0 = v -   i + dot(i, C.xx);
+      vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+      vec4 x12 = x0.xyxy + C.xxzz;
+      x12.xy -= i1;
+      i = mod289(i);
+      vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+      vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+      m = m*m;
+      m = m*m;
+      vec3 x = 2.0 * fract(p * C.www) - 1.0;
+      vec3 h = abs(x) - 0.5;
+      vec3 ox = floor(x + 0.5);
+      vec3 a0 = x - ox;
+      m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+      vec3 g;
+      g.x  = a0.x  * x0.x  + h.x  * x0.y;
+      g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+      return 130.0 * dot(m, g);
+    }
+
+    void main() {
+      vec2 uv = vUv * 2.0 - 1.0;
+      float t = u_time * 0.03;
+
+      // Swirling celestial vortex field
+      float r = length(uv);
+      float theta = r * 0.65 - t * 0.4;
+      mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
+      vec2 rotUv = rot * uv;
+
+      // Chromatic Aberration Splitting at cloud fringes
+      vec2 uvR = rotUv + vec2(0.008, 0.0);
+      vec2 uvG = rotUv;
+      vec2 uvB = rotUv - vec2(0.008, 0.0);
+
+      float nR = snoise(uvR * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
+      float nG = snoise(uvG * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
+      float nB = snoise(uvB * 1.3 + vec2(t * 0.2, t * 0.15)) * 0.5 + 0.5;
+
+      vec3 deepMidnight   = vec3(0.055, 0.055, 0.095);
+      vec3 twilightViolet = vec3(0.13, 0.10, 0.25);
+      vec3 duskyRose      = vec3(0.36, 0.18, 0.32);
+      vec3 starlightMint  = vec3(0.12, 0.38, 0.34);
+      vec3 auroralGold    = vec3(0.68, 0.58, 0.36);
+
+      vec3 col = mix(deepMidnight, twilightViolet, smoothstep(0.20, 0.70, nG));
+      col = mix(col, duskyRose, smoothstep(0.38, 0.85, nR) * 0.65);
+      col = mix(col, starlightMint, smoothstep(0.45, 0.88, nB) * 0.55);
+      col = mix(col, auroralGold, smoothstep(0.62, 0.95, (nR + nG) * 0.5) * (0.15 + u_audio * 0.30));
+
+      float vignette = smoothstep(1.5, 0.2, r);
+      float alpha = smoothstep(0.15, 0.80, (nR + nG + nB) / 3.0) * 0.70 * vignette;
+
+      gl_FragColor = vec4(col, alpha);
+    }
+  `;
+
+  return new THREE.ShaderMaterial({
+    vertexShader: nebulaVertexShader,
+    fragmentShader: nebulaFragmentShader,
+    uniforms: {
+      u_time: { value: 0.0 },
+      u_audio: { value: 0.0 }
+    },
+    transparent: true,
+    blending: THREE.NormalBlending,
     depthWrite: false
   });
 }

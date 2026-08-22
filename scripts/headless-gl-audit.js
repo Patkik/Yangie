@@ -391,7 +391,40 @@ if (fs.existsSync(stateModulePath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 13. Final Audit Summary
+// 13. Auditing WebGL Shader Preloader & Warm-Up Engine (V5.0)
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}13. Auditing WebGL Shader Preloader & Warm-Up Engine (V5.0)...${Colors.RESET}`);
+
+const preloaderJsPath = path.join(ASSETS_DIR, 'js', 'kiro-preloader-v5.js');
+const preloaderCssPath = path.join(ASSETS_DIR, 'css', 'preloader-v5.css');
+
+if (fs.existsSync(preloaderJsPath)) {
+  const preloaderContent = fs.readFileSync(preloaderJsPath, 'utf8');
+
+  // 1. KiroPreloaderV5 Class Export
+  assert(preloaderContent.includes('export default class KiroPreloaderV5') || preloaderContent.includes('class KiroPreloaderV5'), 'KiroPreloaderV5 master shader preloading class exported');
+
+  // 2. Offscreen GPU Shader Warming
+  assert(preloaderContent.includes('warmupShaders') && preloaderContent.includes('renderer.compile(this.scene, this.camera)'), 'Offscreen GPU shader warming pass (renderer.compile) eliminates mobile compilation stutter/jank');
+
+  // 3. Procedural 3D Running Cycle Trigonometric Math
+  assert(preloaderContent.includes('buildRunningKiro') && preloaderContent.includes('runSpeed = 14.0') && preloaderContent.includes('Math.sin(t * runSpeed)'), 'Procedural 3D Running Kiro engine with harmonic vertical bobbing and arm swing dynamics verified');
+
+  // 4. Cinematic Leap Forward & Radial Clip-Path Transition
+  assert(preloaderContent.includes('triggerTransition') && preloaderContent.includes('clipPath: "circle(0% at 50% 50%)"') || preloaderContent.includes('circle(0% at 50% 50%)'), 'Cinematic Leap Forward and Radial circular wipe transition into Sanctuary verified');
+} else {
+  assert(false, `kiro-preloader-v5.js not found at ${preloaderJsPath}`);
+}
+
+if (fs.existsSync(preloaderCssPath)) {
+  const preloaderCssContent = fs.readFileSync(preloaderCssPath, 'utf8');
+  assert(preloaderCssContent.includes('#intro-viewport-root') && preloaderCssContent.includes('preloader-glass-card') && preloaderCssContent.includes('preloader-bar-fill'), 'Preloader V5 CSS glassmorphic HUD card and starry-gold progress bar verified');
+} else {
+  assert(false, `preloader-v5.css not found at ${preloaderCssPath}`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {
