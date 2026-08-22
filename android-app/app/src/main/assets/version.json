@@ -1,10 +1,10 @@
 {
-  "version": "2.3.0",
-  "build": 68,
+  "version": "2.3.1",
+  "build": 69,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V6.0 — 3D Hatching Egg Preloader & Stutter-Free GPU Engine",
+  "description": "Space Capsule V6.1 — Sleep ZZZ Particle Emitter, Snoring Kinematics & Reorganized Sanctuary HUD",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V9.0: 3D Hatching Egg Preloader & Stutter-Free GPU Engine (V6.0) featuring 3D cel-shaded egg with custom Simplex noise golden crack GLSL shader, offscreen GPU shader warming @ 60%, shell splitting & spring bounce POP with procedural audio synesthesia, and 100% GPU vertex shader starfield rotation eliminating CPU buffer re-uploads and frame stutters."
+  "changelog": "V9.1: 3D Procedural Sleeping ZZZ Particle Emitter, deep harmonic snoring breathing kinematics with rhythmic belly expansion, procedural gentle snoring & sleeping breath synthesis loop, sleep cone hat removal, and reorganized anti-clipping 2-tier Sanctuary Top Bar."
 }
 

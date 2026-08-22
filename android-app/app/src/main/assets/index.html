@@ -47,73 +47,77 @@
     
     <!-- Top Sanctuary Floating Bar (Twin Sanctuary Beacon & Comms Hub) -->
     <header class="sanctuary-top-bar">
-      <!-- Left Token: Partner Status Beacon Pill -->
-      <div class="partner-beacon-pill" id="partner-beacon-pill" title="Twin Sanctuary Connection">
-        <div class="beacon-pulse-indicator" id="partner-beacon-pulse">
-          <div class="beacon-core-dot"></div>
-          <div class="beacon-ring-wave"></div>
-        </div>
-        <div class="beacon-meta-info">
-          <div class="beacon-primary-row">
-            <span class="beacon-sparkle">✦</span>
-            <span id="partner-status-name" class="beacon-partner-name">Yangiee</span>
-            <span class="beacon-sep">•</span>
-            <span id="partner-status-location" class="beacon-location-name">Capas</span>
+      <div class="sanctuary-top-main-row">
+        <!-- Left Token: Partner Status Beacon Pill -->
+        <div class="partner-beacon-pill" id="partner-beacon-pill" title="Twin Sanctuary Connection">
+          <div class="beacon-pulse-indicator" id="partner-beacon-pulse">
+            <div class="beacon-core-dot"></div>
+            <div class="beacon-ring-wave"></div>
           </div>
-          <span class="sanctuary-live-clock" id="live-clock">--:--:-- PST</span>
+          <div class="beacon-meta-info">
+            <div class="beacon-primary-row">
+              <span class="beacon-sparkle">✦</span>
+              <span id="partner-status-name" class="beacon-partner-name">Yangiee</span>
+              <span class="beacon-sep">•</span>
+              <span id="partner-status-location" class="beacon-location-name">Capas</span>
+            </div>
+            <span class="sanctuary-live-clock" id="live-clock">--:--:-- PST</span>
+          </div>
+        </div>
+
+        <!-- Right Token: Unified Comms Hub Cluster -->
+        <div class="comms-hub-cluster">
+          <!-- Starlight Mailbox -->
+          <button class="comms-icon-btn" id="btn-nav-mailbox" title="Starlight Mailbox">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2z"/>
+              <path d="M3 8l9 6 9-6"/>
+              <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
+            </svg>
+            <span class="comms-unread-badge" id="mailbox-unread-dot" style="display: none;">0</span>
+          </button>
+
+          <!-- Starlight Holographic Video Call -->
+          <button class="comms-icon-btn" id="call-btn" title="Starlight Video Call">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <div class="call-live-dot"></div>
+          </button>
+
+          <!-- Shuttle Pilot Observatory Telescope -->
+          <button class="comms-icon-btn" id="shuttle-steer-btn" title="Toggle Observatory Telescope">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
+              <circle cx="12" cy="12" r="3" stroke-dasharray="2 2"/>
+              <path d="M19 19l-3-3M5 5l3 3"/>
+            </svg>
+          </button>
+
+          <!-- Sanctuary Settings & Updates -->
+          <button class="comms-icon-btn" id="btn-nav-settings" title="Sanctuary Settings & Updates">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <!-- Center Token: Sanctuary Economy Hub (✦ Stardust Shards & ⬡ Cosmic Essence) -->
-      <div class="sanctuary-currency-pill" id="sanctuary-currency-pill" title="Tap to view Exoplanet Milestones & Arcade">
-        <div class="currency-item shard-item">
-          <span class="currency-glyph">✦</span>
-          <span id="topbar-stardust-val" class="currency-amount">120</span>
+      <!-- Sub-Tier Token: Sanctuary Economy Hub (✦ Stardust Shards & ⬡ Cosmic Essence) -->
+      <div class="sanctuary-top-sub-row">
+        <div class="sanctuary-currency-pill" id="sanctuary-currency-pill" title="Tap to view Exoplanet Milestones & Arcade">
+          <div class="currency-item shard-item">
+            <span class="currency-glyph">✦</span>
+            <span id="topbar-stardust-val" class="currency-amount">120</span>
+          </div>
+          <div class="currency-divider"></div>
+          <div class="currency-item essence-item">
+            <span class="currency-glyph essence-glyph">⬡</span>
+            <span id="topbar-essence-val" class="currency-amount">10</span>
+          </div>
         </div>
-        <div class="currency-divider"></div>
-        <div class="currency-item essence-item">
-          <span class="currency-glyph essence-glyph">⬡</span>
-          <span id="topbar-essence-val" class="currency-amount">10</span>
-        </div>
-      </div>
-
-      <!-- Right Token: Unified Comms Hub Cluster -->
-      <div class="comms-hub-cluster">
-        <!-- Starlight Mailbox -->
-        <button class="comms-icon-btn" id="btn-nav-mailbox" title="Starlight Mailbox">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2z"/>
-            <path d="M3 8l9 6 9-6"/>
-            <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
-          </svg>
-          <span class="comms-unread-badge" id="mailbox-unread-dot" style="display: none;">0</span>
-        </button>
-
-        <!-- Starlight Holographic Video Call -->
-        <button class="comms-icon-btn" id="call-btn" title="Starlight Video Call">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-          </svg>
-          <div class="call-live-dot"></div>
-        </button>
-
-        <!-- Shuttle Pilot Observatory Telescope -->
-        <button class="comms-icon-btn" id="shuttle-steer-btn" title="Toggle Observatory Telescope">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
-            <circle cx="12" cy="12" r="3" stroke-dasharray="2 2"/>
-            <path d="M19 19l-3-3M5 5l3 3"/>
-          </svg>
-        </button>
-
-        <!-- Sanctuary Settings & Updates -->
-        <button class="comms-icon-btn" id="btn-nav-settings" title="Sanctuary Settings & Updates">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-          </svg>
-        </button>
       </div>
     </header>
 
@@ -293,13 +297,13 @@
             <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
             Updates
           </span>
-          <span id="settings-current-ver-badge" class="settings-version-badge">v2.3.0</span>
+          <span id="settings-current-ver-badge" class="settings-version-badge">v2.3.1</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #A6ADC8;">
           <div style="display: flex; justify-content: space-between;">
             <span>Installed Version</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.3.0</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.3.1</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>

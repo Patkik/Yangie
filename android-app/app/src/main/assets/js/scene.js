@@ -648,6 +648,7 @@ export class KiroSceneManager {
     // 4. Build Kiro Companion & Cockpit HUD
     this.buildEnvironment();
     this.buildKiro();
+    this.buildSleepZZZSystem();
     this.buildCockpitHUD();
 
     // 5. Setup Dev Performance Monitor (if enabled)
@@ -1546,10 +1547,40 @@ export class KiroSceneManager {
         }
       }
     } else {
-      if (this.lastAlignedTargetId !== null) {
-        this.lastAlignedTargetId = null;
-        KiroState.set('cockpitSteering.aligned', false);
-        KiroState.set('cockpitSteering.currentTarget', null);
+    // 7. Sleeping ZZZ Floating Particles Animation
+    if (this.zzzGroup && this.zzzParticles) {
+      if (isSleeping) {
+        this.zzzGroup.visible = true;
+        const kiroPos = this.kiroGroup ? this.kiroGroup.position : { x: 0, y: 0, z: 0 };
+
+        for (let i = 0; i < this.zzzParticles.length; i++) {
+          const p = this.zzzParticles[i];
+          p.progress += (delta || 0.016) * p.speed;
+          if (p.progress >= 1.0) {
+            p.progress = 0.0;
+            p.xOffset = (Math.random() - 0.5) * 0.12;
+          }
+
+          // Trajectory: Floats gently upward from Kiro's mouth/face in a meandering sine wave
+          const floatY = 0.16 + p.progress * 1.50;
+          const meanderX = 0.08 + p.xOffset + Math.sin(p.progress * p.lateralFreq * Math.PI + p.lateralPhase) * 0.18 + p.progress * 0.18;
+          const floatZ = 0.82 + p.progress * 0.12;
+
+          p.sprite.position.set(kiroPos.x + meanderX, kiroPos.y + floatY, kiroPos.z + floatZ);
+
+          // Growth & smooth fade envelope
+          const currentScale = p.baseScale * (0.60 + p.progress * 0.90);
+          p.sprite.scale.set(currentScale, currentScale, currentScale);
+
+          // Sinusoidal opacity fade
+          const fade = Math.sin(p.progress * Math.PI);
+          p.sprite.material.opacity = Math.pow(fade, 0.75) * 0.90;
+        }
+      } else {
+        this.zzzGroup.visible = false;
+        for (let i = 0; i < this.zzzParticles.length; i++) {
+          this.zzzParticles[i].sprite.material.opacity = 0.0;
+        }
       }
     }
   }
@@ -1946,6 +1977,78 @@ export class KiroSceneManager {
     this.kiroGroup.add(this.goldenAura);
 
     this.registerDisposable(auraGeo);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Sleeping ZZZ Particle Emitter (3D Procedural Sleeping Particle System)
+     ───────────────────────────────────────────────────────────────────────── */
+  buildSleepZZZSystem() {
+    this.zzzGroup = new THREE.Group();
+    this.zzzGroup.visible = false;
+    this.scene.add(this.zzzGroup);
+
+    // Procedural Glowing Canvas Textures for "Z" and "z" glyphs
+    const createZTexture = (letter, mainColor, glowColor) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 128, 128);
+
+      // Outer Bloom Halo
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = mainColor;
+      ctx.font = '900 76px "Outfit", "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(letter, 64, 64);
+
+      // Crisp Core
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 72px "Outfit", "Inter", sans-serif';
+      ctx.fillText(letter, 64, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      this.registerDisposable(texture);
+      return texture;
+    };
+
+    const tex1 = createZTexture('Z', '#CBA6F7', '#94E2D5');
+    const tex2 = createZTexture('z', '#CBA6F7', '#F5C2E7');
+    const tex3 = createZTexture('Z', '#F9E2AF', '#CBA6F7');
+    const tex4 = createZTexture('z', '#F9E2AF', '#94E2D5');
+    const textures = [tex1, tex2, tex3, tex4];
+
+    this.zzzParticles = [];
+    const count = 6;
+    for (let i = 0; i < count; i++) {
+      const tex = textures[i % textures.length];
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      this.registerDisposable(mat);
+
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(0.35, 0.35, 0.35);
+      this.zzzGroup.add(sprite);
+
+      this.zzzParticles.push({
+        sprite,
+        progress: i / count,
+        speed: 0.18 + (i % 3) * 0.04,
+        lateralFreq: 2.5 + (i % 2) * 0.8,
+        lateralPhase: i * 1.5,
+        baseScale: 0.26 + (i % 3) * 0.08,
+        xOffset: (Math.random() - 0.5) * 0.10
+      });
+    }
   }
 
   buildCockpitHUD() {
@@ -2393,8 +2496,9 @@ export class KiroSceneManager {
   }
 
   onSleepChange(isSleeping, hasWellRestedBuff) {
-    if (this.nightcap) this.nightcap.visible = isSleeping;
+    if (this.nightcap) this.nightcap.visible = false; // Hat is off as requested
     if (this.goldenAura) this.goldenAura.visible = hasWellRestedBuff;
+    if (this.zzzGroup) this.zzzGroup.visible = isSleeping;
 
     if (this.leftEyeGroup) this.leftEyeGroup.visible = !isSleeping;
     if (this.rightEyeGroup) this.rightEyeGroup.visible = !isSleeping;
@@ -3108,8 +3212,6 @@ export class KiroSceneManager {
 
       // Organic Soft-Body Breathing & Living Creature Kinematics
       const isSleeping = KiroState.get('isSleeping');
-      const freq = isSleeping ? 0.8 : 2.2;
-      const amp = isSleeping ? 0.02 : 0.045;
 
       // Update Anime Character Materials Uniforms (fBm paper grain & dynamic lighting)
       if (this.animeCharacterMaterials) {
@@ -3138,39 +3240,85 @@ export class KiroSceneManager {
           }
         }
 
-        // Natural squish-and-stretch breathing (Volume-conserving organic chest & belly expansion)
-        const breathY = 1.0 + Math.sin(t * freq) * (isSleeping ? 0.022 : 0.038);
-        const breathXZ = 1.0 - Math.sin(t * freq) * (isSleeping ? 0.011 : 0.019);
-        this.kiroGroup.scale.y = breathY;
-        this.kiroGroup.scale.x = breathXZ;
-        this.kiroGroup.scale.z = breathXZ;
-        this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+        if (isSleeping) {
+          // Deep peaceful snoring breathing (4.6s harmonic rhythm)
+          const snoreFreq = 1.35;
+          const snoreBreath = Math.sin(t * snoreFreq);
 
-        // Grounded feet squish: keeps soles anchored cleanly on top of pedestal
-        if (this.leftFoot && this.rightFoot) {
-          const footSquashY = 0.60 * (2.0 - breathY);
-          this.leftFoot.scale.y = footSquashY;
-          this.rightFoot.scale.y = footSquashY;
-        }
+          const breathY = 1.0 + snoreBreath * 0.048;
+          const breathXZ = 1.0 - snoreBreath * 0.024;
+          this.kiroGroup.scale.y = breathY;
+          this.kiroGroup.scale.x = breathXZ;
+          this.kiroGroup.scale.z = breathXZ;
+          this.kiroGroup.position.y = snoreBreath * 0.032;
 
-        // Soft tail breathing sway
-        if (this.tailGroup) {
-          this.tailGroup.rotation.y = Math.sin(t * (freq * 0.9)) * (isSleeping ? 0.03 : 0.12);
-        } else if (this.tailMesh) {
-          this.tailMesh.rotation.y = Math.sin(t * (freq * 0.9)) * (isSleeping ? 0.03 : 0.12);
-        }
+          // Belly rhythmic expansion on inhalation
+          if (this.bellyMesh) {
+            this.bellyMesh.scale.set(0.92, 0.68 + snoreBreath * 0.06, 0.46 + snoreBreath * 0.12);
+          }
 
-        // Soft arm breathing sway
-        if (this.leftArmGroup && this.rightArmGroup) {
-          this.leftArmGroup.rotation.x = (isSleeping ? 0.35 : 0.20) + Math.sin(t * freq) * 0.04;
-          this.rightArmGroup.rotation.x = (isSleeping ? 0.35 : 0.20) + Math.sin(t * freq) * 0.04;
-        }
+          // Gentle sleeping head nod and relaxed tilt
+          this.kiroGroup.rotation.z = Math.sin(t * 0.65) * 0.04;
+          this.kiroGroup.rotation.x = 0.04 + snoreBreath * 0.02;
 
-        // Soft head crest breathing bounce with organic phase lag
-        if (this.headCrests) {
-          this.headCrests.forEach((c, idx) => {
-            c.rotation.x = Math.sin(t * freq - idx * 0.45) * 0.06;
-          });
+          // Grounded feet squish: keeps soles anchored cleanly
+          if (this.leftFoot && this.rightFoot) {
+            const footSquashY = 0.60 * (2.0 - breathY);
+            this.leftFoot.scale.y = footSquashY;
+            this.rightFoot.scale.y = footSquashY;
+          }
+
+          // Relaxed arms on tummy gently rising with breath
+          if (this.leftArmGroup && this.rightArmGroup) {
+            this.leftArmGroup.rotation.x = 0.35 + snoreBreath * 0.05;
+            this.rightArmGroup.rotation.x = 0.35 + snoreBreath * 0.05;
+          }
+
+          // Soft crest lag
+          if (this.headCrests) {
+            this.headCrests.forEach((c, idx) => {
+              c.rotation.x = Math.sin(t * snoreFreq - idx * 0.45) * 0.07;
+            });
+          }
+        } else {
+          // Normal lively daytime breathing
+          const freq = 2.2;
+          const amp = 0.045;
+          const breathY = 1.0 + Math.sin(t * freq) * 0.038;
+          const breathXZ = 1.0 - Math.sin(t * freq) * 0.019;
+          this.kiroGroup.scale.y = breathY;
+          this.kiroGroup.scale.x = breathXZ;
+          this.kiroGroup.scale.z = breathXZ;
+          this.kiroGroup.position.y = Math.sin(t * freq) * amp;
+          this.kiroGroup.rotation.z = 0;
+          this.kiroGroup.rotation.x = 0;
+
+          if (this.bellyMesh) {
+            this.bellyMesh.scale.set(0.92, 0.68, 0.46);
+          }
+
+          if (this.leftFoot && this.rightFoot) {
+            const footSquashY = 0.60 * (2.0 - breathY);
+            this.leftFoot.scale.y = footSquashY;
+            this.rightFoot.scale.y = footSquashY;
+          }
+
+          if (this.tailGroup) {
+            this.tailGroup.rotation.y = Math.sin(t * (freq * 0.9)) * 0.12;
+          } else if (this.tailMesh) {
+            this.tailMesh.rotation.y = Math.sin(t * (freq * 0.9)) * 0.12;
+          }
+
+          if (this.leftArmGroup && this.rightArmGroup) {
+            this.leftArmGroup.rotation.x = 0.20 + Math.sin(t * freq) * 0.04;
+            this.rightArmGroup.rotation.x = 0.20 + Math.sin(t * freq) * 0.04;
+          }
+
+          if (this.headCrests) {
+            this.headCrests.forEach((c, idx) => {
+              c.rotation.x = Math.sin(t * freq - idx * 0.45) * 0.06;
+            });
+          }
         }
 
         // Natural Organic Eye Blinking & Idle Timer

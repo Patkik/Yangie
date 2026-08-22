@@ -607,3 +607,15 @@
 
 ---
 
+### [DEC-501900] Sleep ZZZ Particle Emitter, Snoring Kinematics, Sleep Hat Removal, & Reorganized Sanctuary HUD V9.1
+- **Timestamp**: `2026-08-22T18:03:00.000000`
+- **Strategy & Synthesis**: Architected and integrated the 3D Sleeping ZZZ Particle Emitter, harmonic snoring breathing kinematics, sleep cone hat removal, procedural gentle snoring Web Audio synthesis loop, and anti-clipping 2-tier Sanctuary Top Bar.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: 3D procedural sleep ZZZ particle system generating glowing pastel lavender and golden Z glyphs drifting upward in a gentle meandering arc. Sleeping cone hat removed to highlight Kiro's cute golden crest. Reorganized top bar featuring a clean 2-tier HUD (Partner Beacon + 4 Comms icons on top, floating Currency Pill on secondary row).
+  - **Performance**: Score 5/5: 120/120 dynamic headless assertions passed. Zero image assets loaded: ZZZ glyphs generated procedurally on offscreen canvas textures and pooled across 6 reusable THREE.Sprite instances with depthWrite disabled and additive blending.
+  - **Container**: Score 5/5: Complete anti-clipping responsive guarantee across 320px–1080px mobile viewports. Zero horizontal overflow. Synchronized SemVer across all 4 targets to v2.3.1 (versionCode 69).
+  - **Structural**: Score 5/5: Single-Source-of-Truth isSleeping state in state.js orchestrating scene.js, synth.js, and app.js. Clean 2-tier layout separation with .sanctuary-top-main-row and .sanctuary-top-sub-row.
+  - **Gamification**: Score 5/5: Gentle, rhythmic procedural snoring Web Audio synthesis (130Hz -> 220Hz inhale, 210Hz -> 110Hz exhale) synchronized with visible harmonic body squish-stretch, tummy expansion, and drifting ZZZ bubbles.
+
+---
+

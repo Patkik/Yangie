@@ -111,6 +111,18 @@ export class CosmicSynthEngine {
     KiroState.on('sound:duty_cycle_wake', () => {
       this.wakeFromDutyCycleSleep();
     });
+
+    // Snoring & Cozy Sleep Breathing State
+    this.snoreTimer = null;
+    this.isSnoring = false;
+
+    KiroState.on('sleep:change', ({ isSleeping }) => {
+      if (isSleeping) {
+        this.startSnoringBreathing();
+      } else {
+        this.stopSnoringBreathing();
+      }
+    });
   }
 
   init() {
@@ -1240,6 +1252,92 @@ export class CosmicSynthEngine {
 
     osc.start(now);
     osc.stop(now + 1.50);
+  }
+
+  /**
+   * 5b. Cozy Snoring & Sleeping Breath Loop (startSnoringBreathing)
+   * The Sound: Gentle, rhythmic, cozy sleeping breaths synchronized with Kiro's snoring kinematics.
+   * The Math: Inhale (1.2s): Soft resonant bandpass triangle wave sweeping upwards from 130Hz to 220Hz.
+   *           Exhale (1.4s): Gentle warm sighing release sliding exponentially from 210Hz to 110Hz.
+   */
+  startSnoringBreathing() {
+    if (this.isSnoring) return;
+    this.isSnoring = true;
+
+    const playOneSnoreCycle = () => {
+      if (!this.isSnoring) return;
+      if (!this.ctx) this.init();
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+      const mult = this.cutenessPitchMultiplier || 1.0;
+
+      // 1. Inhale: Soft rising filtered tone (130Hz -> 220Hz)
+      const oscInhale = this.ctx.createOscillator();
+      oscInhale.type = 'triangle';
+      oscInhale.frequency.setValueAtTime(130 * mult, now);
+      oscInhale.frequency.exponentialRampToValueAtTime(220 * mult, now + 1.2);
+
+      const filterInhale = this.ctx.createBiquadFilter();
+      filterInhale.type = 'lowpass';
+      filterInhale.frequency.setValueAtTime(280 * mult, now);
+      filterInhale.frequency.linearRampToValueAtTime(450 * mult, now + 1.2);
+      filterInhale.Q.setValueAtTime(1.5, now);
+
+      const gainInhale = this.ctx.createGain();
+      gainInhale.gain.setValueAtTime(0.0001, now);
+      gainInhale.gain.linearRampToValueAtTime(0.035, now + 0.6);
+      gainInhale.gain.linearRampToValueAtTime(0.0001, now + 1.25);
+
+      oscInhale.connect(filterInhale);
+      filterInhale.connect(gainInhale);
+      gainInhale.connect(this.sfxGain || this.masterGain);
+
+      oscInhale.start(now);
+      oscInhale.stop(now + 1.30);
+
+      // 2. Exhale: Gentle warm sighing release (210Hz -> 110Hz)
+      const tExhale = now + 1.45;
+      const oscExhale = this.ctx.createOscillator();
+      oscExhale.type = 'sine';
+      oscExhale.frequency.setValueAtTime(210 * mult, tExhale);
+      oscExhale.frequency.exponentialRampToValueAtTime(110 * mult, tExhale + 1.4);
+
+      const filterExhale = this.ctx.createBiquadFilter();
+      filterExhale.type = 'lowpass';
+      filterExhale.frequency.setValueAtTime(320 * mult, tExhale);
+      filterExhale.frequency.linearRampToValueAtTime(160 * mult, tExhale + 1.4);
+      filterExhale.Q.setValueAtTime(1.2, tExhale);
+
+      const gainExhale = this.ctx.createGain();
+      gainExhale.gain.setValueAtTime(0.0001, tExhale);
+      gainExhale.gain.linearRampToValueAtTime(0.028, tExhale + 0.4);
+      gainExhale.gain.exponentialRampToValueAtTime(0.0001, tExhale + 1.5);
+
+      oscExhale.connect(filterExhale);
+      filterExhale.connect(gainExhale);
+      gainExhale.connect(this.sfxGain || this.masterGain);
+
+      oscExhale.start(tExhale);
+      oscExhale.stop(tExhale + 1.55);
+    };
+
+    // Initial cycle then repeat every 3.8s
+    playOneSnoreCycle();
+    this.snoreTimer = setInterval(() => {
+      if (this.isSnoring) {
+        playOneSnoreCycle();
+      }
+    }, 3800);
+  }
+
+  stopSnoringBreathing() {
+    this.isSnoring = false;
+    if (this.snoreTimer) {
+      clearInterval(this.snoreTimer);
+      this.snoreTimer = null;
+    }
   }
 
   /**

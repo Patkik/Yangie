@@ -166,16 +166,37 @@ html, body {
    ══════════════════════════════════════════════════════════════════════════ */
 .sanctuary-top-bar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
   pointer-events: none;
+  position: relative;
+  z-index: 100;
 }
 
-.sanctuary-top-bar > * {
+.sanctuary-top-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.sanctuary-top-main-row > * {
+  pointer-events: auto;
+}
+
+.sanctuary-top-sub-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  padding-right: 2px;
+}
+
+.sanctuary-top-sub-row > * {
   pointer-events: auto;
 }
 

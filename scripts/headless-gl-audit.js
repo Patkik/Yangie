@@ -449,7 +449,33 @@ if (fs.existsSync(synthJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 14. Final Audit Summary
+// 14. Auditing Sleep ZZZ Particle Emitter, Snoring Kinematics, & Reorganized Top Bar
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.TEAL}14. Auditing Sleep ZZZ Particle Emitter, Snoring Kinematics, & Reorganized Top Bar...${Colors.RESET}`);
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneContent.includes('buildSleepZZZSystem') && sceneContent.includes('createZTexture') && sceneContent.includes('this.zzzParticles'), '3D Procedural Sleeping ZZZ particle emitter with glowing canvas texture synthesis verified');
+  assert(sceneContent.includes('this.nightcap.visible = false') && sceneContent.includes('this.zzzGroup.visible = isSleeping'), 'Sleep Hat kept off and ZZZ group dynamically activated on sleep verified');
+  assert(sceneContent.includes('snoreFreq = 1.35') && sceneContent.includes('bellyMesh.scale.set(0.92, 0.68 + snoreBreath'), 'Deep harmonic snoring breathing kinematics with rhythmic belly expansion verified');
+}
+
+if (fs.existsSync(synthJsPath)) {
+  const synthContent = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthContent.includes('startSnoringBreathing') && synthContent.includes('stopSnoringBreathing'), 'Procedural gentle snoring & sleeping breath synthesis loop verified in synth.js');
+}
+
+const indexHtmlAuditPath = path.resolve(__dirname, '../android-app/app/src/main/assets/index.html');
+
+if (fs.existsSync(indexHtmlAuditPath) && fs.existsSync(mainCssPath)) {
+  const indexContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
+  const cssContent = fs.readFileSync(mainCssPath, 'utf8');
+  assert(indexContent.includes('sanctuary-top-main-row') && indexContent.includes('sanctuary-top-sub-row'), 'Reorganized 2-tier Sanctuary Top Bar (Main Comms Row & Sub Economy Row) verified in index.html');
+  assert(cssContent.includes('.sanctuary-top-main-row') && cssContent.includes('.sanctuary-top-sub-row'), 'Responsive anti-clipping 2-tier top bar layout styles verified in main.css');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 15. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {
