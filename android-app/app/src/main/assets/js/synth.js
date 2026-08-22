@@ -89,10 +89,16 @@ export class CosmicSynthEngine {
     });
 
     KiroState.on('change:telescopeActive', ({ newValue }) => {
-      if (newValue) {
+      if (newValue && !KiroState.get('minigameActive')) {
         this.startThruster();
       } else {
         this.stopThruster();
+      }
+    });
+
+    KiroState.on('change:minigameActive', ({ newValue }) => {
+      if (newValue) {
+        this.stopThruster(0.05);
       }
     });
 
@@ -320,6 +326,7 @@ export class CosmicSynthEngine {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
     if (this.thruster.active) return;
+    if (KiroState.get('minigameActive')) return;
 
     this.thruster.active = true;
     const now = this.ctx.currentTime;
@@ -368,6 +375,10 @@ export class CosmicSynthEngine {
 
   updateThrusterSpeed(speedRatio) {
     if (!this.thruster.active || !this.ctx) return;
+    if (KiroState.get('minigameActive')) {
+      this.stopThruster(0.05);
+      return;
+    }
     const ratio = Math.max(0, Math.min(1.0, speedRatio));
     this.thruster.currentSpeed = ratio;
 

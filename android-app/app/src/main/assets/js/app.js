@@ -492,7 +492,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         KiroState.set('cockpitSteering', { ...steering });
         const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
-        synthEngine.updateThrusterSpeed(speed);
+        if (!KiroState.get('minigameActive')) {
+          synthEngine.updateThrusterSpeed(speed);
+        }
       });
     });
   }
@@ -531,6 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playBtn.addEventListener('click', () => {
           PointerShield.activate(1200);
           synthEngine.playSupernovaSound();
+          synthEngine.stopThruster(0.05);
           if (sceneManager && typeof sceneManager.triggerWarpJump === 'function') {
             sceneManager.triggerWarpJump(sys);
           }

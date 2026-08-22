@@ -100,6 +100,7 @@ export class KiroMinigameEngine {
 
     // Trigger locked 120 FPS minigame rendering optimization (pauses background celestial calculations)
     KiroState.set('minigameActive', true);
+    synthEngine.stopThruster(0.05);
 
     const gameCatalog = {
       tetris: { title: 'Celestial Tetris', sub: 'Gliese / Helix System • Squish Star-Candies' },

@@ -1495,6 +1495,37 @@ export class KiroSceneManager {
     // 6. Sci-Fi Holographic Target Markers & Flight Crosshair Lock-On Detection
     const isTelescope = KiroState.get('telescopeActive');
     let lockedTargetId = null;
+    let closestTarget = null;
+    let closestDist = Infinity;
+
+    if (isTelescope && this.camera) {
+      // Calculate exact 3D world position and screen NDC of reticle center pip
+      const reticleWorldPos = new THREE.Vector3();
+      if (this.hudPip) {
+        this.hudPip.getWorldPosition(reticleWorldPos);
+      } else {
+        reticleWorldPos.set(0, (this.baseCameraY || 0.05) + 0.15, -2.5);
+      }
+      const reticleNdc = reticleWorldPos.project(this.camera);
+
+      // Inner reticle focal radius threshold in NDC (tight focal cone)
+      const FOCAL_LOCK_THRESHOLD = 0.15;
+
+      const targetWorldPos = new THREE.Vector3();
+      this.targetSystemMeshes.forEach(target => {
+        target.getWorldPosition(targetWorldPos);
+        const targetNdc = targetWorldPos.project(this.camera);
+
+        // Target must be in front of the camera and within the visible view frustum
+        if (targetNdc.z > 0 && targetNdc.z < 1.0) {
+          const distToReticle = Math.hypot(targetNdc.x - reticleNdc.x, targetNdc.y - reticleNdc.y);
+          if (distToReticle < FOCAL_LOCK_THRESHOLD && distToReticle < closestDist) {
+            closestDist = distToReticle;
+            closestTarget = target;
+          }
+        }
+      });
+    }
 
     this.targetSystemMeshes.forEach(target => {
       // Idle rotation of 3D targeting rings and diamond marker
@@ -1506,39 +1537,29 @@ export class KiroSceneManager {
         target.userData.diamond.scale.set(pulse, pulse, pulse);
       }
 
-      if (isTelescope) {
-        // Calculate screen-projected distance relative to cockpit flight center
-        const screenPos = target.position.clone();
-        screenPos.add(this.backgroundCelestialGroup.position);
-        const distToCenter = Math.sqrt(Math.pow(screenPos.x, 2) + Math.pow(screenPos.y - 0.15, 2));
+      if (isTelescope && closestTarget && target === closestTarget) {
+        lockedTargetId = target.userData.id;
+        target.userData.isLocked = true;
 
-        // Lock-on threshold cone (< 1.25 units)
-        if (distToCenter < 1.25) {
-          lockedTargetId = target.userData.id;
-          target.userData.isLocked = true;
-
-          // Visual lock state on the target in 3D
-          if (target.userData.bracketMesh) {
-            target.userData.bracketMesh.scale.set(1.35, 1.35, 1.35);
-            target.userData.bracketMesh.material.color.setHex(0x94E2D5);
-            target.userData.bracketMesh.material.opacity = 1.0;
-          }
-          if (target.userData.glowMesh) {
-            target.userData.glowMesh.material.opacity = 0.60;
-          }
-        } else {
-          target.userData.isLocked = false;
-          if (target.userData.bracketMesh) {
-            target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
-            target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
-            target.userData.bracketMesh.material.opacity = 0.50;
-          }
-          if (target.userData.glowMesh) {
-            target.userData.glowMesh.material.opacity = 0.25;
-          }
+        // Visual lock state on the target in 3D: ONLY highlighted when centered in reticle
+        if (target.userData.bracketMesh) {
+          target.userData.bracketMesh.scale.set(1.35, 1.35, 1.35);
+          target.userData.bracketMesh.material.color.setHex(0x94E2D5);
+          target.userData.bracketMesh.material.opacity = 1.0;
+        }
+        if (target.userData.glowMesh) {
+          target.userData.glowMesh.material.opacity = 0.65;
         }
       } else {
         target.userData.isLocked = false;
+        if (target.userData.bracketMesh) {
+          target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
+          target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
+          target.userData.bracketMesh.material.opacity = isTelescope ? 0.35 : 0.0;
+        }
+        if (target.userData.glowMesh) {
+          target.userData.glowMesh.material.opacity = 0.25;
+        }
       }
     });
 
@@ -2192,8 +2213,9 @@ export class KiroSceneManager {
         const pitch = Math.max(-50, Math.min(50, startPitch - deltaY * 0.18));
         const yaw = Math.max(-50, Math.min(50, startYaw + deltaX * 0.18));
         KiroState.set('cockpitSteering', { pitch, yaw });
-        const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 50);
-        synthEngine.updateThrusterSpeed(speed);
+        if (!this.minigameActive && !KiroState.get('minigameActive')) {
+          synthEngine.updateThrusterSpeed(speed);
+        }
       }
     };
 
@@ -3076,6 +3098,12 @@ export class KiroSceneManager {
     this.minigameActive = Boolean(active);
     if (this.backgroundCelestialGroup) {
       this.backgroundCelestialGroup.visible = !this.minigameActive;
+    }
+    if (this.cockpitGroup && this.minigameActive) {
+      this.cockpitGroup.visible = false;
+    }
+    if (this.minigameActive) {
+      synthEngine.stopThruster(0.05);
     }
   }
 

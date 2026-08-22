@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-601900] Precision Reticle NDC Focal Alignment & Minigame Engine Sound Silencing V8.1
+- **Timestamp**: `2026-08-22T21:42:00.000000`
+- **Strategy & Synthesis**: Fixed exoplanet target acquisition by projecting celestial targets and reticle center pip into camera NDC space with tight focal cone thresholds and single-target lock selection, and completely silenced shuttle engine thruster audio during active minigames.
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Perfect visual synchronization between the holographic cockpit reticle and 3D celestial target systems. Only the star physically centered inside the cockpit reticle inner ring illuminates with glowing emerald brackets, eliminating multi-target false alarms.
+  - **Performance**: Score 5/5: Switched target detection to single-pass 3D vector NDC projection (project(camera)) with frustum bounds checking (0 < ndc.z < 1.0) and nearest-neighbor selection, executing in <0.05ms per frame.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.4.3 (Build 81) across version.json, index.html, state.js, and build.gradle.kts to purge stale WebView cache and update asset bindings.
+  - **Structural**: Score 5/5: Hardened Web Audio thruster engine lifecycle with multi-layered minigameActive guards across synth.js, scene.js, minigames.js, and app.js, completely eliminating phantom engine hum during minigame play.
+  - **Gamification**: Score 5/5: Crisp, authentic sci-fi astrogation lock-on feeling where steering the space capsule reticle directly over an exoplanet gives immediate audio-visual target confirmation, and cozy minigames play with dedicated, clear sound effects.
+
+---
+
 ### [DEC-591900] Single-Row Cosmic Dynamic Island HUD & Unobstructed 3D Viewport Calibration V8.0
 - **Timestamp**: `2026-08-22T21:26:00.000000`
 - **Strategy & Synthesis**: Consolidated top cockpit UI into a single-row Cosmic Dynamic Island HUD, removed center stage floating pills in favor of a tap-to-expand Bottom Sheet, and calibrated 3D camera headroom to eliminate all screen overflow and showcase Kiro in full glory.

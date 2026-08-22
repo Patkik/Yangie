@@ -1,10 +1,10 @@
 {
-  "version": "2.4.2",
-  "build": 80,
+  "version": "2.4.3",
+  "build": 81,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.0 — Single-Row Cosmic Dynamic Island HUD & Unobstructed 3D Sanctuary Viewport",
+  "description": "Space Capsule V8.1 — Precision Reticle NDC Focal Alignment & Minigame Engine Sound Silencing",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.0: Re-architected Sanctuary top cockpit into a sleek single-row Cosmic Dynamic Island HUD (≤44px height). Consolidated Twin Sanctuary Beacon Pill, Sanctuary Economy tokens, and Comms Cluster into a unified horizontal row. Removed center stage floating pill in favor of tap-to-expand Bottom Sheet, giving 100% of the screen center to Kiro with generous 25% negative headroom."
+  "changelog": "V8.1: Fixed celestial target acquisition bug by replacing raw world-unit offsets with precision 3D camera NDC projection to the cockpit reticle center pip, ensuring only stars directly centered in the reticle are locked on. Silenced shuttle engine thruster sound automatically across all active minigames."
 }
 
