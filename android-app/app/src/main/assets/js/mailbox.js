@@ -386,6 +386,9 @@ export class StarlightMessenger {
         this.addMessageNode(this.localUser, `Call error: ${msg}`, 'text', { notify: false, save: true });
       },
     });
+
+    // Adaptive Resource Throttling (ART) State Pruning
+    KiroState.on('art:prune_state', () => this.pruneOldMessages(30));
   }
 
   async _onStartCall() {
@@ -696,6 +699,15 @@ export class StarlightMessenger {
   scrollToBottom() {
     const feed = this.overlay.querySelector('#mailbox-feed');
     if (feed) feed.scrollTop = feed.scrollHeight;
+  }
+
+  pruneOldMessages(maxRetained = 30) {
+    const feed = this.overlay ? this.overlay.querySelector('#mailbox-feed') : null;
+    if (!feed) return;
+    const items = feed.children;
+    while (items.length > maxRetained) {
+      feed.removeChild(items[0]);
+    }
   }
 
   loadMockFeed() {

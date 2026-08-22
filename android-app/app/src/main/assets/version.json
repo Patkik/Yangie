@@ -1,9 +1,10 @@
 {
-  "version": "2.1.5",
-  "build": 63,
+  "version": "2.1.6",
+  "build": 64,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V5.0 — Reactive Target Lock Cleanup & Celestial System Catalog",
+  "description": "Space Capsule V5.0 — Adaptive Resource Throttling (ART) Engine & 5-Signal Telemetry",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.5: High-fidelity procedural SFX soundboard & 3-bus sub-gain mixer with cuteness pitch scaling."
+  "changelog": "V8.6: Adaptive Resource Throttling (ART) engine, 5-signal predictive telemetry, dynamic DPR scaling, particle draw-range optimization, and memory cache pruning."
 }
+

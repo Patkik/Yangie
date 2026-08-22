@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.1.5',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.1.6',
       isOtaActive: false,
 
       // Wellbeing & Real-time Vitals
@@ -87,6 +87,14 @@ class KiroStateManager extends StateEmitter {
 
       // Synthesizer & Sensor Preferences
       gyroEnabled: true,
+      artMode: localStorage.getItem('kiro_art_mode') || 'auto', // 'auto' | 'optimal' | 'balanced' | 'performance' | 'eco'
+      artTelemetry: {
+        currentTierId: 'OPTIMAL',
+        fps: 60,
+        avgFrameMs: 16.6,
+        dprScale: 1.0,
+        particleScale: 1.0
+      },
       audioSettings: {
         masterVolume: parseFloat(localStorage.getItem('kiro_audio_master') || '0.85'),
         sfxVolume: parseFloat(localStorage.getItem('kiro_audio_sfx') || '0.90'),
@@ -321,6 +329,16 @@ class KiroStateManager extends StateEmitter {
     this.state.gyroEnabled = Boolean(enabled);
     this.emit('gyro:change', this.state.gyroEnabled);
     this.emit('change:gyroEnabled', { newValue: this.state.gyroEnabled });
+  }
+
+  setArtMode(mode) {
+    if (!['auto', 'optimal', 'balanced', 'performance', 'eco'].includes(mode)) return;
+    this.state.artMode = mode;
+    try {
+      localStorage.setItem('kiro_art_mode', mode);
+    } catch (e) {}
+    this.emit('art:mode', mode);
+    this.emit('change:artMode', { newValue: mode });
   }
 }
 

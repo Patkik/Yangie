@@ -1266,6 +1266,130 @@ html, body {
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Adaptive Resource Throttling (ART) HUD & Telemetry Styles
+   ───────────────────────────────────────────────────────────────────────────── */
+.art-settings-group {
+  background: rgba(17, 17, 27, 0.75);
+  border: 1px solid rgba(78, 201, 176, 0.22);
+}
+
+.art-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.art-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 10px;
+  background: rgba(30, 30, 46, 0.65);
+  border: 1px solid rgba(205, 214, 244, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.art-mode-btn .art-mode-title {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: #CDD6F4;
+  letter-spacing: 0.4px;
+}
+
+.art-mode-btn .art-mode-sub {
+  font-family: var(--font-body);
+  font-size: 9px;
+  color: #94e2d5;
+  margin-top: 1px;
+}
+
+.art-mode-btn:hover {
+  background: rgba(78, 201, 176, 0.12);
+  border-color: rgba(78, 201, 176, 0.40);
+  transform: translateY(-1px);
+}
+
+.art-mode-btn.active {
+  background: rgba(78, 201, 176, 0.22);
+  border-color: var(--color-mint);
+  box-shadow: 0 0 12px rgba(78, 201, 176, 0.35);
+}
+
+.art-mode-btn.active .art-mode-title {
+  color: #FFFFFF;
+  text-shadow: 0 0 8px rgba(78, 201, 176, 0.6);
+}
+
+.art-mode-btn.active .art-mode-sub {
+  color: var(--color-mint);
+}
+
+.art-telemetry-box {
+  background: rgba(6, 13, 24, 0.70);
+  border: 1px solid rgba(148, 226, 213, 0.18);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.art-telemetry-header {
+  font-family: var(--font-heading);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #94E2D5;
+  letter-spacing: 0.8px;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(148, 226, 213, 0.35);
+}
+
+.art-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.art-signal-card {
+  background: rgba(30, 30, 46, 0.55);
+  border: 1px solid rgba(205, 214, 244, 0.08);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.art-signal-label {
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #94e2d5;
+  letter-spacing: 0.4px;
+}
+
+.art-signal-val {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.art-signal-sub {
+  font-family: var(--font-body);
+  font-size: 9px;
+  color: #cdd6f4;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

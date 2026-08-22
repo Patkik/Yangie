@@ -73,6 +73,14 @@ export class CosmicSynthEngine {
     KiroState.on('audio:ambientVolume', (val) => this.setAmbientVolume(val));
     KiroState.on('audio:pitchMultiplier', (val) => this.setCutenessPitchMultiplier(val));
 
+    // Adaptive Resource Throttling (ART) FFT Throttle
+    this.fftThrottleMs = 16;
+    this._lastFftTime = 0;
+    this._cachedAudioLevel = 0.0;
+    KiroState.on('art:scale_change', ({ audioFftRate }) => {
+      this.fftThrottleMs = Math.max(16, (audioFftRate || 1) * 16);
+    });
+
     KiroState.on('cockpitSteering:change', (steering) => {
       if (steering) {
         const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
@@ -168,12 +176,18 @@ export class CosmicSynthEngine {
 
   getAudioReactiveLevel() {
     if (!this.analyser || !this.analyserData || !this.isPlaying) return 0;
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (this._lastFftTime && (now - this._lastFftTime < (this.fftThrottleMs || 16))) {
+      return this._cachedAudioLevel || 0;
+    }
+    this._lastFftTime = now;
     this.analyser.getByteFrequencyData(this.analyserData);
     let sum = 0;
     for (let i = 0; i < this.analyserData.length; i++) {
       sum += this.analyserData[i];
     }
-    return sum / (this.analyserData.length * 255); // Normalized 0.0 to 1.0
+    this._cachedAudioLevel = sum / (this.analyserData.length * 255); // Normalized 0.0 to 1.0
+    return this._cachedAudioLevel;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

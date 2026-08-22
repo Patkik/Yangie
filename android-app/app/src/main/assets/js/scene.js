@@ -32,6 +32,7 @@
 import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
 import KiroPhysicsAgent from './physics-agent.js';
+import { ARTEngine } from './art-engine.js';
 
 // Pre-allocated Module Scratch Objects (Zero-Allocation Render Tick Standard)
 const _scratchVec1 = new THREE.Vector3();
@@ -333,6 +334,12 @@ export class KiroSceneManager {
     this.lastFrameTime = performance.now();
     this.fpsHistory = [];
     this.devFpsBadge = null;
+
+    // Adaptive Resource Throttling (ART) State
+    this.artDprScale = 1.0;
+    this.artParticleScale = 1.0;
+    this.physicsSubstep = 1;
+    this.frameCount = 0;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Phase 2: Celestial Body Subsystems
@@ -2109,6 +2116,33 @@ export class KiroSceneManager {
         }
       }
     });
+
+    // Adaptive Resource Throttling (ART) Dynamic Quality Interventions
+    KiroState.on('art:scale_change', ({ dprScale, particleScale, physicsSubstep }) => {
+      this.applyArtScaling(dprScale, particleScale, physicsSubstep);
+    });
+  }
+
+  applyArtScaling(dprScale = 1.0, particleScale = 1.0, physicsSubstep = 1) {
+    this.artDprScale = dprScale;
+    this.artParticleScale = particleScale;
+    this.physicsSubstep = physicsSubstep;
+
+    if (this.renderer) {
+      const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.renderer.setPixelRatio(baseDpr * dprScale);
+    }
+
+    // Dynamic Celestial Geometry Pruning without GPU reallocation
+    if (this.distantStars && this.distantStars.geometry) {
+      const drawn = Math.max(200, Math.floor(this.distantStarCount * particleScale));
+      this.distantStars.geometry.setDrawRange(0, drawn);
+    }
+
+    if (this.galaxyStars && this.galaxyStars.geometry) {
+      const drawn = Math.max(150, Math.floor(800 * particleScale));
+      this.galaxyStars.geometry.setDrawRange(0, drawn);
+    }
   }
 
   resize() {
@@ -2125,7 +2159,8 @@ export class KiroSceneManager {
       : 5.4;
 
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.renderer.setPixelRatio(baseDpr * (this.artDprScale || 1.0));
 
     if (this.physicsAgent) {
       this.physicsAgent.updateViewport(width, height, this.PINHOLE_FOCAL_PX);
@@ -2838,6 +2873,7 @@ export class KiroSceneManager {
     if (this.isDisposed) return;
     this.animationFrameId = requestAnimationFrame(() => this.animate());
 
+    this.frameCount = (this.frameCount || 0) + 1;
     const delta = this.clock.getDelta();
     this._elapsedTime += delta;
     const t = this._elapsedTime;
@@ -2845,13 +2881,19 @@ export class KiroSceneManager {
     const frameMs = now - this.lastFrameTime;
     this.lastFrameTime = now;
 
+    // Feed Adaptive Resource Throttling (ART) Engine
+    if (ARTEngine) {
+      ARTEngine.recordFrameTick(now);
+    }
+
     // Performance Monitor update
     if (this.devFpsBadge) {
       this.fpsHistory.push(frameMs);
       if (this.fpsHistory.length > 30) this.fpsHistory.shift();
       const avgMs = this.fpsHistory.reduce((a, b) => a + b, 0) / this.fpsHistory.length;
       const currentFps = Math.round(1000 / (avgMs || 16.6));
-      this.devFpsBadge.textContent = `${currentFps} FPS | ${avgMs.toFixed(1)}ms`;
+      const tierId = ARTEngine ? ARTEngine.currentTier.id : 'OPTIMAL';
+      this.devFpsBadge.textContent = `${currentFps} FPS | ${avgMs.toFixed(1)}ms [ART: ${tierId}]`;
     }
 
     // 1. Gyro Parallax Smooth Interpolation
@@ -3075,7 +3117,8 @@ export class KiroSceneManager {
     this.camera.updateProjectionMatrix();
     this.camera.position.set(this.gyro.x, this.baseCameraY + this.gyro.y, this.baseCameraZ);
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.renderer.setPixelRatio(baseDpr * (this.artDprScale || 1.0));
   }
 
   /* ─────────────────────────────────────────────────────────────────────────

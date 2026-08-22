@@ -256,7 +256,47 @@ if (fs.existsSync(sceneJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 10. Final Audit Summary
+// 10. Auditing Adaptive Resource Throttling (ART) Engine & Telemetry
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.BRIGHT}10. Auditing Adaptive Resource Throttling (ART) Engine & 5-Signal Telemetry...${Colors.RESET}`);
+
+const artJsPath = path.join(ASSETS_DIR, 'js', 'art-engine.js');
+if (fs.existsSync(artJsPath)) {
+  const artContent = fs.readFileSync(artJsPath, 'utf8');
+  assert(artContent.includes('class AdaptiveResourceThrottlingEngine'), 'AdaptiveResourceThrottlingEngine class exported');
+  assert(artContent.includes('ART_TIERS') && artContent.includes('OPTIMAL') && artContent.includes('ECO'), 'ART_TIERS (OPTIMAL, BALANCED, PERFORMANCE, ECO) defined');
+  assert(artContent.includes('dprScale: 0.5') && artContent.includes('dprScale: 0.85'), 'DPR resolution scaling tiers (1.0x -> 0.85x -> 0.70x -> 0.50x) implemented');
+  assert(artContent.includes('particleScale: 0.4') && artContent.includes('particleScale: 0.8'), 'Celestial particle geometry scaling tiers (1.0x -> 0.80x -> 0.60x -> 0.40x) implemented');
+  assert(artContent.includes('hardwareConcurrency') && artContent.includes('deviceMemoryGb'), 'Signal 1: Device model & hardware baseline telemetry monitored');
+  assert(artContent.includes('performance.memory') || artContent.includes('heapUsedMb'), 'Signal 2: Heap memory pressure monitored');
+  assert(artContent.includes('getBattery') || artContent.includes('batteryLevel'), 'Signal 3: Battery & thermal strain proxy monitored');
+  assert(artContent.includes('visibilitychange') || artContent.includes('isDocumentHidden'), 'Signal 4: Page visibility & user idle interaction patterns monitored');
+  assert(artContent.includes('navigator.connection') || artContent.includes('networkEffectiveType'), 'Signal 5: Network quality & latency monitored');
+  assert(artContent.includes('recordFrameTick') && artContent.includes('rollingAverageMs'), 'Rolling average frame time & predictive quality interventions implemented');
+} else {
+  assert(false, `art-engine.js not found at ${artJsPath}`);
+}
+
+// Check scene.js ART integration
+if (fs.existsSync(sceneJsPath)) {
+  const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneContent.includes('applyArtScaling') && sceneContent.includes('artDprScale'), 'Dynamic resolution scaling hooked to renderer.setPixelRatio');
+  assert(sceneContent.includes('geometry.setDrawRange') && sceneContent.includes('particleScale'), 'Dynamic celestial geometry pruning via geometry.setDrawRange implemented');
+  assert(sceneContent.includes('ARTEngine.recordFrameTick'), 'Renderer loop feeds frame duration ticks to ARTEngine');
+}
+
+// Check state and cache pruning
+const stateModulePath = path.join(ASSETS_DIR, 'js', 'state.js');
+const mailboxModulePath = path.join(ASSETS_DIR, 'js', 'mailbox.js');
+if (fs.existsSync(stateModulePath) && fs.existsSync(mailboxModulePath)) {
+  const stateContent = fs.readFileSync(stateModulePath, 'utf8');
+  const mailboxContent = fs.readFileSync(mailboxModulePath, 'utf8');
+  assert(stateContent.includes('setArtMode') && stateContent.includes('artMode'), 'KiroState manages artMode SSOT preference');
+  assert(mailboxContent.includes('pruneOldMessages') && mailboxContent.includes('art:prune_state'), 'Aggressive state & message DOM cache pruning implemented');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

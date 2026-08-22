@@ -10,6 +10,7 @@ import { KiroSceneManager } from './scene.js';
 import { KiroIntroManager } from './intro.js';
 import { StarlightMessenger } from './mailbox.js';
 import { KiroAgenticOrchestrator } from './orchestrator.js';
+import { ARTEngine } from './art-engine.js';
 
 // ============================================================================
 // 1. Native Lifecycle & Notification Bridges
@@ -661,6 +662,94 @@ document.addEventListener('DOMContentLoaded', () => {
   // Stardust Trail Whoosh Event Listener
   KiroState.on('audio:whoosh', () => {
     synthEngine.playStarTrailWhoosh();
+  });
+
+  // 6.2 Adaptive Resource Throttling (ART) UI Controls & Live Telemetry
+  const artModeButtons = document.querySelectorAll('.art-mode-btn');
+  const artBadge = document.getElementById('art-live-tier-badge');
+  const valFps = document.getElementById('art-val-fps');
+  const valFrameTime = document.getElementById('art-val-frametime');
+  const valDpr = document.getElementById('art-val-dpr');
+  const valResTier = document.getElementById('art-val-res-tier');
+  const valParticles = document.getElementById('art-val-particles');
+  const valParticlesPct = document.getElementById('art-val-particles-pct');
+  const valMemory = document.getElementById('art-val-memory');
+  const valThermal = document.getElementById('art-val-thermal');
+
+  const updateArtModeUI = (currentMode) => {
+    artModeButtons.forEach(btn => {
+      const mode = btn.getAttribute('data-mode');
+      btn.classList.toggle('active', mode === currentMode);
+    });
+  };
+
+  const updateArtTelemetryUI = (telemetry) => {
+    if (!telemetry) return;
+    if (artBadge) {
+      artBadge.textContent = telemetry.currentTierId || 'OPTIMAL';
+      const isOptimal = telemetry.currentTierId === 'OPTIMAL';
+      const isEco = telemetry.currentTierId === 'ECO';
+      artBadge.style.color = isEco ? '#F5C2E7' : (isOptimal ? '#4EC9B0' : '#F9E2AF');
+      artBadge.style.borderColor = isEco ? 'rgba(245, 194, 231, 0.35)' : (isOptimal ? 'rgba(78, 201, 176, 0.35)' : 'rgba(249, 226, 175, 0.35)');
+    }
+
+    if (valFps) valFps.textContent = `${telemetry.fps || 60} FPS`;
+    if (valFrameTime) valFrameTime.textContent = `${(telemetry.avgFrameMs || 16.6).toFixed(1)} ms`;
+    if (valDpr) valDpr.textContent = `${(telemetry.dprScale || 1.0).toFixed(2)}x DPR`;
+    if (valResTier) valResTier.textContent = `${Math.round((telemetry.dprScale || 1.0) * 100)}% Fill-Rate`;
+    if (valParticles) {
+      const stars = Math.round(1400 * (telemetry.particleScale || 1.0));
+      valParticles.textContent = `${stars} Stars`;
+    }
+    if (valParticlesPct) valParticlesPct.textContent = `${Math.round((telemetry.particleScale || 1.0) * 100)}% Geometry`;
+
+    if (valMemory) {
+      if (telemetry.heapUsedMb > 0) {
+        valMemory.textContent = `Heap: ${telemetry.heapUsedMb}MB`;
+      } else {
+        valMemory.textContent = `RAM: ${telemetry.deviceMemoryGb || 4}GB`;
+      }
+    }
+
+    if (valThermal) {
+      if (telemetry.isThermalStrained) {
+        valThermal.textContent = '⚠️ Thermal Strain';
+        valThermal.style.color = '#F5C2E7';
+      } else if (!telemetry.isBatteryCharging && telemetry.batteryLevel < 0.2) {
+        valThermal.textContent = `Battery: ${Math.round(telemetry.batteryLevel * 100)}%`;
+        valThermal.style.color = '#F9E2AF';
+      } else {
+        valThermal.textContent = 'Optimal Temp';
+        valThermal.style.color = '#94E2D5';
+      }
+    }
+  };
+
+  artModeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-mode');
+      KiroState.setArtMode(mode);
+      updateArtModeUI(mode);
+      synthEngine.playChimeSound(660);
+    });
+  });
+
+  const initialArtMode = KiroState.get('artMode') || 'auto';
+  updateArtModeUI(initialArtMode);
+  if (ARTEngine) {
+    updateArtTelemetryUI(ARTEngine.getTelemetrySnapshot());
+  }
+
+  KiroState.on('change:artMode', ({ newValue }) => {
+    updateArtModeUI(newValue);
+  });
+
+  KiroState.on('art:telemetry_update', (telemetry) => {
+    updateArtTelemetryUI(telemetry);
+  });
+
+  KiroState.on('art:tier_change', ({ tier, telemetry }) => {
+    updateArtTelemetryUI(telemetry);
   });
 
   // 7. Ephemeral Vibe Soundscape Petals
