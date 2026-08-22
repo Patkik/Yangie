@@ -47,7 +47,7 @@ class StateEmitter {
   }
 }
 
-class KiroStateManager extends StateEmitter {
+export class KiroStateManager extends StateEmitter {
   constructor() {
     super();
 
@@ -56,7 +56,7 @@ class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.6',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.4.7',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)
@@ -222,6 +222,14 @@ class KiroStateManager extends StateEmitter {
       }
     } catch (e) {
       console.warn('Failed loading persisted inventory:', e);
+    }
+  }
+
+  refreshMilestoneCaps() {
+    if (this.hasMilestone('crab')) {
+      this.state.essenceCap = 600;
+    } else {
+      this.state.essenceCap = 100;
     }
   }
 

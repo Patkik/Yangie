@@ -10,8 +10,8 @@ android {
         applicationId = "com.patkik.yangie"
         minSdk = 26
         targetSdk = 34
-        versionCode = 84
-        versionName = "2.4.6"
+        versionCode = 85
+        versionName = "2.4.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

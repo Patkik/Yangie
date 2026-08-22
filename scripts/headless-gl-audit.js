@@ -525,6 +525,30 @@ if (fs.existsSync(jsDir)) {
       assert(false, `Syntax / scope error detected in js/${jsFile}: ${e.message}`);
     }
   }
+
+  // Runtime Instantiation Verification for KiroStateManager
+  const stateFilePath = path.join(jsDir, 'state.js');
+  if (fs.existsSync(stateFilePath)) {
+    const instScript = `
+      const { pathToFileURL } = require('url');
+      global.window = { addEventListener: () => {}, dispatchEvent: () => {} };
+      global.document = { addEventListener: () => {} };
+      global.localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+      import(pathToFileURL(process.argv[1]).href).then(m => {
+        const s = m.KiroState || (m.KiroStateManager ? new m.KiroStateManager() : null);
+        if (s && typeof s.refreshMilestoneCaps === 'function' && typeof s.checkStarCandyDailyRestock === 'function') {
+          process.exit(0);
+        } else {
+          process.exit(1);
+        }
+      }).catch(e => {
+        console.error(e);
+        process.exit(1);
+      });
+    `;
+    const instRes = spawnSync(process.execPath, ['--experimental-vm-modules', '-e', instScript, stateFilePath], { encoding: 'utf8' });
+    assert(instRes.status === 0, 'KiroStateManager runtime instantiation & critical milestone caps method verified');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

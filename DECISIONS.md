@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-641900] ES6 Module Scope Hardening, Milestone Caps Restoration & Black Screen Resolution V8.5
+- **Timestamp**: `2026-08-22T22:46:00.000000`
+- **Strategy & Synthesis**: Fixed Android WebView startup black screen crash caused by missing refreshMilestoneCaps() on KiroStateManager and duplicate identifier scope declaration in app.js. Hardened headless verification harness with runtime module instantiation tests and bumped SemVer to v2.4.7 (Build 85).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Restored instant boot-up and visual rendering of Kiro's Cosmic Haven, eliminating the initialization black screen crash and ensuring all Cor Amoris shaders and HUD elements load smoothly.
+  - **Performance**: Score 5/5: Hardened deep AST module analysis using native V8 vm.SourceTextModule execution and runtime state instantiation tests, catching undeclared or missing methods at build time in <0.5s.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.4.7 (Build 85) across version.json, index.html, state.js, and build.gradle.kts for instant Android WebView OTA asset cache eviction.
+  - **Structural**: Score 5/5: Restored missing refreshMilestoneCaps() and checkStarCandyDailyRestock() methods to KiroStateManager in state.js and eliminated duplicate const keplerShopModal identifier declaration in app.js.
+  - **Gamification**: Score 5/5: Guaranteed reliable double-ledger currency tracking, daily Star Candy restock calculations, and milestone essence cap escalations (up to 600) upon Crab Pulsar discovery.
+
+---
+
 ### [DEC-631900] Cor Amoris Scavenger Hunt Edition, Double-Ledger Wallets & Memorial Archive V8.4
 - **Timestamp**: `2026-08-22T22:33:00.000000`
 - **Strategy & Synthesis**: Implemented the complete Cor Amoris Game Design Document architecture for Anniversary Date 01-27-2024 with zero-clutter Stargate dial, Grand Emotional Cutscene, and permanent Memorial Archive.

@@ -1,10 +1,10 @@
 {
-  "version": "2.4.6",
-  "build": 84,
+  "version": "2.4.7",
+  "build": 85,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.4 — Cor Amoris Scavenger Hunt Edition & Memorial Archive",
+  "description": "Space Capsule V8.5 — ES6 Module Scope Hardening & Milestone Caps Fix",
   "releaseDate": "2026-08-22",
   "minApkVersion": 1,
-  "changelog": "V8.4: Delivered the master-class Cor Amoris Scavenger Hunt Edition for Anniversary 01-27-2024. Implemented Double-Ledger Wallets (Pats Mint-Teal & Yangiee Pastel-Pink), Kiro Monologue HUD & 20s Contextual Idle Hints, Bottom Navigation Constellation Dock (✧ ✧ ✧), Quest 1 (Kepler 3-tap RGB shader modal -> '01'), Quest 2 (Trappist 27-catch bandpass static sweep & music-box melody -> '27'), Quest 3 (3-second weather stardate physics detachment -> '2024'), Zero-Clutter Stargate Dial Resonance Lock, Grand Emotional Cutscene with Twin Suns Cathedral, Stardust Letter Declaration, Core Lock Badge, Permanent Backdrop Switcher, and procedural ambient soundtrack 'Under the Same Sky'."
+  "changelog": "V8.5: Hardened ES6 module AST scope execution, eliminated duplicate keplerShopModal identifier declaration in app.js, implemented missing refreshMilestoneCaps and checkStarCandyDailyRestock in KiroStateManager, resolved Android WebView black screen initialization blocker, and added runtime instantiation testing to headless verification suite."
 }
 
