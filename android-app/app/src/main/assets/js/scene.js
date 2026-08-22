@@ -1019,10 +1019,11 @@ export class KiroSceneManager {
 
     // Planet 4: Faceted Low-Poly Asteroid Ring Node
     const asteroidGeo = new THREE.IcosahedronGeometry(0.24, 1);
-    const asteroidMat = new THREE.MeshLambertMaterial({
+    const asteroidMat = new THREE.MeshPhongMaterial({
       color: 0xCBA6F7,
       flatShading: true,
-      emissive: 0x11111B
+      emissive: 0x11111B,
+      shininess: 10
     });
     const asteroid = new THREE.Mesh(asteroidGeo, asteroidMat);
     asteroid.userData = { id: 'asteroid', semiMajor: 4.2, semiMinor: 3.2, tiltAngle: 0.45, baseDepth: -10.5, speed: 0.082, baseAngle: 1.1 };
