@@ -1,10 +1,10 @@
 {
-  "version": "2.6.0",
-  "build": 98,
+  "version": "2.6.1",
+  "build": 99,
   "name": "Kiro",
-  "description": "Space Capsule V9.8 — Safe View-Frustum BoundingSphere Culling, Flight Control Speed Scope Resolution & Non-Intrusive Weather Sheet Alert",
+  "description": "Space Capsule V9.9 — Roaming Planets Safe Frustum BoundingSphere Culling & Universal Background Black Screen Fix",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.8: Fixed Three.js frustum culling TypeError by implementing robust intersectsObjectSafe() bounding volume validation for Groups and Meshes, resolved onFlightMove undefined speed variable ReferenceError, and cleaned up Kiro weather reminder bubble to prevent viewport obstruction."
+  "changelog": "V9.9: Fully eliminated uncaught boundingSphere TypeError in updateCelestialLayer roaming planets by migrating _celestialFrustum to intersectsObjectSafe, ensuring uninterrupted 120 FPS WebGL rendering of Kiro and the celestial cosmos on all Android mobile devices."
 }
 

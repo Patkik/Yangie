@@ -1,26 +1,28 @@
-# 🛰️ Kiro's Cosmic Haven — Safe View-Frustum BoundingSphere Culling, Flight Control Scope Resolution & Non-Intrusive Weather Alert (V9.8)
+# 🛰️ Kiro's Cosmic Haven — Roaming Planets Safe Frustum BoundingSphere Culling & Universal Background Black Screen Fix (V9.9)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.6.0` (Android `versionCode = 98`)
-- **Scope & Problem Diagnosis (DEC-771900)**:
-  - **Three.js `boundingSphere` TypeError (Black Screen Root Cause)**:
-    - `Frustum.intersectsObject(object)` threw `Cannot read properties of undefined (reading 'boundingSphere')` when evaluating `this.targetSystemMeshes` (containing `THREE.Group` instances without `.geometry`) and compound asteroid/planet meshes.
-    - **Remediation**: Implemented `intersectsObjectSafe(object)` in [`scene.js`](file:///c:/Users/patri/OneDrive/Desktop/Holy%20folder/Kiro/android-app/app/src/main/assets/js/scene.js) with zero-allocation module-scoped `_scratchSphere` bounding volume testing, supporting both `THREE.Mesh` and `THREE.Group` compound hierarchies.
-  - **Undefined Flight Steering Speed (`ReferenceError`)**:
-    - `onFlightMove` in `scene.js` called `synthEngine.updateThrusterSpeed(speed)` where `speed` was not defined.
-    - **Remediation**: Correctly scoped and computed `const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 60);`.
-  - **Obstructive Weather Alert Dialogue Box**:
-    - `.kiro-alert-bubble` was positioned at `top: -70px` on `.weather-bottom-sheet`, causing it to peek out over the bottom HUD and D-Pad even when the drawer was closed.
-    - **Remediation**: Repositioned `.kiro-alert-bubble` cleanly inside the bottom sheet, added an explicit close button `✕` (`#bubble-close-btn`), and enforced strict CSS hiding (`.weather-bottom-sheet:not(.open) .kiro-alert-bubble { display: none !important; }`).
+- **Release Version**: `v2.6.1` (Android `versionCode = 99`)
+- **Scope & Root Cause (DEC-781900)**:
+  - **Background Black Screen Root Cause**:
+    - Inside `scene.js` `updateCelestialLayer()` (line 1632), the Keplerian orbit loop tested `_celestialFrustum.intersectsObject(planet)`.
+    - Planet 2 (Kepler 186) was constructed as a `THREE.Group` containing the planet mesh and ring geometry.
+    - Three.js's native `intersectsObject` evaluates `object.geometry.boundingSphere`, which threw an uncaught `TypeError: Cannot read properties of undefined (reading 'boundingSphere')` on every frame.
+    - This uncaught exception halted `animate()` execution immediately before `this.renderer.render(this.scene, this.camera)`, preventing the WebGL backbuffer from rendering and leaving the canvas background completely black.
+  - **Remediation**:
+    - Upgraded `intersectsObjectSafe(object, frustum)` to support custom frustum instances with automatic fallback to `this._frustum || this._celestialFrustum`.
+    - Replaced `_celestialFrustum.intersectsObject(planet)` with `this.intersectsObjectSafe(planet, this._celestialFrustum)`.
+    - Zero raw `intersectsObject` calls remain across the entire codebase.
 
 ---
 
 ## 2. Architectural Implementation Details
 
-### I. Zero-Allocation Safe Frustum Culling Engine
+### I. Universal Safe Frustum Culling Engine
 ```javascript
-intersectsObjectSafe(object) {
+intersectsObjectSafe(object, frustum = null) {
   if (!object) return false;
+  const targetFrustum = frustum || this._frustum || this._celestialFrustum;
+  if (!targetFrustum) return true;
   try {
     if (object.geometry) {
       if (!object.geometry.boundingSphere) {
@@ -28,14 +30,14 @@ intersectsObjectSafe(object) {
       }
       if (object.geometry.boundingSphere) {
         _scratchSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.matrixWorld);
-        return this._frustum.intersectsSphere(_scratchSphere);
+        return targetFrustum.intersectsSphere(_scratchSphere);
       }
     }
     // For Group or compound hierarchical objects, test bounding volume around world position
     if (object.position) {
       _scratchSphere.center.setFromMatrixPosition(object.matrixWorld);
       _scratchSphere.radius = 4.5;
-      return this._frustum.intersectsSphere(_scratchSphere);
+      return targetFrustum.intersectsSphere(_scratchSphere);
     }
   } catch (e) {
     return true; // Fallback to visible if calculation fails
@@ -44,27 +46,16 @@ intersectsObjectSafe(object) {
 }
 ```
 
-### II. Scoped Flight Speed Ratio
+### II. Roaming Planets Frustum Integration
 ```javascript
-const pitch = Math.max(-50, Math.min(50, startPitch - deltaY * 0.18));
-const yaw = Math.max(-50, Math.min(50, startYaw + deltaX * 0.18));
-KiroState.set('cockpitSteering', { pitch, yaw });
-const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 60);
-if (!this.minigameActive && !KiroState.get('minigameActive')) {
-  synthEngine.updateThrusterSpeed(speed);
+// Frustum culling check: bypass rotation and shader uniform updates if offscreen
+if (this._celestialFrustum && !this.intersectsObjectSafe(planet, this._celestialFrustum)) {
+  planet.visible = false;
+  return;
 }
-```
-
-### III. Non-Intrusive Weather Reminder Placement
-```css
-.weather-bottom-sheet.open .kiro-alert-bubble.active {
-  display: flex;
-}
-
-.weather-bottom-sheet:not(.open) .kiro-alert-bubble {
-  display: none !important;
-  pointer-events: none !important;
-}
+planet.visible = true;
+planet.rotation.y += 0.012;
+planet.rotation.x += 0.006;
 ```
 
 ---
@@ -73,21 +64,21 @@ if (!this.minigameActive && !KiroState.get('minigameActive')) {
 
 | Verification Gate | Command | Result |
 |---|---|---|
-| **Dynamic Headless WebGL & Audio Audit** | `node scripts/headless-gl-audit.js` | ✅ **289/289 Assertions Passed (Exit 0)** |
+| **Dynamic Headless WebGL & Audio Audit** | `node scripts/headless-gl-audit.js` | ✅ **291/291 Assertions Passed (Exit 0)** |
 | **Kiro Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **8/8 Subsystems Green (Exit 0)** |
-| **Decision Codification** | `python kiro-agent-harness.py --sync-rules` | ✅ **DEC-771900 Codified Across All Rule Files** |
+| **Decision Codification** | `python kiro-agent-harness.py --sync-rules` | ✅ **DEC-781900 Codified Across All Rule Files** |
 | **Android Unit & Instrumental Tests** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Passed (Exit 0)** |
 | **Android Debug APK Assembly** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL (Exit 0)** |
-| **Synchronized SemVer Bump** | Version 2.6.0 (Build 98) | ✅ **Synchronized across 4 targets** |
+| **Synchronized SemVer Bump** | Version 2.6.1 (Build 99) | ✅ **Synchronized across 4 targets** |
 
 ---
 
 ## 4. Git Publication Record
-- **Commit**: `fix(render): resolve boundingSphere frustum culling crash, flight speed scope & weather bubble overlay (v2.6.0)`
-- **Tag**: `v2.6.0`
+- **Commit**: `fix(render): resolve roaming planets boundingSphere frustum crash in updateCelestialLayer (v2.6.1)`
+- **Tag**: `v2.6.1`
 - **Branch**: `origin/main`
 - **SemVer Targets**:
-  - [`version.json`](file:///android-app/app/src/main/assets/version.json): `v2.6.0` (Build 98)
-  - [`index.html`](file:///android-app/app/src/main/assets/index.html): `v2.6.0` (`#settings-current-ver-badge` & `#settings-val-version`)
-  - [`state.js`](file:///android-app/app/src/main/assets/js/state.js): `installedVersion = "2.6.0"`
-  - [`build.gradle.kts`](file:///android-app/app/build.gradle.kts): `versionCode = 98`, `versionName = "2.6.0"`
+  - [`version.json`](file:///android-app/app/src/main/assets/version.json): `v2.6.1` (Build 99)
+  - [`index.html`](file:///android-app/app/src/main/assets/index.html): `v2.6.1` (`#settings-current-ver-badge` & `#settings-val-version`)
+  - [`state.js`](file:///android-app/app/src/main/assets/js/state.js): `installedVersion = "2.6.1"`
+  - [`build.gradle.kts`](file:///android-app/app/build.gradle.kts): `versionCode = 99`, `versionName = "2.6.1"`

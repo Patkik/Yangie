@@ -1629,7 +1629,7 @@ export class KiroSceneManager {
       planet.position.set(orbitPos.x, orbitPos.y, (u.baseDepth || -12.0) + orbitPos.z);
 
       // Frustum culling check: bypass rotation and shader uniform updates if offscreen
-      if (this._celestialFrustum && !this._celestialFrustum.intersectsObject(planet)) {
+      if (this._celestialFrustum && !this.intersectsObjectSafe(planet, this._celestialFrustum)) {
         planet.visible = false;
         return;
       }
@@ -3884,8 +3884,10 @@ export class KiroSceneManager {
   /* ─────────────────────────────────────────────────────────────────────────
      Mathematical View-Frustum Culling (Zero Draw-Call Fill-Rate Optimization)
      ───────────────────────────────────────────────────────────────────────── */
-  intersectsObjectSafe(object) {
+  intersectsObjectSafe(object, frustum = null) {
     if (!object) return false;
+    const targetFrustum = frustum || this._frustum || this._celestialFrustum;
+    if (!targetFrustum) return true;
     try {
       if (object.geometry) {
         if (!object.geometry.boundingSphere) {
@@ -3893,14 +3895,14 @@ export class KiroSceneManager {
         }
         if (object.geometry.boundingSphere) {
           _scratchSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.matrixWorld);
-          return this._frustum.intersectsSphere(_scratchSphere);
+          return targetFrustum.intersectsSphere(_scratchSphere);
         }
       }
       // For Group or compound hierarchical objects, test bounding volume around world position
       if (object.position) {
         _scratchSphere.center.setFromMatrixPosition(object.matrixWorld);
         _scratchSphere.radius = 4.5;
-        return this._frustum.intersectsSphere(_scratchSphere);
+        return targetFrustum.intersectsSphere(_scratchSphere);
       }
     } catch (e) {
       return true; // Fallback to visible if calculation fails

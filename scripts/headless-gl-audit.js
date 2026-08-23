@@ -1012,6 +1012,8 @@ if (fs.existsSync(sceneJsPath)) {
   assert(sceneCode.includes('buildProceduralHeart'), 'buildProceduralHeart verified in scene.js');
   assert(sceneCode.includes('buildCapsuleShuttleModel'), 'buildCapsuleShuttleModel verified in scene.js');
   assert(sceneCode.includes('intersectsObjectSafe') && sceneCode.includes('_scratchSphere'), 'Safe boundingSphere frustum culling (intersectsObjectSafe) verified in scene.js');
+  assert(sceneCode.includes('this.intersectsObjectSafe(planet, this._celestialFrustum)'), 'Roaming planets safe frustum culling verified in scene.js');
+  assert(!sceneCode.includes('this._celestialFrustum.intersectsObject'), 'Zero raw _celestialFrustum.intersectsObject calls in scene.js');
   assert(sceneCode.includes('const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 60);'), 'Flight steering speed variable properly defined in scene.js');
 }
 
