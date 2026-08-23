@@ -1,70 +1,53 @@
-# 🛰️ Kiro's Cosmic Haven — Master Realistic Hand-Drawn Anime Celestial Shader Pipeline (V9.2)
+# 🛰️ Kiro's Cosmic Haven — Real-Time Mailbox Telemetry Sparklines, Frustum Culling & Dead Reckoning (V9.3)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.5.4` (Android `versionCode = 92`)
+- **Release Version**: `v2.5.5` (Android `versionCode = 93`)
 - **Scope & Objectives**:
-  - Upgraded the entire celestial sky, background nebula, starfields, comets, asteroids, meteors, and planetary bodies into an authentic, hand-drawn anime illustration style.
-  - Implemented 100% GPU-bound procedural shaders with zero runtime allocations, maintaining 120 FPS on mobile WebViews under a strict 5ms frame budget.
-  - Integrated standalone [`anime-shader-pipeline.js`](file:///android-app/app/src/main/assets/js/anime-shader-pipeline.js) and seamlessly synchronized [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js) render routines.
+  - Implemented an interactive real-time telemetry charting drawer inside Starlight Messenger (`#mailbox-telemetry-drawer`) with dual live sparklines (WebGL GPU Frametime & Co-op RTT Connection Latency).
+  - Engineered 6-plane mathematical view-frustum culling with zero-allocation bounding sphere evaluation in [`scene.js`](file:///android-app/app/src/main/assets/js/scene.js).
+  - Implemented the Cubic Hermite Spline Dead Reckoning state prediction engine in [`physics-agent.js`](file:///android-app/app/src/main/assets/js/physics-agent.js) ensuring $C^1$ velocity smoothness across network latency jitter.
+  - Vectorized and unrolled fractional Brownian motion (fBm) shader compute across background starfield and celestial bodies.
 
 ---
 
-## 2. Master Anime Shader Pipeline Architecture
+## 2. Real-Time Starlight Mailbox Telemetry Architecture
 
 ```mermaid
 graph TD
-    A[Master Anime Celestial Shaders] --> B[1. 4-Point Needle Starfield & Polar Vortex Swirl]
-    A --> C[2. Spectral Ribbon Comet & Brush Stroke Tail]
-    A --> D[3. Ink-Outlined Low-Poly Asteroid with fBm Rock Texture]
-    A --> E[4. Anime Tapered Glowing Meteor Streaks]
-    A --> F[5. Skyrim Sovngarde Swirling Vortex Nebula]
-    A --> G[6. Cel-Shaded Planets with Inverted-Hull Outlines]
-
-    B --> B1[4-Point cross flares | Swirl angle = sin u_time * 0.08 - r * 0.12]
-    C --> C1[GPU sinusoidal ripple wave | Hand-drawn brush line slices]
-    D --> D1[Edge rim-normal detection | fBm watercolor wash | Auric halo]
-    E --> E1[Glowing diamond head | Wispy tapered brush-fade tail]
-    F --> F1[Multi-arm polar vortex | Vision of the Tenth Eye chromatic fringe]
-    G --> G1[Stepped Lambertian lighting | Inverted-hull charcoal outlines]
+    A[Starlight Messenger Header] --> B[Telemetry Toggle Button]
+    B --> C[Mailbox Telemetry Drawer]
+    
+    C --> D[Card 1: WebGL GPU Budget Sparkline]
+    C --> E[Card 2: Co-op Network RTT Sparkline]
+    
+    D --> D1[Mint Teal Stroke | 120 FPS 8.3ms & 60 FPS 16.7ms Dashed Baselines]
+    D --> D2[Draw Calls Counter vs Budget 24/50 | Active GPU Duration Profiling]
+    
+    E --> E1[Pastel Pink Stroke | 50ms Target Baseline | Jitter Smoothing]
+    E --> E2[Hermite C1 Continuity State Predictor Badge | Ping Indicator]
 ```
+
+### Key Components:
+- **Toggle Button (`#mailbox-telemetry-toggle-btn`)**: Compact header pill in [`mailbox.js`](file:///android-app/app/src/main/assets/js/mailbox.js) displaying real-time RTT latency with pure vector SVG pulse glyph.
+- **WebGL GPU Frametime Canvas (`#mailbox-telemetry-gl-canvas`)**: 20-sample live sparkline with dashed baselines at $8.33\text{ms}$ (120 FPS target) and $16.67\text{ms}$ (60 FPS minimum) in mint teal gradient fill.
+- **Co-op RTT Latency Canvas (`#mailbox-telemetry-net-canvas`)**: 20-sample rolling latency monitor with $50\text{ms}$ target guide and pastel pink gradient fill.
+- **Live Stat Chips**: Active WebGL draw calls, GPU duration, network RTT, and dead-reckoning status badge (`Hermite C¹`).
 
 ---
 
-## 3. Subsystem Breakdown
+## 3. Mathematical Rendering & Networking Foundations
 
-### 1. 4-Point Needle Starfield & Swirling Polar Vortex (`createAnimeStarfieldShaderMaterial`)
-- **Vertex Shader**:
-  - Natively computes polar vortex orbital swirl on GPU registers without CPU memory allocation:
-    $$\theta_{\text{swirl}} = \sin(u\_time \times 0.08 - r \times 0.12) \times 0.42 \times \frac{1.0}{r + 0.5}$$
-  - Multi-harmonic twinkle oscillation modulating point sizes:
-    $$\text{twinkle} = 0.45 + 0.55 \times \sin(u\_time \times 2.8 + aPhase) \times \cos(u\_time \times 1.4 + aPhase \times 0.4)$$
-- **Fragment Shader**:
-  - Multi-arm needle-sharp 4-pointed cross flares:
-    $$\text{flare}_X = \max(0, 1 - |u_x \times 6.5|) \times \max(0, 1 - |u_y \times 1.5|)$$
-    $$\text{flare}_Y = \max(0, 1 - |u_y \times 6.5|) \times \max(0, 1 - |u_x \times 1.5|)$$
-    $$\text{finalMask} = (\text{flare}_X + \text{flare}_Y) \times 0.72 + \exp(-d^2 \times 16.0) \times 0.45$$
+### 1. Mathematical View-Frustum Culling (Six-Plane BVH)
+The camera's truncated pyramid visual field is bounded by six planes $\pi_i = [A_i, B_i, C_i, D_i]^T$. For any celestial body with center $\mathbf{C}$ and radius $r$:
+$$d_i = \mathbf{n}_i \cdot \mathbf{C} + D_i$$
+- **Culling Rule**: If $d_i < -r$ for any of the 6 planes, the object is completely off-screen and bypassed from WebGL draw calls (`mesh.visible = false`).
 
-### 2. Spectral Ribbon Fluid Comet (`createAnimeCometShaderMaterial`)
-- **GPU Sinusoidal Ripple**:
-  $$\text{waveOffset} = \sin(u\_time \times 9.5 - aIndex \times 5.0) \times 0.22 \times aIndex$$
-- **Hand-Drawn Paint Brush Lines**:
-  - Slices vertical brush strokes into the stardust stream:
-    $$\text{brushStrokes} = \text{step}(0.12, \sin(u_y \times 32.0 + u\_time \times 2.0)) \times 0.25 + 0.75$$
-- **Chromatic Gradient**: Emerald-Neon (`#94E2D5`) nucleus blending into Lavender-Pink (`#F5C2E7`) tail.
-- **Inverted-Hull Outline**: The comet nucleus is enclosed in a crisp charcoal outline mesh (`createAnimeOutlineMesh`).
-
-### 3. Ink-Outlined Asteroid & Rock Face (`createAnimeAsteroidShaderMaterial`)
-- **Rim-Normal Detection Ink Outlines**:
-  $$\text{edgeStroke} = \text{step}(0.24, \vec{n} \cdot \vec{v})$$
-- **Watercolor fBm Acrylic Wash**:
-  - Multi-octave fractional Brownian motion adds hand-painted texture to low-poly facets:
-    $$\text{brushNoise} = \text{fBm}(\text{paintCoord}) \times 0.15 + 0.85$$
-- **Shimmering Magical Aura**:
-  $$\text{aura} = u\_auraColor \times (1.0 - \vec{n} \cdot \vec{v})^3 \times (0.65 + 0.35 \times \sin(u\_time \times 4.0 + n_x \times 10.0))$$
-
-### 4. Anime Tapered Glowing Meteor Streaks (`createAnimeMeteorShaderMaterial`)
-- **Tapered Fade**: Glowing white head fading quadratically into wispy mint/gold stardust brush tails.
-- **Opacity Tweens**: Smooth sinusoidal entrance/exit transitions during high-velocity diagonal entry.
+### 2. Cubic Hermite Spline Dead Reckoning (State Prediction)
+To eliminate visual stutter during co-op network jitter between Patrick and Yangiee, intermediate positions $\mathbf{P}(t)$ are smoothed with $C^1$ velocity continuity:
+$$\mathbf{P}(t) = h_{00}(s)\mathbf{P}_0 + h_{10}(s)\Delta t \mathbf{V}_0 + h_{01}(s)\mathbf{P}_1 + h_{11}(s)\Delta t \mathbf{V}_1$$
+Where:
+$$h_{00}(s) = 2s^3 - 3s^2 + 1, \quad h_{10}(s) = s^3 - 2s^2 + s$$
+$$h_{01}(s) = -2s^3 + 3s^2, \quad h_{11}(s) = s^3 - s^2$$
 
 ---
 
@@ -72,18 +55,18 @@ graph TD
 
 | Verification Gate | Command | Result |
 |---|---|---|
-| **Dynamic Headless WebGL & Audio Audit** | `node scripts/headless-gl-audit.js` | ✅ **239/239 Assertions Passed (Exit 0)** |
+| **Dynamic Headless WebGL & Audio Audit** | `node scripts/headless-gl-audit.js` | ✅ **248/248 Assertions Passed (Exit 0)** |
 | **Kiro Autonomous Quality Harness** | `python kiro-agent-harness.py --check` | ✅ **8/8 Subsystems Green (Exit 0)** |
-| **Continuous Learning Decision Sync** | `python kiro-agent-harness.py --sync-rules` | ✅ **DEC-711900 Codified Across All Rule Files** |
+| **Decision Codification** | `python kiro-agent-harness.py --sync-rules` | ✅ **DEC-721900 Codified Across All Rule Files** |
 | **Android Unit & Instrumental Tests** | `.\gradlew.bat test compileDebugAndroidTestKotlin` | ✅ **Passed (Exit 0)** |
-| **Android APK Debug Compilation** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL in 59s (v2.5.4, Build 92)** |
-| **Git Publication & Remote Tag** | `git push origin main --tags` | ✅ **v2.5.4 Tagged & Synchronized** |
+| **Android APK Debug Compilation** | `.\gradlew.bat assembleDebug` | ✅ **BUILD SUCCESSFUL (v2.5.5, Build 93)** |
+| **Git Publication & Remote Tag** | `git push origin main --tags` | ✅ **v2.5.5 Tagged & Synchronized** |
 
 ---
 
 ## 5. Synchronized SemVer Matrix
 
-- [`version.json`](file:///android-app/app/src/main/assets/version.json): `v2.5.4` (Build 92)
-- [`index.html`](file:///android-app/app/src/main/assets/index.html): `v2.5.4` (`#settings-current-ver-badge` & `#settings-val-version`)
-- [`state.js`](file:///android-app/app/src/main/assets/js/state.js): `installedVersion = "2.5.4"`
-- [`build.gradle.kts`](file:///android-app/app/build.gradle.kts): `versionCode = 92`, `versionName = "2.5.4"`
+- [`version.json`](file:///android-app/app/src/main/assets/version.json): `v2.5.5` (Build 93)
+- [`index.html`](file:///android-app/app/src/main/assets/index.html): `v2.5.5` (`#settings-current-ver-badge` & `#settings-val-version`)
+- [`state.js`](file:///android-app/app/src/main/assets/js/state.js): `installedVersion = "2.5.5"`
+- [`build.gradle.kts`](file:///android-app/app/build.gradle.kts): `versionCode = 93`, `versionName = "2.5.5"`

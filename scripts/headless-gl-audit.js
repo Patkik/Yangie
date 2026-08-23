@@ -880,7 +880,40 @@ if (fs.existsSync(pipelineJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 27. Final Audit Summary
+// 27. Auditing Real-Time RTT & WebGL Mailbox Telemetry Charts & Dead Reckoning (V9.3)...
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.CYAN}${Colors.BRIGHT}27. Auditing Real-Time RTT & WebGL Mailbox Telemetry Charts & Dead Reckoning (V9.3)...${Colors.RESET}`);
+
+const mailboxAuditJsPath = path.join(ASSETS_DIR, 'js', 'mailbox.js');
+if (fs.existsSync(mailboxAuditJsPath)) {
+  const mailboxCode = fs.readFileSync(mailboxAuditJsPath, 'utf8');
+  assert(mailboxCode.includes('mailbox-telemetry-toggle-btn') && mailboxCode.includes('mailbox-telemetry-drawer'), 'Mailbox telemetry toggle button and drawer container verified in mailbox.js');
+  assert(mailboxCode.includes('mailbox-telemetry-gl-canvas') && mailboxCode.includes('mailbox-telemetry-net-canvas'), 'Dual WebGL GPU and Network RTT sparkline canvases verified in mailbox.js');
+  assert(mailboxCode.includes('drawTelemetryCharts') && mailboxCode.includes('startTelemetryLoop') && mailboxCode.includes('toggleTelemetry'), 'Real-time telemetry charting rendering methods verified in mailbox.js');
+  assert(mailboxCode.includes('Hermite C¹') && mailboxCode.includes('TelemetryHUD.getDiagnostics()'), 'TelemetryHUD diagnostics and Hermite C1 dead-reckoning state badge verified in mailbox.js');
+}
+
+const messengerAuditCssPath = path.join(ASSETS_DIR, 'css', 'messenger.css');
+if (fs.existsSync(messengerAuditCssPath)) {
+  const cssCode = fs.readFileSync(messengerAuditCssPath, 'utf8');
+  assert(cssCode.includes('.mailbox-telemetry-toggle-btn') && cssCode.includes('.mailbox-telemetry-drawer'), 'Mailbox telemetry drawer and toggle button CSS tokens verified in messenger.css');
+  assert(cssCode.includes('.telemetry-chart-card') && cssCode.includes('.telemetry-canvas-wrap'), 'Telemetry chart card and canvas wrapper CSS verified in messenger.css');
+}
+
+const physicsAuditJsPath = path.join(ASSETS_DIR, 'js', 'physics-agent.js');
+if (fs.existsSync(physicsAuditJsPath)) {
+  const physicsCode = fs.readFileSync(physicsAuditJsPath, 'utf8');
+  assert(physicsCode.includes('calculateCubicHermiteDeadReckoning') && physicsCode.includes('h00') && physicsCode.includes('h10') && physicsCode.includes('h01') && physicsCode.includes('h11'), 'Cubic Hermite Spline Dead Reckoning math engine verified in physics-agent.js');
+}
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneCode = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneCode.includes('updateFrustumCulling') && sceneCode.includes('intersectsObject'), 'Mathematical View-Frustum Culling verified in scene.js');
+  assert(sceneCode.includes('ARTEngine.telemetryHUD.recordFrame(renderDuration)'), 'GPU render duration profiling dispatched to TelemetryHUD in scene.js');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 28. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

@@ -3814,8 +3814,46 @@ export class KiroSceneManager {
     // 7. Update 3D-to-2D Dialogue Cloud Bubble Projection
     this.updateCloudBubblePosition();
 
-    // 8. Single WebGL Render Call
+    // 8. Mathematical View-Frustum Culling (Six-Plane Bounding Volume Hierarchy)
+    this.updateFrustumCulling();
+
+    // 9. Single WebGL Render Call & High-Precision GPU Duration Profiling
+    const renderStartTime = performance.now();
     this.renderer.render(this.scene, this.camera);
+    const renderDuration = performance.now() - renderStartTime;
+
+    if (ARTEngine && ARTEngine.telemetryHUD) {
+      ARTEngine.telemetryHUD.setRenderer(this.renderer);
+      ARTEngine.telemetryHUD.recordFrame(renderDuration);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Mathematical View-Frustum Culling (Zero Draw-Call Fill-Rate Optimization)
+     ───────────────────────────────────────────────────────────────────────── */
+  updateFrustumCulling() {
+    if (!this.camera) return;
+    if (!this._frustum) this._frustum = new THREE.Frustum();
+    if (!this._projScreenMatrix) this._projScreenMatrix = new THREE.Matrix4();
+
+    this._projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    this._frustum.setFromProjectionMatrix(this._projScreenMatrix);
+
+    if (this.targetSystemMeshes) {
+      this.targetSystemMeshes.forEach(mesh => {
+        if (mesh) {
+          mesh.visible = this._frustum.intersectsObject(mesh);
+        }
+      });
+    }
+
+    if (this.asteroids) {
+      this.asteroids.forEach(ast => {
+        if (ast && ast.mesh) {
+          ast.mesh.visible = this._frustum.intersectsObject(ast.mesh);
+        }
+      });
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────────────────

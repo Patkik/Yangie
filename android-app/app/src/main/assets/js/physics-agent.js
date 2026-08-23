@@ -160,6 +160,30 @@ export class KiroPhysicsAgent {
       rotation: Math.atan2(sphereCenter.y, sphereCenter.x) // Pointing outwards off-axis
     };
   }
+
+  /**
+   * Dead Reckoning State Prediction: Cubic Hermite Spline Formulation (C1 Continuity)
+   * Predicts smooth 3D motion between state updates (p0, v0 at t0) and (p1, v1 at t1)
+   * Formula: P(t) = h00(s)*P0 + h10(s)*dt*V0 + h01(s)*P1 + h11(s)*dt*V1
+   */
+  calculateCubicHermiteDeadReckoning(p0, v0, p1, v1, t0, t1, tCurrent) {
+    const dt = Math.max(0.001, t1 - t0);
+    const s = Math.max(0, Math.min(1, (tCurrent - t0) / dt));
+    const s2 = s * s;
+    const s3 = s2 * s;
+
+    // Hermite basis functions
+    const h00 = 2 * s3 - 3 * s2 + 1;
+    const h10 = s3 - 2 * s2 + s;
+    const h01 = -2 * s3 + 3 * s2;
+    const h11 = s3 - s2;
+
+    return {
+      x: h00 * p0.x + h10 * dt * (v0.x || 0) + h01 * p1.x + h11 * dt * (v1.x || 0),
+      y: h00 * p0.y + h10 * dt * (v0.y || 0) + h01 * p1.y + h11 * dt * (v1.y || 0),
+      z: h00 * p0.z + h10 * dt * (v0.z || 0) + h01 * p1.z + h11 * dt * (v1.z || 0)
+    };
+  }
 }
 
 export default KiroPhysicsAgent;

@@ -1,9 +1,9 @@
 {
-  "version": "2.5.4",
-  "build": 92,
+  "version": "2.5.5",
+  "build": 93,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V9.2 — Master Realistic Hand-Drawn Anime Celestial Shader Pipeline",
+  "description": "Space Capsule V9.3 — Real-Time Mailbox Telemetry Sparklines, Frustum Culling & Dead Reckoning",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.2: Upgraded all celestial shaders (4-point flare starfield with polar vortex swirl, spectral ribbon fluid comets with hand-painted brush lines, ink-outlined low-poly asteroids with fBm rock texture, and glowing meteors) to realistic hand-drawn anime aesthetic."
+  "changelog": "V9.3: Real-Time Starlight Mailbox Telemetry Drawer with dual WebGL frame duration & co-op RTT latency sparklines, 6-plane mathematical view-frustum culling, and Cubic Hermite Spline dead-reckoning state prediction."
 }

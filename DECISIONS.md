@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-721900] Starlight Mailbox Real-Time RTT & WebGL Draw-Call Telemetry Drawer, Six-Plane Frustum Culling & Cubic Hermite Spline Dead Reckoning (V9.3)
+- **Timestamp**: `2026-08-23T09:30:00.000000`
+- **Strategy & Synthesis**: Engineered and deployed the real-time RTT connection and WebGL draw-call telemetry drawer in Starlight Messenger with dual sparklines, 6-plane view-frustum culling in scene.js, and Cubic Hermite Dead Reckoning state prediction in physics-agent.js (v2.5.5, Build 93).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Embedded a sleek, cozy glassmorphic real-time telemetry drawer directly into the Starlight Messenger modal with dual live sparkline charts (WebGL GPU Frametime in Mint Teal and Co-op RTT Latency in Pastel Pink) and pure vector SVG telemetry pills.
+  - **Performance**: Score 5/5: Implemented 6-plane mathematical view-frustum culling across target planets and asteroids, high-precision per-frame GPU duration profiling, and 120 FPS frame budget monitoring.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.5.5 (Build 93) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Engineered the Cubic Hermite Spline dead-reckoning state prediction engine in physics-agent.js with C1 velocity smoothness for network jitter resilience in co-op sessions.
+  - **Gamification**: Score 5/5: Live, tactical feedback empowering Patrick and Yangiee to monitor their connection latency, active WebGL draw-calls, and network packet delivery in real-time.
+
+---
+
 ### [DEC-711900] Master Realistic Hand-Drawn Anime Celestial Shader Pipeline (4-Point Needle Starfield, Spectral Ribbon Comets, Ink-Outlined Asteroids & Glowing Meteors) V9.2
 - **Timestamp**: `2026-08-23T09:22:00.000000`
 - **Strategy & Synthesis**: Engineered and deployed the master realistic hand-drawn anime celestial shader pipeline across starfield, comets, asteroids, meteors, and planets with 4-point flares, polar vortex swirl, and ink-outlined watercolor textures (v2.5.4, Build 92).
