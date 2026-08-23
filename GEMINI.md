@@ -201,6 +201,7 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-671900]** Master UI Anti-Overlap Guardrails, Responsive Dynamic Island Flex Stabilization & Legacy Constellation Dock Eviction V8.8
 - **[DEC-661900]** Telescope Mode Minigame Return State Guard & Minigame 120 FPS WebGL Frame Budget Isolation V8.7
 - **[DEC-651900]** Skyrim Sovngarde Polar Celestial Vortex Shader, Vision of the Tenth Eye Glow, Pure Black Cosmic Void, Anime JRPG Dialogue Box & Hidden Mystery Keystones V8.6
 - **[DEC-641900]** ES6 Module Scope Hardening, Milestone Caps Restoration & Black Screen Resolution V8.5

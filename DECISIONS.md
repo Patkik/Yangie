@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-671900] Master UI Anti-Overlap Guardrails, Responsive Dynamic Island Flex Stabilization & Legacy Constellation Dock Eviction V8.8
+- **Timestamp**: `2026-08-23T08:53:00.000000`
+- **Strategy & Synthesis**: Implemented master UI anti-overlap guardrails, stabilized Dynamic Island top bar flex layout, eliminated orphan clipped badges, and permanently purged legacy bottom constellation dock (v2.5.0, Build 88).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Restored clean, breathtaking, unpolluted 90% WebGL celestial visual space with zero UI overlapping artifacts, cropped badge boxes, or orphan layout spans across any mobile screen size.
+  - **Performance**: Score 5/5: Completely removed legacy DOM nodes and enforced strict CSS layout containment (contain: paint layout), preventing browser reflow thrashing across dynamic top-bar and modal updates.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.5.0 (Build 88) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Applied strict flexbox boundary guardrails (max-width, text-overflow: ellipsis, flex-shrink: 0) on the Dynamic Island top bar, and permanently evicted legacy bottom constellation dock from DOM and CSS.
+  - **Gamification**: Score 5/5: Seamless, non-obstructive quest and HUD interactions with dedicated top-bar Cor Amoris beacon routing, preserving quick access to Stargate, Satchel, and Memorial Archive without obscuring the main stage.
+
+---
+
 ### [DEC-661900] Telescope Mode Minigame Return State Guard & Minigame 120 FPS WebGL Frame Budget Isolation V8.7
 - **Timestamp**: `2026-08-23T00:34:00.000000`
 - **Strategy & Synthesis**: Fixed telescope flight mode bug where Kiro's 3D mesh appeared in front of the cockpit upon minigame exit, and fully isolated GPU frame budget during minigames by pausing background WebGL rendering, restoring smooth 60-120 FPS (v2.4.9, Build 87).

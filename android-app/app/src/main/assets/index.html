@@ -57,16 +57,13 @@
             <div class="beacon-ring-wave"></div>
           </div>
           <div class="beacon-meta-info">
-            <div class="beacon-primary-row">
-              <span class="beacon-sparkle">✦</span>
-              <span id="partner-status-name" class="beacon-partner-name">Patrick</span>
-              <span class="beacon-sep">•</span>
-              <span id="partner-status-location" class="beacon-location-name">Malaybalay</span>
-              <span id="beacon-weather-badge" class="beacon-weather-badge">24°C ⛅</span>
-              <span id="beacon-umbrella-pill" class="beacon-umbrella-pill" style="display: none;">☂️</span>
-            </div>
+            <span class="beacon-sparkle">✦</span>
+            <span id="partner-status-name" class="beacon-partner-name">Patrick</span>
           </div>
-          <span class="beacon-expand-indicator" style="font-size: 8px; opacity: 0.75; color: #94e2d5; margin-left: 2px;">▾</span>
+          <span class="beacon-expand-indicator">▾</span>
+          <!-- Dynamic weather telemetry hook elements preserved for radar syncing -->
+          <span id="beacon-weather-badge" class="beacon-weather-badge" style="display: none;">24°C ⛅</span>
+          <span id="beacon-umbrella-pill" class="beacon-umbrella-pill" style="display: none;">☂️</span>
           <!-- Live clock element maintained for state syncing -->
           <span class="sanctuary-live-clock" id="live-clock" style="display: none;">--:--:-- PST</span>
         </div>
@@ -689,12 +686,12 @@
               <svg class="inline-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
               Software Updates
             </span>
-            <span id="settings-current-ver-badge" class="settings-version-badge">v2.4.9</span>
+            <span id="settings-current-ver-badge" class="settings-version-badge">v2.5.0</span>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: #A6ADC8;">
             <span>Installed Version:</span>
-            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.4.9</span>
+            <span id="settings-val-version" style="color: #FFF; font-weight: 600;">v2.5.0</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>Source</span>
@@ -957,12 +954,7 @@
     </div>
   </div>
 
-  <!-- Hidden Constellation Dock Elements (Preserves event routing without bottom overlap) -->
-  <nav id="cor-amoris-constellation-dock" class="constellation-dock" style="display: none;" aria-hidden="true">
-    <button id="dock-star-resonance" class="dock-star-btn"><span class="dock-star-icon">✧</span></button>
-    <button id="dock-star-satchel" class="dock-star-btn"><span class="dock-star-icon">✧</span></button>
-    <button id="dock-star-archive" class="dock-star-btn"><span class="dock-star-icon">✧</span></button>
-  </nav>
+
 
   <!-- 2. Floating 2024 Physics Detached Element -->
   <div id="floating-2024-fragment" class="floating-2024-fragment hidden">

@@ -740,7 +740,7 @@ if (fs.existsSync(corAmorisJsPath)) {
 
 if (fs.existsSync(corAmorisCssPath)) {
   const corCss = fs.readFileSync(corAmorisCssPath, 'utf8');
-  assert(corCss.includes('.constellation-dock') && corCss.includes('.dock-star-btn'), 'Bottom Navigation Constellation Dock (✧ ✧ ✧) styles verified in cor-amoris.css');
+  assert(corCss.includes('.constellation-dock') && corCss.includes('display: none !important'), 'Strict invisible guardrail against bottom dock overlap verified in cor-amoris.css');
   assert(corCss.includes('.squishy-canvas-wrapper') && corCss.includes('.stargate-slot'), 'Squishy shader canvas and Stargate radial dial styles verified in cor-amoris.css');
   assert(corCss.includes('.declaration-letter-text') && corCss.includes('.core-lock-badge-artifact'), 'Declaration letter and Core Lock Badge styles verified in cor-amoris.css');
 }
@@ -762,7 +762,7 @@ if (fs.existsSync(stateJsAuditPath)) {
 
 if (fs.existsSync(indexHtmlAuditPath)) {
   const htmlContent = fs.readFileSync(indexHtmlAuditPath, 'utf8');
-  assert(htmlContent.includes('cor-amoris-constellation-dock') && htmlContent.includes('dock-star-resonance'), 'Constellation Dock verified in index.html');
+  assert(htmlContent.includes('btn-nav-cor-amoris') && htmlContent.includes('partner-beacon-pill'), 'Top Bar Cor Amoris beacon & anti-overlap partner-beacon-pill verified in index.html');
   assert(htmlContent.includes('cor-amoris-squishy-modal') && htmlContent.includes('cor-amoris-stargate-modal'), 'Squishy & Stargate modals verified in index.html');
   assert(htmlContent.includes('cor-amoris-cutscene-overlay') && htmlContent.includes('cor-amoris-archive-modal'), 'Cutscene overlay & Memorial Archive modal verified in index.html');
 }

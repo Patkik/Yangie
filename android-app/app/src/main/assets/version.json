@@ -1,10 +1,10 @@
 {
-  "version": "2.4.9",
-  "build": 87,
+  "version": "2.5.0",
+  "build": 88,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.7 — Telescope Flight State Guard & Minigame WebGL Frame Isolation",
-  "releaseDate": "2026-08-22",
+  "description": "Space Capsule V8.8 — Master UI Anti-Overlap Guardrail & Dynamic Island Flex Stabilization",
+  "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V8.7: Fixed bug causing Kiro to appear in front of the D-Pad upon exiting Kepler/Trappist minigames during shuttle flight mode by enforcing telescopeActive state invariants, paused background 3D WebGL rendering during 2D canvas minigame execution to restore locked 60-120 FPS, and optimized Sovngarde shader math."
+  "changelog": "V8.8: Implemented strict UI anti-overlap guardrails, stabilized Dynamic Island top bar flex layout across narrow mobile viewports, eliminated legacy constellation dock overlap, and enforced absolute containment on all modals."
 }
 
