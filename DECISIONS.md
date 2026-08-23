@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-701900] Top-Right Video Call Icon Button Eviction & Comms Hub Streamlining V9.1
+- **Timestamp**: `2026-08-23T09:14:00.000000`
+- **Strategy & Synthesis**: Removed the legacy top-right video call icon button (#call-btn) from the sanctuary Dynamic Island header comms hub cluster to declutter the top bar and optimize touch spacing (v2.5.3, Build 91).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Clean, balanced, decluttered Dynamic Island top bar with spacious touch target separation between Mailbox, Observatory Telescope, Cor Amoris Beacon, and Sanctuary Settings.
+  - **Performance**: Score 5/5: Zero DOM overhead or event listeners on top header, optimizing mobile tap responsiveness and paint isolation.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.5.3 (Build 91) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Streamlined .comms-hub-cluster flex layout without redundant header video triggers while keeping internal Starlight Messenger video calling intact in mailbox.js.
+  - **Gamification**: Score 5/5: Unobstructed high-priority buttons for quick sanctuary navigation, telescope piloting, and quest tracking.
+
+---
+
 ### [DEC-691900] Mathematically Projected 3D-to-2D Anime Cloud Speech Bubble, Safe HUD Coordinate Clamping, Persona Glow & Procedural Giggle Audio V9.0
 - **Timestamp**: `2026-08-23T09:12:00.000000`
 - **Strategy & Synthesis**: Implemented mathematically projected 3D-to-2D Anime Cloud Speech Bubble hovering dynamically over Kiro's head with safe HUD coordinate clamping, persona-aware glow borders (Mint-Teal/Pastel-Pink), procedural chirp/giggle audio synthesis, and interactive dialogue triggers across petting, feeding, and weather alarms (v2.5.2, Build 90).

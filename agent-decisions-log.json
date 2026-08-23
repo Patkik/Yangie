@@ -1,5 +1,18 @@
 [
   {
+    "id": "DEC-701900",
+    "timestamp": "2026-08-23T09:14:00.000000",
+    "feature": "Top-Right Video Call Icon Button Eviction & Comms Hub Streamlining V9.1",
+    "perspectives": {
+      "creative": "Score 5/5: Clean, balanced, decluttered Dynamic Island top bar with spacious touch target separation between Mailbox, Observatory Telescope, Cor Amoris Beacon, and Sanctuary Settings.",
+      "performance": "Score 5/5: Zero DOM overhead or event listeners on top header, optimizing mobile tap responsiveness and paint isolation.",
+      "container": "Score 5/5: Synchronized SemVer bump to v2.5.3 (Build 91) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.",
+      "structural": "Score 5/5: Streamlined .comms-hub-cluster flex layout without redundant header video triggers while keeping internal Starlight Messenger video calling intact in mailbox.js.",
+      "gamification": "Score 5/5: Unobstructed high-priority buttons for quick sanctuary navigation, telescope piloting, and quest tracking."
+    },
+    "synthesis": "Removed the legacy top-right video call icon button (#call-btn) from the sanctuary Dynamic Island header comms hub cluster to declutter the top bar and optimize touch spacing (v2.5.3, Build 91)."
+  },
+  {
     "id": "DEC-691900",
     "timestamp": "2026-08-23T09:12:00.000000",
     "feature": "Mathematically Projected 3D-to-2D Anime Cloud Speech Bubble, Safe HUD Coordinate Clamping, Persona Glow & Procedural Giggle Audio V9.0",

@@ -1,12 +1,15 @@
-# ☁️ Kiro's Cosmic Haven — Anime Cloud Speech Bubble & 3D Head Projection (V9.0)
+# 🛰️ Kiro's Cosmic Haven — Streamlined Dynamic Island Comms Hub (V9.1)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.5.2` (Android `versionCode = 90`)
+- **Release Version**: `v2.5.3` (Android `versionCode = 91`)
 - **Scope & Objectives**:
-  - Replaced standard rectangular text boxes with a dynamic, mathematically bounded **Hand-Drawn Anime Cloud Speech Bubble**.
-  - Implemented real-time **3D-to-2D NDC World Projection** tracking Kiro's head apex `(0, 0.95, 0)` in `scene.js` so speech bubbles float organically with Kiro's idle bobs and minigame jumps.
-  - Built **Safe Boundary Clamping** (`minTopBoundaryY: 140px`, `safetyPaddingX: 16px`, `maxBottomBoundaryY: height - 100px`) preventing top Weather HUD card clipping or narrow viewport distortion.
-  - Added **Persona-Aware Glowing Borders** (`#4EC9B0` Mint-Teal for Patrick / `#F5C2E7` Pastel-Pink for Yangiee) and **Procedural Dialogue Audio Synthesis** (`playGiggle()`).
+  - Evicted the redundant top-right video call icon button (`#call-btn`) from the Dynamic Island header comms hub cluster in [`index.html`](file:///android-app/app/src/main/assets/index.html).
+  - Streamlined top bar touch targets, ensuring optimal spacing and layout breathing room between:
+    1. **Starlight Mailbox** (`#btn-nav-mailbox`)
+    2. **Observatory Telescope Pilot** (`#shuttle-steer-btn`)
+    3. **Cor Amoris Sanctuary Quest Beacon** (`#btn-nav-cor-amoris`)
+    4. **Sanctuary Settings & Updates** (`#btn-nav-settings`)
+  - Preserved internal video calling within the Starlight Messenger modal (`#mailbox-call-btn` in [`mailbox.js`](file:///android-app/app/src/main/assets/js/mailbox.js)).
 
 ---
 

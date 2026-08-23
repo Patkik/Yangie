@@ -1,10 +1,10 @@
 {
-  "version": "2.5.2",
-  "build": 90,
+  "version": "2.5.3",
+  "build": 91,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V9.0 — Mathematically Projected 3D Anime Cloud Speech Bubble",
+  "description": "Space Capsule V9.1 — Streamlined Dynamic Island Comms Hub",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.0: Implemented mathematically projected 3D-to-2D Anime Cloud Speech Bubble hovering dynamically over Kiro's head with safe HUD coordinate clamping, persona-aware glow borders (Mint-Teal/Pastel-Pink), procedural chirp/giggle audio synthesis, and interactive dialogue triggers across petting, feeding, and weather alarms."
+  "changelog": "V9.1: Evicted legacy top-bar video call icon button from the Dynamic Island header comms hub cluster to streamline top navigation and prevent touch overcrowding."
 }
 
