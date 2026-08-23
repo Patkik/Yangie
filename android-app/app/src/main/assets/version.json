@@ -1,10 +1,10 @@
 {
-  "version": "2.5.8",
-  "build": 96,
+  "version": "2.5.9",
+  "build": 97,
   "name": "Kiro",
-  "description": "Space Capsule V9.6 — Native WebView Sandbox Security Hardening, Process Death State Restoration & Offline Verification",
+  "description": "Space Capsule V9.7 — Interdimensional Wormhole & Gate Guardian Sentinel Cinematic Climax, Console-Grade DRS & Foveated VRS Shaders",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.6: Hardened native WebView sandbox flags (disabling local file and universal access bypasses, strictly enforcing MIXED_CONTENT_NEVER_ALLOW), tied remote USB debugging strictly to BuildConfig.DEBUG, protected geolocation origins, and implemented process death state save/restore."
+  "changelog": "V9.7: Implemented the Interdimensional Wormhole Portal and crystalline Sentinel Gate Guardian WebGL scene, Dynamic Resolution Scaling (DRS) via EMA delta tracking, Variable Rate Shading (VRS) fbm_foveated procedural shaders, and full Stargate 01-27-2024 resonance lock transition into the permanent Cor Amoris sanctuary."
 }
 

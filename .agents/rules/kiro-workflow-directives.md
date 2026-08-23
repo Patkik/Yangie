@@ -122,6 +122,7 @@ Commands:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-761900]** Interdimensional Wormhole Portal & Gate Guardian Sentinel Cinematic Transition, Console-Grade DRS & Foveated VRS Shaders (V9.7)
 - **[DEC-751900]** Native WebView Sandbox Security Hardening, Process Death State Restoration & Offline Verification (V9.6)
 - **[DEC-741900]** Kiro App Rename, Interactive Rain Radar Alerts with Dynamic Got-It Feedback & WebRTC Incoming Call Notifications (V9.5)
 - **[DEC-731900]** WebAudio AudioParam Float Hardening, Finite Value Integrity & Cor Amoris Audio Signature Harmonization (V9.4)

@@ -993,6 +993,34 @@ if (fs.existsSync(mainActivityAuditPath)) {
   assert(mainActivityCode.includes('appassets.androidplatform.net'), 'Secure virtual asset origin validation in geolocation and asset loader verified in MainActivity.kt');
 }
 
+// 4. Interdimensional Wormhole, Gate Guardian & Console-Grade DRS Rendering
+const animePipelineJsPath = path.join(ASSETS_DIR, 'js', 'anime-shader-pipeline.js');
+if (fs.existsSync(animePipelineJsPath)) {
+  const animePipelineCode = fs.readFileSync(animePipelineJsPath, 'utf8');
+  assert(animePipelineCode.includes('fbm_foveated'), 'Variable Rate Shading (VRS) fbm_foveated verified in anime-shader-pipeline.js');
+  assert(animePipelineCode.includes('createWormholeVortexShaderMaterial'), 'createWormholeVortexShaderMaterial verified in anime-shader-pipeline.js');
+  assert(animePipelineCode.includes('createGuardianShaderMaterial'), 'createGuardianShaderMaterial verified in anime-shader-pipeline.js');
+}
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneCode = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneCode.includes('applyDynamicResolutionScaling'), 'applyDynamicResolutionScaling DRS engine verified in scene.js');
+  assert(sceneCode.includes('loadWormholeTransitionScene'), 'loadWormholeTransitionScene verified in scene.js');
+  assert(sceneCode.includes('shatterRiftAndTransitToAmoris'), 'shatterRiftAndTransitToAmoris verified in scene.js');
+  assert(sceneCode.includes('loadPermanentAmorisSanctuary'), 'loadPermanentAmorisSanctuary verified in scene.js');
+  assert(sceneCode.includes('buildCrownAccessory'), 'buildCrownAccessory verified in scene.js');
+  assert(sceneCode.includes('buildProceduralHeart'), 'buildProceduralHeart verified in scene.js');
+  assert(sceneCode.includes('buildCapsuleShuttleModel'), 'buildCapsuleShuttleModel verified in scene.js');
+}
+
+const corAmorisTransitionJsPath = path.join(ASSETS_DIR, 'js', 'cor-amoris.js');
+if (fs.existsSync(corAmorisTransitionJsPath)) {
+  const corAmorisCode = fs.readFileSync(corAmorisTransitionJsPath, 'utf8');
+  assert(corAmorisCode.includes('loadWormholeTransitionScene') && corAmorisCode.includes('shatterRiftAndTransitToAmoris'), 'Wormhole transition & shatter WebGL triggers verified in cor-amoris.js');
+  assert(corAmorisCode.includes('loadPermanentAmorisSanctuary'), 'loadPermanentAmorisSanctuary trigger verified in cor-amoris.js');
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 30. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────

@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize 3D Scene Manager
   try {
     sceneManager = new KiroSceneManager('webgl-canvas-container');
+    window.kiroScene = sceneManager;
   } catch (e) {
     console.error('Failed initializing KiroSceneManager:', e);
   }

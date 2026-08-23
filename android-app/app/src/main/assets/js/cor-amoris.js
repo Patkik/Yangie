@@ -398,6 +398,11 @@ export class CorAmorisEngine {
     modal.classList.remove('hidden');
     this.updateStargateSlotsUI();
     synthEngine.playCrystalChime(523.25);
+
+    // Trigger WebGL Interdimensional Wormhole & Gate Guardian confrontation
+    if (typeof window !== 'undefined' && window.kiroScene && typeof window.kiroScene.loadWormholeTransitionScene === 'function') {
+      window.kiroScene.loadWormholeTransitionScene();
+    }
   }
 
   closeStargateDialModal() {
@@ -482,6 +487,12 @@ export class CorAmorisEngine {
 
     this.closeStargateDialModal();
     KiroState.alignStargate();
+
+    // Trigger 3D WebGL Shatter & Transit Animation
+    if (typeof window !== 'undefined' && window.kiroScene && typeof window.kiroScene.shatterRiftAndTransitToAmoris === 'function') {
+      window.kiroScene.shatterRiftAndTransitToAmoris();
+    }
+
     this.playGrandCutscene();
   }
 
@@ -531,6 +542,9 @@ export class CorAmorisEngine {
             document.body.style.pointerEvents = 'auto';
 
             KiroState.completeCorAmorisQuest();
+            if (typeof window !== 'undefined' && window.kiroScene && typeof window.kiroScene.loadPermanentAmorisSanctuary === 'function') {
+              window.kiroScene.loadPermanentAmorisSanctuary();
+            }
             this.openMemorialArchiveModal();
           }, 4500);
         }, 6500);

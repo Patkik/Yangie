@@ -33,6 +33,7 @@ import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
 import KiroPhysicsAgent from './physics-agent.js';
 import { ARTEngine } from './art-engine.js';
+import { createWormholeVortexShaderMaterial, createGuardianShaderMaterial } from './anime-shader-pipeline.js';
 
 // Pre-allocated Module Scratch Objects (Zero-Allocation Render Tick Standard)
 const _scratchVec1 = new THREE.Vector3();
@@ -829,6 +830,25 @@ export class KiroSceneManager {
 
     // Astrogation & Celestial Physics Agent
     this.physicsAgent = new KiroPhysicsAgent(this.PINHOLE_FOCAL_PX, 1080, 1920);
+
+    // Dynamic Resolution Scaling (DRS) & Adaptive Frame-Budget Tracking
+    this.drs = {
+      currentDpr: Math.min(window.devicePixelRatio || 1, 1.5),
+      minDpr: 0.75,
+      maxDpr: 1.5,
+      emaFrameTime: 8.33,
+      alpha: 0.15,
+      stableFrames: 0
+    };
+
+    // Environment and Cinematic Transition States
+    this.currentEnvironment = 'sanctuary';
+    this.wormholeRift = null;
+    this.corAmorisSilhouette = null;
+    this.sentinelGuardian = null;
+    this.capsuleShipModel = null;
+    this.amorisSanctuaryGroup = null;
+    this.crownGroup = null;
 
     this.init();
   }
@@ -2228,6 +2248,10 @@ export class KiroSceneManager {
     this.goldenAura.visible = false; // Hidden by default for unobstructed pure 3D sanctuary
     this.kiroGroup.add(this.goldenAura);
 
+    // 13. Golden Crown Accessory (Celebratory Cor Amoris Horizon)
+    this.crownGroup = this.buildCrownAccessory();
+    this.kiroGroup.add(this.crownGroup);
+
     this.registerDisposable(auraGeo);
   }
 
@@ -3547,6 +3571,11 @@ export class KiroSceneManager {
       this.devFpsBadge.textContent = `${currentFps} FPS | ${avgMs.toFixed(1)}ms [ART: ${tierId}]`;
     }
 
+    // Dynamic Resolution Scaling (DRS) Active Frame-Budget Balancing
+    if (this.drs) {
+      this.applyDynamicResolutionScaling(frameMs);
+    }
+
     // 0. High-Efficiency Early Exit for Active Minigames (Locked 120 FPS Background Pausing)
     if (this.minigameActive) {
       // Completely pause 3D WebGL render loop while 2D canvas minigame runs!
@@ -3806,6 +3835,28 @@ export class KiroSceneManager {
       }
     }
 
+    // 5.5. Interdimensional Wormhole & Gate Guardian Dynamic Tick
+    if (this.currentEnvironment === 'wormhole_rift') {
+      if (this.wormholeRift) {
+        this.wormholeRift.rotation.z += delta * 0.45;
+        if (this.wormholeRift.material && this.wormholeRift.material.uniforms && this.wormholeRift.material.uniforms.uTime) {
+          this.wormholeRift.material.uniforms.uTime.value = t;
+        }
+      }
+      if (this.sentinelGuardian) {
+        this.sentinelGuardian.position.y = 0.4 + Math.sin(t * 2.2) * 0.08;
+        this.sentinelGuardian.rotation.y += delta * 0.5;
+        this.sentinelGuardian.rotation.x = Math.sin(t * 1.2) * 0.15;
+        if (this.sentinelGuardian.material && this.sentinelGuardian.material.uniforms && this.sentinelGuardian.material.uniforms.uTime) {
+          this.sentinelGuardian.material.uniforms.uTime.value = t;
+        }
+      }
+      if (this.capsuleShipModel) {
+        this.capsuleShipModel.position.y = 0.2 + Math.sin(t * 1.6) * 0.04;
+        this.capsuleShipModel.rotation.z = Math.sin(t * 1.1) * 0.03;
+      }
+    }
+
     // 6. Update Local Particle Systems & Physics
     this.updateTouchParticles();
     this.updatePhysics();
@@ -3932,6 +3983,310 @@ export class KiroSceneManager {
       }
     });
     this.celestialDisposalRegistry.clear();
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Dynamic Resolution Scaling (DRS) Active Frame-Budget Balancing Engine
+     ───────────────────────────────────────────────────────────────────────── */
+  applyDynamicResolutionScaling(frameDelta) {
+    if (!this.drs || !this.renderer) return;
+    this.drs.emaFrameTime = (this.drs.alpha * frameDelta) + ((1.0 - this.drs.alpha) * this.drs.emaFrameTime);
+    if (this.drs.emaFrameTime > 11.1) {
+      this.drs.stableFrames = 0;
+      const targetDpr = Math.max(this.drs.minDpr, this.drs.currentDpr * 0.90);
+      if (Math.abs(targetDpr - this.drs.currentDpr) > 0.01) {
+        this.drs.currentDpr = targetDpr;
+        this.renderer.setPixelRatio(this.drs.currentDpr);
+      }
+    } else if (this.drs.emaFrameTime < 6.5) {
+      this.drs.stableFrames++;
+      if (this.drs.stableFrames > 60) {
+        const targetDpr = Math.min(this.drs.maxDpr, this.drs.currentDpr + 0.05);
+        if (Math.abs(targetDpr - this.drs.currentDpr) > 0.01) {
+          this.drs.currentDpr = targetDpr;
+          this.renderer.setPixelRatio(this.drs.currentDpr);
+        }
+        this.drs.stableFrames = 0;
+      }
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Golden Crown Celebratory Accessory
+     ───────────────────────────────────────────────────────────────────────── */
+  buildCrownAccessory() {
+    const crown = new THREE.Group();
+    crown.name = 'kiro_golden_crown';
+
+    const baseGeo = new THREE.CylinderGeometry(0.38, 0.42, 0.12, 16);
+    const goldMat = new THREE.MeshToonMaterial({ color: 0xF9E2AF });
+    const base = new THREE.Mesh(baseGeo, goldMat);
+    crown.add(base);
+
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const peakGeo = new THREE.ConeGeometry(0.08, 0.22, 4);
+      const peak = new THREE.Mesh(peakGeo, goldMat);
+      peak.position.set(Math.cos(angle) * 0.38, 0.14, Math.sin(angle) * 0.38);
+      crown.add(peak);
+
+      const jewelGeo = new THREE.SphereGeometry(0.04, 8, 8);
+      const jewelMat = new THREE.MeshBasicMaterial({ color: 0x94E2D5 });
+      const jewel = new THREE.Mesh(jewelGeo, jewelMat);
+      jewel.position.set(Math.cos(angle) * 0.38, 0.26, Math.sin(angle) * 0.38);
+      crown.add(jewel);
+
+      this.registerDisposable(peakGeo);
+      this.registerDisposable(jewelGeo);
+    }
+
+    crown.position.set(0, 0.88, 0);
+    crown.visible = false;
+    this.registerDisposable(baseGeo);
+    this.registerDisposable(goldMat);
+    return crown;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Procedural Cor Amoris Heart Geometry (Mathematical Vertex Warping)
+     ───────────────────────────────────────────────────────────────────────── */
+  buildProceduralHeart(scale = 1.0) {
+    const geom = new THREE.SphereGeometry(1.2 * scale, 32, 32);
+    const pos = geom.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      let x = pos.getX(i);
+      let y = pos.getY(i);
+      let z = pos.getZ(i);
+      y = y * 1.25 - Math.abs(x) * 0.35;
+      if (y < 0) x *= (1.0 + y * 0.3);
+      z *= 0.65;
+      pos.setXYZ(i, x, y, z);
+    }
+    geom.computeVertexNormals();
+    return geom;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Low-Poly Capsule Shuttle Mesh
+     ───────────────────────────────────────────────────────────────────────── */
+  buildCapsuleShuttleModel() {
+    const ship = new THREE.Group();
+    ship.name = 'capsule_shuttle_model';
+
+    const bodyGeo = new THREE.CylinderGeometry(0.35, 0.45, 1.4, 16);
+    const bodyMat = new THREE.MeshToonMaterial({ color: 0xCDD6F4 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.rotation.z = Math.PI / 2;
+    ship.add(body);
+
+    const visorGeo = new THREE.SphereGeometry(0.32, 16, 16, 0, Math.PI);
+    const visorMat = new THREE.MeshBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.85 });
+    const visor = new THREE.Mesh(visorGeo, visorMat);
+    visor.rotation.y = Math.PI / 2;
+    visor.position.set(0.4, 0.12, 0);
+    ship.add(visor);
+
+    const wingGeo = new THREE.BoxGeometry(0.8, 0.05, 1.8);
+    const wingMat = new THREE.MeshToonMaterial({ color: 0x4EC9B0 });
+    const wings = new THREE.Mesh(wingGeo, wingMat);
+    wings.position.set(-0.15, -0.05, 0);
+    ship.add(wings);
+
+    const thrusterGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.3, 12);
+    const thrusterMat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF });
+    const thruster = new THREE.Mesh(thrusterGeo, thrusterMat);
+    thruster.rotation.z = Math.PI / 2;
+    thruster.position.set(-0.85, 0, 0);
+    ship.add(thruster);
+
+    this.registerDisposable(bodyGeo);
+    this.registerDisposable(bodyMat);
+    this.registerDisposable(visorGeo);
+    this.registerDisposable(visorMat);
+    this.registerDisposable(wingGeo);
+    this.registerDisposable(wingMat);
+    this.registerDisposable(thrusterGeo);
+    this.registerDisposable(thrusterMat);
+
+    return ship;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Interdimensional Wormhole & Gate Guardian Cinematic Transition Scene
+     ───────────────────────────────────────────────────────────────────────── */
+  loadWormholeTransitionScene() {
+    this.currentEnvironment = 'wormhole_rift';
+
+    // 1. Move standard Kiro & Pedestal off-center
+    if (this.kiroGroup) {
+      gsap.to(this.kiroGroup.position, { x: 3.2, y: -1.2, z: -3.5, duration: 1.2, ease: "power2.inOut" });
+      gsap.to(this.kiroGroup.scale, { x: 0.55, y: 0.55, z: 0.55, duration: 1.2 });
+    }
+    if (this.pedestal) {
+      gsap.to(this.pedestal.position, { x: 3.2, y: -2.0, z: -3.5, duration: 1.2 });
+    }
+
+    // 2. Swirling Interdimensional Wormhole Rift Torus
+    if (!this.wormholeRift) {
+      const riftGeo = new THREE.TorusGeometry(2.8, 0.45, 24, 100);
+      const riftMat = createWormholeVortexShaderMaterial();
+      this.wormholeRift = new THREE.Mesh(riftGeo, riftMat);
+      this.wormholeRift.position.set(1.8, 0.4, -6.5);
+      this.scene.add(this.wormholeRift);
+      this.celestialDisposalRegistry.add(riftGeo);
+      this.celestialDisposalRegistry.add(riftMat);
+    }
+    this.wormholeRift.visible = true;
+
+    // 3. Distant Cor Amoris Silhouette
+    if (!this.corAmorisSilhouette) {
+      const heartGeo = this.buildProceduralHeart(1.5);
+      const heartMat = new THREE.MeshBasicMaterial({
+        color: 0xF5C2E7,
+        transparent: true,
+        opacity: 0.45
+      });
+      this.corAmorisSilhouette = new THREE.Mesh(heartGeo, heartMat);
+      this.corAmorisSilhouette.position.set(1.8, 0.4, -9.5);
+      this.scene.add(this.corAmorisSilhouette);
+      this.celestialDisposalRegistry.add(heartGeo);
+      this.celestialDisposalRegistry.add(heartMat);
+    }
+    this.corAmorisSilhouette.visible = true;
+
+    // 4. Crystalline Sentinel Gate Guardian
+    if (!this.sentinelGuardian) {
+      const guardianGeo = new THREE.IcosahedronGeometry(0.75, 1);
+      const guardianMat = createGuardianShaderMaterial(new THREE.Vector3(0.8, 1.0, 0.6));
+      this.sentinelGuardian = new THREE.Mesh(guardianGeo, guardianMat);
+      this.sentinelGuardian.position.set(1.5, 0.4, -4.5);
+      this.scene.add(this.sentinelGuardian);
+      this.celestialDisposalRegistry.add(guardianGeo);
+      this.celestialDisposalRegistry.add(guardianMat);
+    }
+    this.sentinelGuardian.visible = true;
+
+    // 5. Capsule Shuttle Model
+    if (!this.capsuleShipModel) {
+      this.capsuleShipModel = this.buildCapsuleShuttleModel();
+      this.capsuleShipModel.position.set(-2.2, 0.2, -5.0);
+      this.scene.add(this.capsuleShipModel);
+    }
+    this.capsuleShipModel.visible = true;
+
+    // Camera cinematic perspective tween
+    if (this.camera) {
+      gsap.to(this.camera.position, { x: 0, y: 0.4, z: 7.5, duration: 1.5, ease: "power2.inOut" });
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Shatter Rift & Transit to Cor Amoris
+     ───────────────────────────────────────────────────────────────────────── */
+  shatterRiftAndTransitToAmoris() {
+    // 1. Guardian dissolves into rose-gold embers
+    if (this.sentinelGuardian) {
+      gsap.to(this.sentinelGuardian.scale, { x: 0.01, y: 0.01, z: 0.01, duration: 1.2, ease: "back.in(2)", onComplete: () => {
+        if (this.sentinelGuardian) this.sentinelGuardian.visible = false;
+      }});
+    }
+
+    // 2. Wormhole accretion disk shatters and expands outwards
+    if (this.wormholeRift) {
+      gsap.to(this.wormholeRift.scale, { x: 3.5, y: 3.5, z: 3.5, duration: 2.0, ease: "power2.out" });
+      if (this.wormholeRift.material) {
+        gsap.to(this.wormholeRift.material, { opacity: 0.0, duration: 2.0, onComplete: () => {
+          if (this.wormholeRift) this.wormholeRift.visible = false;
+        }});
+      }
+    }
+
+    // 3. Shuttle accelerates through the rift
+    if (this.capsuleShipModel) {
+      gsap.to(this.capsuleShipModel.position, { x: 1.8, y: 0.4, z: -10.0, duration: 2.5, ease: "power3.in", onComplete: () => {
+        if (this.capsuleShipModel) this.capsuleShipModel.visible = false;
+      }});
+    }
+
+    // 4. Camera warp zoom through the rift into the Cosmic Cathedral
+    if (this.camera) {
+      gsap.to(this.camera.position, { x: 1.8, y: 0.4, z: -8.0, duration: 2.5, ease: "power2.in", onComplete: () => {
+        this.loadPermanentAmorisSanctuary();
+      }});
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Load Permanent Cor Amoris Sanctuary
+     ───────────────────────────────────────────────────────────────────────── */
+  loadPermanentAmorisSanctuary() {
+    this.currentEnvironment = 'cor_amoris_sanctuary';
+
+    // 1. Reset camera smoothly
+    if (this.camera) {
+      gsap.to(this.camera.position, { x: 0, y: this.baseCameraY, z: this.baseCameraZ, duration: 1.8, ease: "power2.out" });
+    }
+
+    // 2. Return Kiro to center stage with celebratory Golden Crown
+    if (this.kiroGroup) {
+      gsap.to(this.kiroGroup.position, { x: 0, y: 0, z: 0, duration: 1.5, ease: "back.out(1.5)" });
+      gsap.to(this.kiroGroup.scale, { x: 1.0, y: 1.0, z: 1.0, duration: 1.5 });
+      this.kiroGroup.visible = true;
+    }
+    if (this.pedestal) {
+      gsap.to(this.pedestal.position, { x: 0, y: -1.35, z: 0, duration: 1.5 });
+      this.pedestal.visible = true;
+    }
+    if (this.neonRing) this.neonRing.visible = true;
+
+    // 3. Spawn celebratory Golden Crown on Kiro's head
+    if (this.crownGroup) {
+      this.crownGroup.visible = true;
+      gsap.fromTo(this.crownGroup.scale, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1, duration: 1.2, ease: "back.out(2)" });
+    }
+
+    // 4. Create Twin Suns and Sunset Pink Amoris Ocean Backdrop
+    if (!this.amorisSanctuaryGroup) {
+      this.amorisSanctuaryGroup = new THREE.Group();
+      this.amorisSanctuaryGroup.name = 'cor_amoris_sanctuary_group';
+
+      // Twin Sun 1 (Rose Quartz Sun)
+      const sun1Geo = new THREE.SphereGeometry(1.2, 24, 24);
+      const sun1Mat = new THREE.MeshBasicMaterial({ color: 0xF5C2E7, transparent: true, opacity: 0.85 });
+      const sun1 = new THREE.Mesh(sun1Geo, sun1Mat);
+      sun1.position.set(-3.5, 3.2, -14.0);
+      this.amorisSanctuaryGroup.add(sun1);
+
+      // Twin Sun 2 (Golden Starlight Sun)
+      const sun2Geo = new THREE.SphereGeometry(0.9, 24, 24);
+      const sun2Mat = new THREE.MeshBasicMaterial({ color: 0xF9E2AF, transparent: true, opacity: 0.85 });
+      const sun2 = new THREE.Mesh(sun2Geo, sun2Mat);
+      sun2.position.set(-1.8, 4.0, -15.0);
+      this.amorisSanctuaryGroup.add(sun2);
+
+      // Crystalline Reflective Ocean Plane
+      const oceanGeo = new THREE.PlaneGeometry(30, 30);
+      const oceanMat = new THREE.MeshBasicMaterial({
+        color: 0x1E1E2E,
+        transparent: true,
+        opacity: 0.65,
+        side: THREE.DoubleSide
+      });
+      const ocean = new THREE.Mesh(oceanGeo, oceanMat);
+      ocean.rotation.x = -Math.PI / 2;
+      ocean.position.set(0, -1.8, -8.0);
+      this.amorisSanctuaryGroup.add(ocean);
+
+      this.registerDisposable(sun1Geo);
+      this.registerDisposable(sun1Mat);
+      this.registerDisposable(sun2Geo);
+      this.registerDisposable(sun2Mat);
+      this.registerDisposable(oceanGeo);
+      this.registerDisposable(oceanMat);
+
+      this.scene.add(this.amorisSanctuaryGroup);
+    }
+    this.amorisSanctuaryGroup.visible = true;
   }
 
   dispose() {

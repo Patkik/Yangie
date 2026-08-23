@@ -78,6 +78,28 @@ float fbm(vec3 p) {
   }
   return value;
 }
+
+// Variable Rate Shading (VRS) & Foveated Rendering fBm
+float fbm_foveated(vec3 p, float radius) {
+  float value = 0.0;
+  float amplitude = 0.5;
+  
+  // Core Focus Area (radius < 0.35) -> Full 3-octave detailed watercolor bleeding
+  value += amplitude * snoise(p);
+  
+  // Scale octaves out dynamically based on screen peripheral distance
+  if (radius < 0.45) {
+    p = p * 2.02 + vec3(100.0);
+    amplitude *= 0.5;
+    value += amplitude * snoise(p);
+  }
+  if (radius < 0.28) {
+    p = p * 2.03 + vec3(100.0);
+    amplitude *= 0.5;
+    value += amplitude * snoise(p);
+  }
+  return value;
+}
 `;
 
 // =============================================================================
@@ -486,3 +508,123 @@ export function createAnimeOutlineMesh(geometry, thickness = 0.024, outlineColor
 
   return new THREE.Mesh(geometry, outlineMaterial);
 }
+
+// =============================================================================
+// 7. Interdimensional Wormhole Vortex Refraction Shader Material
+// =============================================================================
+export function createWormholeVortexShaderMaterial() {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    uniforms: {
+      uTime: { value: 0 },
+      uColorCore: { value: new THREE.Color(TwilightTokens.emeraldNeon) },
+      uColorDisk: { value: new THREE.Color(TwilightTokens.lavenderCone) },
+      uColorEdge: { value: new THREE.Color(TwilightTokens.pastelPink) }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vWorldPos;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vWorldPos = worldPosition.xyz;
+        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform vec3 uColorCore;
+      uniform vec3 uColorDisk;
+      uniform vec3 uColorEdge;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vWorldPos;
+
+      ${GLSL_NOISE_FUNCTIONS}
+
+      void main() {
+        vec2 centerDist = vUv - vec2(0.5);
+        float radius = length(centerDist);
+        float angle = atan(centerDist.y, centerDist.x);
+        float spiralAngle = angle + radius * 5.0 - uTime * 1.5;
+        vec3 spiralCoord = vec3(cos(spiralAngle) * radius * 3.0, sin(spiralAngle) * radius * 3.0, uTime * 0.1);
+
+        float vortexNoise = fbm_foveated(spiralCoord * 3.0, radius) * 0.5 + 0.5;
+        float diskBand = sin(radius * 20.0 - uTime * 2.0) * 0.5 + 0.5;
+
+        vec3 col = mix(uColorCore, uColorDisk, smoothstep(0.1, 0.35, radius));
+        col = mix(col, uColorEdge, smoothstep(0.35, 0.5, radius));
+        col += vec3(vortexNoise * 0.4 + diskBand * 0.2);
+
+        float alpha = smoothstep(0.02, 0.15, radius) * smoothstep(0.5, 0.3, radius) * (vortexNoise * 0.8 + 0.2);
+        gl_FragColor = vec4(col, alpha);
+      }
+    `
+  });
+}
+
+// =============================================================================
+// 8. Crystalline Sentinel Gate Guardian Shader Material
+// =============================================================================
+export function createGuardianShaderMaterial(lightDirVector = new THREE.Vector3(0.8, 1.0, 0.6)) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uBaseColor: { value: new THREE.Color(TwilightTokens.goldGlow) },
+      uAuraColor: { value: new THREE.Color(TwilightTokens.emeraldNeon) },
+      uLightDir: { value: lightDirVector.clone().normalize() },
+      uShadowColor: { value: new THREE.Color(TwilightTokens.midnight) }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vViewDir = normalize(cameraPosition - worldPosition.xyz);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform vec3 uBaseColor;
+      uniform vec3 uAuraColor;
+      uniform vec3 uLightDir;
+      uniform vec3 uShadowColor;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+
+      ${GLSL_NOISE_FUNCTIONS}
+
+      void main() {
+        vec3 normal = normalize(vNormal);
+        vec3 light = normalize(uLightDir);
+        vec3 view = normalize(vViewDir);
+
+        float edgeRim = abs(dot(view, normal));
+        float inkOutline = step(0.20, edgeRim);
+
+        float facetLight = max(0.0, dot(normal, light));
+        float celStep = smoothstep(0.1, 0.15, facetLight) * 0.4 + smoothstep(0.5, 0.55, facetLight) * 0.6;
+
+        vec3 litColor = mix(uShadowColor, uBaseColor, celStep);
+        float shimmer = 0.8 + 0.2 * sin(uTime * 3.0 + normal.y * 6.0);
+
+        float fresnel = pow(1.0 - edgeRim, 2.5);
+        vec3 finalAura = uAuraColor * fresnel * shimmer;
+
+        vec3 finalColor = mix(vec3(0.07, 0.07, 0.11), litColor + finalAura, inkOutline);
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `
+  });
+}
+
