@@ -414,3 +414,121 @@ body.eco-mode-active .glass-card {
   background: rgba(17, 17, 27, 0.95) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ☁️ Kiro's Cozy Anime Cloud Speech Bubble (Mathematically Projected 3D-to-2D)
+   ══════════════════════════════════════════════════════════════════════════ */
+.kiro-anime-cloud {
+  position: absolute;
+  z-index: 4000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.35rem;
+  background: rgba(30, 30, 46, 0.88); /* Velvet Midnight */
+  border-radius: 30px; /* Base capsule curve */
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    inset 0 0 12px rgba(148, 226, 213, 0.08); /* Internal soft glow */
+  border: 1.5px solid rgba(148, 226, 213, 0.35); /* Neon Emerald outline */
+  backdrop-filter: blur(12px); /* Soft starlight diffusion */
+  -webkit-backdrop-filter: blur(12px);
+  color: #CDD6F4;
+  font-family: var(--font-body, 'Fredoka', sans-serif);
+  font-weight: 600;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none; /* Let clicks pass straight through to WebGL canvas */
+  transform-origin: bottom center;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  
+  /* Dynamic constraints */
+  width: max-content;
+  max-width: 260px;
+  min-width: 120px;
+  height: auto;
+  box-sizing: border-box;
+}
+
+/* Persona-aware glow boundaries */
+.kiro-anime-cloud.pat-speaking {
+  border-color: rgba(78, 201, 176, 0.65); /* Mint-Teal */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 15px rgba(78, 201, 176, 0.25);
+}
+
+.kiro-anime-cloud.yang-speaking {
+  border-color: rgba(245, 194, 231, 0.65); /* Pastel-Pink */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 15px rgba(245, 194, 231, 0.25);
+}
+
+/* Cloud Puff Left */
+.kiro-anime-cloud::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 20%;
+  width: 32px;
+  height: 24px;
+  background: rgba(30, 30, 46, 0.88);
+  border-radius: 50%;
+  border-top: 1.5px solid rgba(148, 226, 213, 0.35);
+  z-index: -1;
+  transition: inherit;
+}
+
+.kiro-anime-cloud.pat-speaking::before {
+  border-top-color: rgba(78, 201, 176, 0.65);
+}
+
+.kiro-anime-cloud.yang-speaking::before {
+  border-top-color: rgba(245, 194, 231, 0.65);
+}
+
+/* Cloud Puff Right */
+.kiro-anime-cloud::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  right: 25%;
+  width: 24px;
+  height: 24px;
+  background: rgba(30, 30, 46, 0.88);
+  border-radius: 50%;
+  border-bottom: 1.5px solid rgba(148, 226, 213, 0.35);
+  z-index: -1;
+  transition: inherit;
+}
+
+.kiro-anime-cloud.pat-speaking::after {
+  border-bottom-color: rgba(78, 201, 176, 0.65);
+}
+
+.kiro-anime-cloud.yang-speaking::after {
+  border-bottom-color: rgba(245, 194, 231, 0.65);
+}
+
+/* The Cute Cloud Tail / Pointer pointing at Kiro's head */
+.cloud-pointer-tail {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 15px solid rgba(30, 30, 46, 0.88);
+  z-index: 10;
+}
+
+/* Subtle breathing hover animation for the cloud */
+.kiro-anime-cloud.active-float {
+  animation: cloud-float 2.4s infinite alternate ease-in-out;
+}
+
+@keyframes cloud-float {
+  0% { transform: translateY(0px) scale(1); }
+  100% { transform: translateY(-6px) scale(1.02); }
+}

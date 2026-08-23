@@ -1492,3 +1492,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: false });
 });
+
+/**
+ * ☁️ Kiro Dialogue Cloud Bubble Narrative Trigger
+ * Projects speech dynamically above Kiro's 3D head with authentic anime pop & bounce.
+ */
+export function triggerKiroDialogue(text, duration = 5000) {
+  const cloud = document.getElementById('kiro-dialogue-cloud');
+  const cloudText = document.getElementById('kiro-cloud-text');
+  
+  if (!cloud || !cloudText || !text) return;
+
+  const currentPersona = KiroState.get('persona') || 'pat';
+  if (currentPersona === 'yang') {
+    cloud.classList.add('yang-speaking');
+    cloud.classList.remove('pat-speaking');
+  } else {
+    cloud.classList.add('pat-speaking');
+    cloud.classList.remove('yang-speaking');
+  }
+
+  // Stop current animations, swap text, and show cloud
+  cloudText.textContent = text;
+  cloud.style.display = 'flex';
+  
+  // Play sweet tickle giggle sound as speech registers
+  if (synthEngine && typeof synthEngine.playGiggle === 'function') {
+    synthEngine.playGiggle();
+  }
+
+  if (window.gsap) {
+    gsap.killTweensOf(cloud);
+    gsap.fromTo(cloud, 
+      { scale: 0.7, opacity: 0 }, 
+      { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.5)" }
+    );
+
+    if (window._kiroDialogueTimeout) clearTimeout(window._kiroDialogueTimeout);
+    window._kiroDialogueTimeout = setTimeout(() => {
+      gsap.to(cloud, {
+        scale: 0.7,
+        opacity: 0,
+        duration: 0.35,
+        ease: "power2.in",
+        onComplete: () => {
+          cloud.style.display = 'none';
+        }
+      });
+    }, duration);
+  } else {
+    cloud.style.opacity = '1';
+    cloud.style.transform = 'scale(1)';
+    if (window._kiroDialogueTimeout) clearTimeout(window._kiroDialogueTimeout);
+    window._kiroDialogueTimeout = setTimeout(() => {
+      cloud.style.display = 'none';
+    }, duration);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.triggerKiroDialogue = triggerKiroDialogue;
+}

@@ -568,6 +568,11 @@ export default class KiroWeatherStationV7 {
         textEl.textContent = message;
         bubble.classList.add('active');
 
+        // Also broadcast dialogue onto floating Anime Cloud over Kiro's head
+        if (typeof window !== 'undefined' && typeof window.triggerKiroDialogue === 'function') {
+            window.triggerKiroDialogue(message, 6000);
+        }
+
         // Play warning chimes
         if (this.synth) {
             if (typeof this.synth.playChimeSound === 'function') {

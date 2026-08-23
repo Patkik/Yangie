@@ -1,10 +1,10 @@
 {
-  "version": "2.5.1",
-  "build": 89,
+  "version": "2.5.2",
+  "build": 90,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.9 — 6-Pillar Mobile WebView Performance Optimization Suite",
+  "description": "Space Capsule V9.0 — Mathematically Projected 3D Anime Cloud Speech Bubble",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V8.9: Implemented 6-pillar mobile WebView performance remediation: 1.75x DPR clamping & camera frustum culling in scene.js, GPU layer promotion in CSS, zero-GC ParticlePool in minigames.js, debounced write-behind localStorage in state.js, 30Hz FFT & 120s AudioContext sleep in synth.js, and Android onTrimMemory low-memory event dispatching."
+  "changelog": "V9.0: Implemented mathematically projected 3D-to-2D Anime Cloud Speech Bubble hovering dynamically over Kiro's head with safe HUD coordinate clamping, persona-aware glow borders (Mint-Teal/Pastel-Pink), procedural chirp/giggle audio synthesis, and interactive dialogue triggers across petting, feeding, and weather alarms."
 }
 

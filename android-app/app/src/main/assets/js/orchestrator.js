@@ -192,6 +192,19 @@ export class KiroAgenticOrchestrator {
     if (this.scene && this.scene.triggerPetReaction) {
       this.scene.triggerPetReaction();
     }
+
+    // Trigger sweet anime cloud dialogue every few pets
+    if (this.workingMemory.petCountSession % 3 === 0 && typeof window !== 'undefined' && typeof window.triggerKiroDialogue === 'function') {
+      const phrases = [
+        "Hehe! That tickles! ✨",
+        "Kiro feels so warm and happy! 🦕",
+        "✦ Pure Starlight Love! ✦",
+        "Purrr... you're the best!",
+        "Under the same starry sky! 🌌"
+      ];
+      const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+      window.triggerKiroDialogue(randomPhrase, 3500);
+    }
   }
 }
 

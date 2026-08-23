@@ -575,6 +575,10 @@ export class KiroSceneManager {
     this.manualRotationOffset = 0;
     this.minigameActive = false;
 
+    // Dialogue Cloud Bubble 3D-to-2D Projection
+    this.cloudOverlayEl = null;
+    this.headWorldPos = new THREE.Vector3();
+
     // Astrogation & Celestial Physics Agent
     this.physicsAgent = new KiroPhysicsAgent(this.PINHOLE_FOCAL_PX, 1080, 1920);
 
@@ -3568,8 +3572,58 @@ export class KiroSceneManager {
     this.updatePhysics();
     this.updateWaterPhysics();
 
-    // 6. Single WebGL Render Call
+    // 7. Update 3D-to-2D Dialogue Cloud Bubble Projection
+    this.updateCloudBubblePosition();
+
+    // 8. Single WebGL Render Call
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     3D-to-2D Dialogue Cloud Bubble Projection
+     ───────────────────────────────────────────────────────────────────────── */
+  updateCloudBubblePosition() {
+    if (!this.cloudOverlayEl) {
+      this.cloudOverlayEl = document.getElementById('kiro-dialogue-cloud');
+    }
+    if (!this.cloudOverlayEl || !this.kiroGroup || !this.camera || this.cloudOverlayEl.style.display === 'none') return;
+
+    // 1. Calculate Kiro's local head tip relative to his bobbing/jumping body
+    const headOffset = _scratchVec3.set(0, 0.95, 0);
+    this.headWorldPos.copy(this.kiroGroup.position).add(headOffset);
+    
+    // Project 3D vector onto 2D NDC screen coordinates [-1 to +1]
+    this.headWorldPos.project(this.camera);
+
+    // Convert normalized device coordinates directly into pixel coordinates
+    const width = this.container ? this.container.clientWidth : window.innerWidth;
+    const height = this.container ? this.container.clientHeight : window.innerHeight;
+    
+    const xPixel = (this.headWorldPos.x * 0.5 + 0.5) * width;
+    const yPixel = (-(this.headWorldPos.y * 0.5) + 0.5) * height;
+
+    // 2. Fetch active element dimensions to calculate precise boundaries
+    const bubbleWidth = this.cloudOverlayEl.offsetWidth || 180;
+    const bubbleHeight = this.cloudOverlayEl.offsetHeight || 60;
+
+    // 3. SECURE BORDERS: Set viewport safety paddings
+    const safetyPaddingX = 16; // Avoid screen edge collisions
+    const minTopBoundaryY = 140; // Avoid overlapping Starlight Weather Station / Dynamic Island HUD
+    const maxBottomBoundaryY = height - 100; // Clear bottom satellite dock
+
+    // Clamp coordinates safely
+    const clampedX = Math.max(
+      safetyPaddingX, 
+      Math.min(xPixel - (bubbleWidth / 2), width - bubbleWidth - safetyPaddingX)
+    );
+    
+    // Adjust y to hover exactly above Kiro's head while staying clear of top UI
+    const desiredY = yPixel - bubbleHeight - 15;
+    const clampedY = Math.max(minTopBoundaryY, Math.min(desiredY, maxBottomBoundaryY));
+
+    // 4. Apply optimized 2D GPU translation
+    this.cloudOverlayEl.style.left = `${clampedX}px`;
+    this.cloudOverlayEl.style.top = `${clampedY}px`;
   }
 
   resize() {

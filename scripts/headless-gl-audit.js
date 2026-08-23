@@ -811,7 +811,41 @@ if (fs.existsSync(mainActivityPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 25. Final Audit Summary
+// 25. Auditing Anime Cloud Speech Bubble & 3D Projection (V9.0)...
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.CYAN}${Colors.BRIGHT}25. Auditing Anime Cloud Speech Bubble & 3D Projection (V9.0)...${Colors.RESET}`);
+
+const indexHtmlPath = path.join(ASSETS_DIR, 'index.html');
+if (fs.existsSync(indexHtmlPath)) {
+  const html = fs.readFileSync(indexHtmlPath, 'utf8');
+  assert(html.includes('id="kiro-dialogue-cloud"') && html.includes('id="kiro-cloud-text"') && html.includes('cloud-pointer-tail'), 'Anime dialogue cloud bubble mounted with pointer tail in index.html');
+}
+
+if (fs.existsSync(weatherCssAuditPath)) {
+  const css = fs.readFileSync(weatherCssAuditPath, 'utf8');
+  assert(css.includes('.kiro-anime-cloud') && css.includes('border-radius: 30px'), 'Anime cloud speech bubble styling tokens verified in weather-v7.css');
+  assert(css.includes('.cloud-pointer-tail') && css.includes('cloud-float'), 'Cloud pointer tail and breathing float animation verified in weather-v7.css');
+  assert(css.includes('.kiro-anime-cloud.pat-speaking') && css.includes('.kiro-anime-cloud.yang-speaking'), 'Persona-aware mint/pink border glow states verified in weather-v7.css');
+}
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneCode = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneCode.includes('updateCloudBubblePosition') && sceneCode.includes('headWorldPos.project(this.camera)'), '3D-to-2D head world coordinate projection loop verified in scene.js');
+  assert(sceneCode.includes('minTopBoundaryY') && sceneCode.includes('safetyPaddingX'), 'Safe viewport clamping and top HUD anti-collision constraints verified in scene.js');
+}
+
+if (fs.existsSync(synthJsPath)) {
+  const synthCode = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthCode.includes('playGiggle') && synthCode.includes('587.33'), 'Procedural dialogue chirp & giggle synthesis verified in synth.js');
+}
+
+if (fs.existsSync(appJsPath)) {
+  const appCode = fs.readFileSync(appJsPath, 'utf8');
+  assert(appCode.includes('triggerKiroDialogue') && appCode.includes('window.triggerKiroDialogue'), 'triggerKiroDialogue narrative export and window binding verified in app.js');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 26. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

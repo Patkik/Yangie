@@ -1284,6 +1284,40 @@ export class CosmicSynthEngine {
   }
 
   /**
+   * Kiro Sweet Dialogue Chirp / Giggle (playGiggle)
+   * The Sound: A joyful, bouncy 3-harmonic sine-triangle flutter that chirps when speaking in anime cloud bubbles.
+   */
+  playGiggle() {
+    if (!this.ctx) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const mult = this.cutenessPitchMultiplier || 1.0;
+    const pitches = [587.33, 659.25, 880.0]; // D5, E5, A5
+
+    pitches.forEach((freq, idx) => {
+      const t = now + idx * 0.045;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq * mult, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.35 * mult, t + 0.05);
+
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.09);
+    });
+  }
+
+  /**
    * 5. Sleepy Yawn (playSleepyYawn)
    * The Sound: A tired, long, sighing low-pass sweep when tucked into bed.
    * The Math: A sleepy sine oscillator with 500Hz lowpass filter sliding exponentially from 400Hz to 150Hz.

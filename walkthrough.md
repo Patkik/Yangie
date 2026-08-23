@@ -1,10 +1,12 @@
-# 🚀 Kiro's Cosmic Haven — 6-Pillar Mobile WebView Performance Suite (V8.9)
+# ☁️ Kiro's Cosmic Haven — Anime Cloud Speech Bubble & 3D Head Projection (V9.0)
 
 ## 1. Executive Summary
-- **Release Version**: `v2.5.1` (Android `versionCode = 89`)
+- **Release Version**: `v2.5.2` (Android `versionCode = 90`)
 - **Scope & Objectives**:
-  - Implemented the production-grade **6-Pillar Performance Optimization Suite** to guarantee a locked **60–120 FPS frame budget** under a strict **5ms GPU target** across all Android WebViews and mobile fleets.
-  - Eliminated high-frequency memory allocations, GPU framebuffer readback bottlenecks, synchronous storage I/O stalls, unthrottled Web Audio FFT cycles, and off-screen draw calls.
+  - Replaced standard rectangular text boxes with a dynamic, mathematically bounded **Hand-Drawn Anime Cloud Speech Bubble**.
+  - Implemented real-time **3D-to-2D NDC World Projection** tracking Kiro's head apex `(0, 0.95, 0)` in `scene.js` so speech bubbles float organically with Kiro's idle bobs and minigame jumps.
+  - Built **Safe Boundary Clamping** (`minTopBoundaryY: 140px`, `safetyPaddingX: 16px`, `maxBottomBoundaryY: height - 100px`) preventing top Weather HUD card clipping or narrow viewport distortion.
+  - Added **Persona-Aware Glowing Borders** (`#4EC9B0` Mint-Teal for Patrick / `#F5C2E7` Pastel-Pink for Yangiee) and **Procedural Dialogue Audio Synthesis** (`playGiggle()`).
 
 ---
 
