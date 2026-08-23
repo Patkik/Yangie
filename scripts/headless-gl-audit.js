@@ -913,7 +913,28 @@ if (fs.existsSync(sceneJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 28. Final Audit Summary
+// 28. Auditing WebAudio AudioParam Float Hardening & Cor Amoris Clean Audio Signatures...
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.CYAN}${Colors.BRIGHT}28. Auditing WebAudio AudioParam Float Hardening & Cor Amoris Clean Audio Signatures...${Colors.RESET}`);
+
+if (fs.existsSync(synthJsPath)) {
+  const synthCode = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthCode.includes('Number.isFinite(pitchMultiplier)') || synthCode.includes('typeof pitchMultiplier === \'number\''), 'playAlienChirp pitchMultiplier finite number guard verified in synth.js');
+  assert(synthCode.includes('Number.isFinite(audioCtx.currentTime)') || synthCode.includes('Number.isFinite(this.ctx.currentTime)'), 'WebAudio AudioParam currentTime finite number guard verified in synth.js');
+  assert(synthCode.includes('Number.isFinite(safeFreq)') || synthCode.includes('Number.isFinite(frequency)'), 'Crystal chimes and pet chimes frequency finite number guard verified in synth.js');
+}
+
+const corAmorisAuditCodePath = path.join(ASSETS_DIR, 'js', 'cor-amoris.js');
+if (fs.existsSync(corAmorisAuditCodePath)) {
+  const corAmorisCode = fs.readFileSync(corAmorisAuditCodePath, 'utf8');
+  assert(!corAmorisCode.includes('playAlienChirp(synthEngine.ctx'), 'No erroneous synthEngine.ctx object argument passed to playAlienChirp in cor-amoris.js');
+  assert(!corAmorisCode.includes('playElasticPop(synthEngine.ctx'), 'No erroneous synthEngine.ctx object argument passed to playElasticPop in cor-amoris.js');
+  assert(!corAmorisCode.includes('playCozyPurr(synthEngine.ctx'), 'No erroneous synthEngine.ctx object argument passed to playCozyPurr in cor-amoris.js');
+  assert(corAmorisCode.includes('synthEngine.playAlienChirp(1.35 +') || corAmorisCode.includes('synthEngine.playAlienChirp(1.2)'), 'Clean numeric pitch multiplier audio chirps verified in cor-amoris.js');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 29. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

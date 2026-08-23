@@ -1,9 +1,10 @@
 {
-  "version": "2.5.5",
-  "build": 93,
+  "version": "2.5.6",
+  "build": 94,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V9.3 — Real-Time Mailbox Telemetry Sparklines, Frustum Culling & Dead Reckoning",
+  "description": "Space Capsule V9.4 — WebAudio AudioParam Float Hardening & Finite Value Integrity",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.3: Real-Time Starlight Mailbox Telemetry Drawer with dual WebGL frame duration & co-op RTT latency sparklines, 6-plane mathematical view-frustum culling, and Cubic Hermite Spline dead-reckoning state prediction."
+  "changelog": "V9.4: Resolved WebAudio AudioParam non-finite setValueAtTime TypeError, hardened all procedural audio frequency/multiplier guards, and streamlined Cor Amoris audio call signatures."
 }
+

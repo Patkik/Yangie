@@ -96,7 +96,7 @@ export class CorAmorisEngine {
     if (hintEl && hintTextEl) {
       hintTextEl.textContent = hintText;
       hintEl.classList.remove('hidden');
-      synthEngine.playAlienChirp(synthEngine.ctx, 1.2);
+      synthEngine.playAlienChirp(1.2);
     }
   }
 
@@ -151,7 +151,7 @@ export class CorAmorisEngine {
       if (charIdx < fullText.length) {
         textEl.textContent += fullText[charIdx];
         if (charIdx % 3 === 0 && fullText[charIdx] !== ' ') {
-          synthEngine.playAlienChirp(synthEngine.ctx, 1.35 + (charIdx % 5) * 0.05);
+          synthEngine.playAlienChirp(1.35 + (charIdx % 5) * 0.05);
         }
         charIdx++;
       } else {
@@ -194,12 +194,12 @@ export class CorAmorisEngine {
     this.updateSquishyTapVisuals();
 
     if (this.squishyTapCount === 1) {
-      synthEngine.playElasticPop(synthEngine.ctx);
+      synthEngine.playElasticPop();
     } else if (this.squishyTapCount === 2) {
-      synthEngine.playCozyPurr(synthEngine.ctx);
+      synthEngine.playCozyPurr();
       synthEngine.playCrystalChime(440.0);
     } else if (this.squishyTapCount === 3) {
-      synthEngine.playElasticPop(synthEngine.ctx);
+      synthEngine.playElasticPop();
       synthEngine.playCrystalChime(523.25);
       KiroState.unlockCorAmorisFragment('01');
       
@@ -340,7 +340,7 @@ export class CorAmorisEngine {
 
         el.classList.add('stardate-detaching-pulse');
         this.stardatePressDuration = 0;
-        synthEngine.playAlienChirp(synthEngine.ctx, 1.0);
+        synthEngine.playAlienChirp(1.0);
 
         this.stardatePressTimer = setInterval(() => {
           this.stardatePressDuration += 100;
@@ -370,7 +370,7 @@ export class CorAmorisEngine {
   detachStardateElement(el) {
     el.classList.remove('stardate-detaching-pulse');
     el.classList.add('stardate-physics-detached');
-    synthEngine.playElasticPop(synthEngine.ctx);
+    synthEngine.playElasticPop();
     synthEngine.playCrystalChime(783.99);
 
     const floating2024 = document.getElementById('floating-2024-fragment');
@@ -591,7 +591,7 @@ export class CorAmorisEngine {
     const text = inputEl.value.trim();
     KiroState.addMemorialNote({ text });
     inputEl.value = '';
-    synthEngine.playAlienChirp(synthEngine.ctx, 1.2);
+    synthEngine.playAlienChirp(1.2);
     this.renderMemorialNotes();
   }
 
@@ -621,7 +621,7 @@ export class CorAmorisEngine {
 
     modal.classList.remove('hidden');
     this.updateSatchelUI();
-    synthEngine.playElasticPop(synthEngine.ctx);
+    synthEngine.playElasticPop();
   }
 
   closeSatchelModal() {

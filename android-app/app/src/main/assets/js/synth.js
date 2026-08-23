@@ -828,13 +828,14 @@ export class CosmicSynthEngine {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
-    const now = this.ctx.currentTime;
+    const safeFreq = (typeof frequency === 'number' && Number.isFinite(frequency) && frequency > 0) ? frequency : 880;
+    const now = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
     const osc = this.ctx.createOscillator();
     const gainNode = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(frequency, now);
-    osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, now + 0.2);
+    osc.frequency.setValueAtTime(safeFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(safeFreq * 1.5, now + 0.2);
 
     gainNode.gain.setValueAtTime(0.12, now);
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
@@ -842,7 +843,7 @@ export class CosmicSynthEngine {
     osc.connect(gainNode);
     gainNode.connect(this.masterGain);
 
-    osc.start();
+    osc.start(now);
     osc.stop(now + 0.81);
   }
 
@@ -1079,23 +1080,30 @@ export class CosmicSynthEngine {
    * 1. The Elastic Hatch Pop (Egg Crack & Spring)
    * Rapid pitch sweep up (150Hz -> 800Hz) with snappy amplitude envelope.
    */
-  playElasticPop() {
+  playElasticPop(dest = null) {
     if (!this.ctx) this.init();
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     if (!this.ctx) return;
-    playElasticPop(this.ctx, this.sfxGain || this.masterGain);
+    const targetDest = (dest && typeof dest.connect === 'function') ? dest : (this.sfxGain || this.masterGain);
+    playElasticPop(this.ctx, targetDest);
   }
 
   /**
    * 2. Kiro's Cute Alien Chirp (With Cuteness Pitch Multiplier)
    * Dynamic triangle wave pitch modulation scaling from 0.4x to 2.4x.
    */
-  playAlienChirp(pitchMultiplier = null) {
+  playAlienChirp(pitchMultiplier = null, dest = null) {
     if (!this.ctx) this.init();
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     if (!this.ctx) return;
-    const mult = pitchMultiplier !== null ? pitchMultiplier : (this.cutenessPitchMultiplier || 1.0);
-    playAlienChirp(this.ctx, mult, this.sfxGain || this.masterGain);
+    let mult = this.cutenessPitchMultiplier || 1.0;
+    if (typeof pitchMultiplier === 'number' && Number.isFinite(pitchMultiplier)) {
+      mult = pitchMultiplier;
+    } else if (pitchMultiplier && typeof pitchMultiplier === 'object' && typeof arguments[1] === 'number' && Number.isFinite(arguments[1])) {
+      mult = arguments[1];
+    }
+    const targetDest = (dest && typeof dest.connect === 'function') ? dest : (this.sfxGain || this.masterGain);
+    playAlienChirp(this.ctx, mult, targetDest);
   }
 
   /**
@@ -1138,11 +1146,12 @@ export class CosmicSynthEngine {
    * 2b. Viscoelastic Purr (playCozyPurr)
    * Deep 60Hz rumble modulated by a 25Hz sine LFO vibration for petting response.
    */
-  playCozyPurr() {
+  playCozyPurr(dest = null) {
     if (!this.ctx) this.init();
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     if (!this.ctx) return;
-    playCozyPurr(this.ctx, this.sfxGain || this.masterGain);
+    const targetDest = (dest && typeof dest.connect === 'function') ? dest : (this.sfxGain || this.masterGain);
+    playCozyPurr(this.ctx, targetDest);
   }
 
   /**
@@ -1322,11 +1331,12 @@ export class CosmicSynthEngine {
    * The Sound: A tired, long, sighing low-pass sweep when tucked into bed.
    * The Math: A sleepy sine oscillator with 500Hz lowpass filter sliding exponentially from 400Hz to 150Hz.
    */
-  playSleepyYawn() {
+  playSleepyYawn(dest = null) {
     if (!this.ctx) this.init();
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     if (!this.ctx) return;
-    playSleepyYawn(this.ctx, this.sfxGain || this.masterGain);
+    const targetDest = (dest && typeof dest.connect === 'function') ? dest : (this.sfxGain || this.masterGain);
+    playSleepyYawn(this.ctx, targetDest);
   }
 
   /**
@@ -1615,7 +1625,8 @@ export class CosmicSynthEngine {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
-    const now = this.ctx.currentTime;
+    const safeFreq = (typeof baseFreq === 'number' && Number.isFinite(baseFreq) && baseFreq > 0) ? baseFreq : 660;
+    const now = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
     const intervals = [1.0, 1.25, 1.5]; // Pentatonic happy step
 
     intervals.forEach((ratio, i) => {
@@ -1624,7 +1635,7 @@ export class CosmicSynthEngine {
       const delay = i * 0.06;
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(baseFreq * ratio, now + delay);
+      osc.frequency.setValueAtTime(safeFreq * ratio, now + delay);
 
       gain.gain.setValueAtTime(0, now + delay);
       gain.gain.linearRampToValueAtTime(0.09, now + delay + 0.02);
@@ -1642,16 +1653,17 @@ export class CosmicSynthEngine {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
-    const now = this.ctx.currentTime;
+    const safeFreq = (typeof freq === 'number' && Number.isFinite(freq) && freq > 0) ? freq : 660;
+    const now = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
     const osc = this.ctx.createOscillator();
     const oscHarmonic = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.setValueAtTime(safeFreq, now);
 
     oscHarmonic.type = 'sine';
-    oscHarmonic.frequency.setValueAtTime(freq * 2.0, now);
+    oscHarmonic.frequency.setValueAtTime(safeFreq * 2.0, now);
 
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.14, now + 0.015);
@@ -2157,7 +2169,8 @@ export class CosmicSynthEngine {
   playCrystalChime(freq = 523.25) {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();
-    const now = this.ctx.currentTime;
+    const safeFreq = (typeof freq === 'number' && Number.isFinite(freq) && freq > 0) ? freq : 523.25;
+    const now = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
     const targetDest = this.sfxGain || this.masterGain;
 
     const osc = this.ctx.createOscillator();
@@ -2165,11 +2178,11 @@ export class CosmicSynthEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.setValueAtTime(safeFreq, now);
 
     // Overtone with slight shimmer
     oscHarmonic.type = 'triangle';
-    oscHarmonic.frequency.setValueAtTime(freq * 2.003, now);
+    oscHarmonic.frequency.setValueAtTime(safeFreq * 2.003, now);
 
     gain.gain.setValueAtTime(0.0, now);
     gain.gain.linearRampToValueAtTime(0.45, now + 0.02);
@@ -2408,21 +2421,22 @@ export function playElasticPop(audioCtx, dest = null) {
   const targetDest = dest || (typeof window !== 'undefined' && window.synthEngine ? window.synthEngine.sfxGain || window.synthEngine.masterGain : null) || audioCtx.destination;
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
+  const now = (audioCtx && Number.isFinite(audioCtx.currentTime)) ? audioCtx.currentTime : 0;
 
   osc.type = 'sine';
   // Rapid pitch sweep up to simulate a bubble pop
-  osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+  osc.frequency.setValueAtTime(150, now);
+  osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
 
   // Snappy amplitude envelope
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.02);
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+  gainNode.gain.setValueAtTime(0, now);
+  gainNode.gain.linearRampToValueAtTime(1, now + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
   osc.connect(gainNode);
   gainNode.connect(targetDest);
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.2);
+  osc.start(now);
+  osc.stop(now + 0.2);
 }
 
 /**
@@ -2435,24 +2449,27 @@ export function playElasticPop(audioCtx, dest = null) {
 export function playAlienChirp(audioCtx, pitchMultiplier = 1.0, dest = null) {
   if (!audioCtx) return;
   const targetDest = dest || (typeof window !== 'undefined' && window.synthEngine ? window.synthEngine.sfxGain || window.synthEngine.masterGain : null) || audioCtx.destination;
-  // pitchMultiplier scales from 0.4x (Monster Rumble) to 2.4x (Squeaky Baby)
-  const baseFreq = 440 * (pitchMultiplier || 1.0);
+  // Safely guard against non-numeric or non-finite pitch multiplier
+  const mult = (typeof pitchMultiplier === 'number' && Number.isFinite(pitchMultiplier) && pitchMultiplier > 0) ? pitchMultiplier : 1.0;
+  const baseFreq = 440 * mult;
+  const now = (audioCtx && Number.isFinite(audioCtx.currentTime)) ? audioCtx.currentTime : 0;
+
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
 
   osc.type = 'triangle';
-  osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
-  osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.1);
-  osc.frequency.linearRampToValueAtTime(baseFreq * 0.8, audioCtx.currentTime + 0.2);
+  osc.frequency.setValueAtTime(baseFreq, now);
+  osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + 0.1);
+  osc.frequency.linearRampToValueAtTime(baseFreq * 0.8, now + 0.2);
 
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.8, audioCtx.currentTime + 0.05);
-  gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+  gainNode.gain.setValueAtTime(0, now);
+  gainNode.gain.linearRampToValueAtTime(0.8, now + 0.05);
+  gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
 
   osc.connect(gainNode);
   gainNode.connect(targetDest);
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.35);
+  osc.start(now);
+  osc.stop(now + 0.35);
 }
 
 /**
@@ -2468,6 +2485,7 @@ export function playCozyPurr(audioCtx, dest = null) {
   const lfo = audioCtx.createOscillator(); // Low-Frequency Oscillator for the "vibration"
   const lfoGain = audioCtx.createGain();
   const masterGain = audioCtx.createGain();
+  const now = (audioCtx && Number.isFinite(audioCtx.currentTime)) ? audioCtx.currentTime : 0;
 
   osc.type = 'sawtooth';
   osc.frequency.value = 60; // Deep rumble
@@ -2481,13 +2499,13 @@ export function playCozyPurr(audioCtx, dest = null) {
   lfoGain.connect(masterGain);
   masterGain.connect(targetDest);
 
-  masterGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-  masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.0); // 2-second purr
+  masterGain.gain.setValueAtTime(0.5, now);
+  masterGain.gain.linearRampToValueAtTime(0, now + 2.0); // 2-second purr
 
-  osc.start();
-  lfo.start();
-  osc.stop(audioCtx.currentTime + 2.0);
-  lfo.stop(audioCtx.currentTime + 2.0);
+  osc.start(now);
+  lfo.start(now);
+  osc.stop(now + 2.0);
+  lfo.stop(now + 2.0);
 }
 
 /**
@@ -2502,25 +2520,26 @@ export function playSleepyYawn(audioCtx, dest = null) {
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
   const filter = audioCtx.createBiquadFilter(); // Muffles the sound
+  const now = (audioCtx && Number.isFinite(audioCtx.currentTime)) ? audioCtx.currentTime : 0;
 
   osc.type = 'sine';
   filter.type = 'lowpass';
   filter.frequency.value = 500;
 
   // Slow downward frequency curve
-  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 1.2);
+  osc.frequency.setValueAtTime(400, now);
+  osc.frequency.exponentialRampToValueAtTime(150, now + 1.2);
 
   // Smooth, slow envelope
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.4);
-  gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+  gainNode.gain.setValueAtTime(0, now);
+  gainNode.gain.linearRampToValueAtTime(0.6, now + 0.4);
+  gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
 
   osc.connect(filter);
   filter.connect(gainNode);
   gainNode.connect(targetDest);
-  osc.start();
-  osc.stop(audioCtx.currentTime + 1.6);
+  osc.start(now);
+  osc.stop(now + 1.6);
 }
 
 export const synthEngine = new CosmicSynthEngine();
