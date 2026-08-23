@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-801900] Deep Space Celestial Breathing Room, Cutscene Mesh Cleanup & Whisper-Soft Audio Harmonization (V10.1)
+- **Timestamp**: `2026-08-23T11:00:00.000000`
+- **Strategy & Synthesis**: Implemented restoreSanctuaryFromWormhole cutscene mesh cleanup in scene.js and cor-amoris.js, expanded celestial layout and planetary orbits into deep space with generous breathing room, replaced comet line tracks with curved stardust plume, softened dialogue volume, and silenced continuous engine drone (v2.6.3, Build 101).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Transformed cramped mobile viewport into a vast, breathtaking, expansive cosmic sanctuary with generous breathing room. The spiral galaxy, roaming planets, and comet glide across deep space without crowding Kiro, while the comet's tail now flows as a silky anime stardust plume without rigid line tracks.
+  - **Performance**: Score 5/5: Completely removed cutscene mesh clutter from standard render pass, hid 7 holographic target meshes by default in standard view, and optimized audio CPU usage with whisper-soft warm sub oscillators and gentle low-pass filters.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.6.3 (Build 101) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Added restoreSanctuaryFromWormhole() lifecycle method in scene.js, decoupled wormhole cutscene loading from modal preview in cor-amoris.js, spread spaceSystems coordinates across wide deep space (Z: -28 to -40), and consolidated duplicate audio methods in synth.js.
+  - **Gamification**: Score 5/5: Whispering soft dialogue chirps, zero continuous thruster noise drone during telescope navigation, and a pristine, uncluttered celestial sanctuary for Patrick and Yangiee.
+
+---
+
 ### [DEC-791900] Preloader Readiness Gate, 5-Second Post-Loading Dialogue Delay & Speech Sound Harmonization (V10.0)
 - **Timestamp**: `2026-08-23T10:30:00.000000`
 - **Strategy & Synthesis**: Implemented preloader readiness lifecycle gate with 5-second post-loading dialogue delay and speech audio harmonization (v2.6.2, Build 100).

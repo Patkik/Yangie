@@ -398,16 +398,14 @@ export class CorAmorisEngine {
     modal.classList.remove('hidden');
     this.updateStargateSlotsUI();
     synthEngine.playCrystalChime(523.25);
-
-    // Trigger WebGL Interdimensional Wormhole & Gate Guardian confrontation
-    if (typeof window !== 'undefined' && window.kiroScene && typeof window.kiroScene.loadWormholeTransitionScene === 'function') {
-      window.kiroScene.loadWormholeTransitionScene();
-    }
   }
 
   closeStargateDialModal() {
     const modal = document.getElementById('cor-amoris-stargate-modal');
     if (modal) modal.classList.add('hidden');
+    if (typeof window !== 'undefined' && window.kiroScene && typeof window.kiroScene.restoreSanctuaryFromWormhole === 'function') {
+      window.kiroScene.restoreSanctuaryFromWormhole();
+    }
   }
 
   updateStargateSlotsUI() {
@@ -457,11 +455,10 @@ export class CorAmorisEngine {
       if (f2024) {
         slot2024.className = 'stargate-slot slot-unlocked';
         if (glyph) glyph.textContent = '2024';
-        if (label) label.textContent = 'Genesis Stardate';
+        if (label) label.textContent = 'Genesis (Weather)';
       } else {
         slot2024.className = 'stargate-slot slot-locked';
         if (glyph) glyph.textContent = '????';
-        if (label) label.textContent = 'Genesis Keystone';
       }
     }
 
@@ -488,9 +485,14 @@ export class CorAmorisEngine {
     this.closeStargateDialModal();
     KiroState.alignStargate();
 
-    // Trigger 3D WebGL Shatter & Transit Animation
-    if (typeof window !== 'undefined' && window.kiroScene && typeof window.kiroScene.shatterRiftAndTransitToAmoris === 'function') {
-      window.kiroScene.shatterRiftAndTransitToAmoris();
+    // Trigger 3D WebGL Wormhole Transition & Shatter Animation
+    if (typeof window !== 'undefined' && window.kiroScene) {
+      if (typeof window.kiroScene.loadWormholeTransitionScene === 'function') {
+        window.kiroScene.loadWormholeTransitionScene();
+      }
+      if (typeof window.kiroScene.shatterRiftAndTransitToAmoris === 'function') {
+        window.kiroScene.shatterRiftAndTransitToAmoris();
+      }
     }
 
     this.playGrandCutscene();

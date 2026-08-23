@@ -768,13 +768,13 @@ export class KiroSceneManager {
     this.targetSystemMeshes = [];
     this.lastAlignedTargetId = null;
     this.spaceSystems = [
-      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', x: 6.2, y: 1.6, z: -8.5, size: 0.75, color: 0xF5C2E7 },
-      { id: 'helix',     name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce', type: 'IONIZED NEBULA', dist: '655 ly', x: -6.8, y: 2.4, z: -9.2, size: 0.85, color: 0x94E2D5 },
-      { id: 'sombrero',  name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes', type: 'SPIRAL CORE', dist: '29.3 Mly', x: 7.5, y: -1.8, z: -10.0, size: 0.80, color: 0xF9E2AF },
-      { id: 'crab',      name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast', type: 'NEUTRON PULSAR', dist: '6.50 kly', x: -6.2, y: -2.2, z: -8.8, size: 0.70, color: 0xCBA6F7 },
-      { id: 'gliese',    name: 'Mint Ice World (Gliese 667)', game: 'Frozen Stardust', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', x: -4.5, y: -0.5, z: -10.5, size: 0.60, color: 0x4EC9B0 },
-      { id: 'kepler',    name: 'Lavender Ring Giant (Kepler 186)', game: 'Orbital Rings', type: 'RINGED GAS GIANT', dist: '582 ly', x: 4.8, y: 3.2, z: -11.0, size: 0.65, color: 0xCBA6F7 },
-      { id: 'trappist',  name: 'Pastel Star Sanctuary (Trappist 1)', game: 'Starlight Catch', type: 'RED DWARF HABITAT', dist: '39.6 ly', x: 1.5, y: -3.4, z: -12.0, size: 0.55, color: 0xFFB6C1 }
+      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', x: 22.0, y: 12.0, z: -28.0, size: 0.95, color: 0xF5C2E7 },
+      { id: 'helix',     name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce', type: 'IONIZED NEBULA', dist: '655 ly', x: -24.0, y: 14.0, z: -32.0, size: 1.10, color: 0x94E2D5 },
+      { id: 'sombrero',  name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes', type: 'SPIRAL CORE', dist: '29.3 Mly', x: 26.0, y: -12.0, z: -34.0, size: 1.05, color: 0xF9E2AF },
+      { id: 'crab',      name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast', type: 'NEUTRON PULSAR', dist: '6.50 kly', x: -22.0, y: -14.0, z: -30.0, size: 0.90, color: 0xCBA6F7 },
+      { id: 'gliese',    name: 'Mint Ice World (Gliese 667)', game: 'Frozen Stardust', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', x: -16.0, y: -4.0, z: -36.0, size: 0.80, color: 0x4EC9B0 },
+      { id: 'kepler',    name: 'Lavender Ring Giant (Kepler 186)', game: 'Orbital Rings', type: 'RINGED GAS GIANT', dist: '582 ly', x: 18.0, y: 16.0, z: -38.0, size: 0.85, color: 0xCBA6F7 },
+      { id: 'trappist',  name: 'Pastel Star Sanctuary (Trappist 1)', game: 'Starlight Catch', type: 'RED DWARF HABITAT', dist: '39.6 ly', x: 8.0, y: -18.0, z: -40.0, size: 0.75, color: 0xFFB6C1 }
     ];
     this.warpSpeed = 0.02;
     this.warpStarSize = 0.42;
@@ -1209,22 +1209,22 @@ export class KiroSceneManager {
     this.registerDisposable(galaxyMat);
 
     this.galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
-    this.galaxyPoints.position.set(0, 0.4, -13.5);
+    this.galaxyPoints.position.set(0, 1.2, -26.0);
     this.galaxyPoints.rotation.set(Math.PI * 0.28, Math.PI * 0.09, 0);
     this.backgroundCelestialGroup.add(this.galaxyPoints);
   }
 
-  // 2.3 Roaming Anime-Shaded Planets (Z = -10.0 to -14.0) with Keplerian Orbits
+  // 2.3 Roaming Anime-Shaded Planets (Deep Space Orbits) with Keplerian Orbits
   buildRoamingPlanets() {
     this.roamingPlanets = [];
 
     // Planet 1: Mint/Teal Ice World (Gliese 667) — Anime Cel & Atmosphere Shader + Inverted Hull Outline
-    const geo1 = new THREE.SphereGeometry(0.52, 28, 28);
+    const geo1 = new THREE.SphereGeometry(0.65, 28, 28);
     const mat1 = createAnimePlanetMaterial(0x4EC9B0, 0x11111B, 0x94E2D5, 14.0);
     const p1 = new THREE.Mesh(geo1, mat1);
     const p1Outline = createAnimeOutlineMesh(geo1, 0.024, 0x11111B);
     p1.add(p1Outline);
-    p1.userData = { id: 'gliese', semiMajor: 6.8, semiMinor: 4.5, tiltAngle: 0.22, baseDepth: -11.0, speed: 0.045, baseAngle: 0 };
+    p1.userData = { id: 'gliese', semiMajor: 16.5, semiMinor: 10.2, tiltAngle: 0.22, baseDepth: -24.0, speed: 0.022, baseAngle: 0 };
     this.registerDisposable(geo1);
     this.registerDisposable(mat1);
     this.registerDisposable(p1Outline.material);
@@ -1233,14 +1233,14 @@ export class KiroSceneManager {
 
     // Planet 2: Lavender Gas Giant with Translucent Saturn-like Ring (Kepler 186)
     const planet2Group = new THREE.Group();
-    const geo2 = new THREE.SphereGeometry(0.76, 28, 28);
+    const geo2 = new THREE.SphereGeometry(0.95, 28, 28);
     const mat2 = createAnimePlanetMaterial(0xCBA6F7, 0x11111B, 0xF9E2AF, 10.0);
     const p2Mesh = new THREE.Mesh(geo2, mat2);
     const p2Outline = createAnimeOutlineMesh(geo2, 0.024, 0x11111B);
     p2Mesh.add(p2Outline);
     planet2Group.add(p2Mesh);
 
-    const ringGeo = new THREE.RingGeometry(1.05, 1.68, 36);
+    const ringGeo = new THREE.RingGeometry(1.35, 2.15, 36);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xF9E2AF,
       transparent: true,
@@ -1252,7 +1252,7 @@ export class KiroSceneManager {
     ringMesh.rotation.x = Math.PI / 3;
     planet2Group.add(ringMesh);
 
-    planet2Group.userData = { id: 'kepler', semiMajor: 8.2, semiMinor: 5.4, tiltAngle: 0.35, baseDepth: -12.5, speed: 0.028, baseAngle: 2.2 };
+    planet2Group.userData = { id: 'kepler', semiMajor: 22.0, semiMinor: 13.5, tiltAngle: 0.35, baseDepth: -28.0, speed: 0.015, baseAngle: 2.2 };
     this.registerDisposable(geo2);
     this.registerDisposable(mat2);
     this.registerDisposable(p2Outline.material);
@@ -1262,12 +1262,12 @@ export class KiroSceneManager {
     this.roamingPlanets.push(planet2Group);
 
     // Planet 3: Pastel-Pink Star Core (Trappist 1)
-    const geo3 = new THREE.SphereGeometry(0.46, 28, 28);
+    const geo3 = new THREE.SphereGeometry(0.58, 28, 28);
     const mat3 = createAnimePlanetMaterial(0xFFB6C1, 0x11111B, 0xF5C2E7, 18.0);
     const p3 = new THREE.Mesh(geo3, mat3);
     const p3Outline = createAnimeOutlineMesh(geo3, 0.024, 0x11111B);
     p3.add(p3Outline);
-    p3.userData = { id: 'trappist', semiMajor: 5.6, semiMinor: 3.8, tiltAngle: -0.28, baseDepth: -13.5, speed: 0.065, baseAngle: 4.4 };
+    p3.userData = { id: 'trappist', semiMajor: 14.0, semiMinor: 8.8, tiltAngle: -0.28, baseDepth: -26.0, speed: 0.030, baseAngle: 4.4 };
     this.registerDisposable(geo3);
     this.registerDisposable(mat3);
     this.registerDisposable(p3Outline.material);
@@ -1275,10 +1275,10 @@ export class KiroSceneManager {
     this.roamingPlanets.push(p3);
 
     // Planet 4: Faceted Low-Poly Asteroid Ring Node (Procedural Anime Asteroid Shader)
-    const asteroidGeo = new THREE.IcosahedronGeometry(0.26, 1);
+    const asteroidGeo = new THREE.IcosahedronGeometry(0.35, 1);
     const asteroidMat = createAnimeAsteroidShaderMaterial(new THREE.Vector3(0.8, 1.0, 0.6));
     const asteroid = new THREE.Mesh(asteroidGeo, asteroidMat);
-    asteroid.userData = { id: 'asteroid', semiMajor: 4.2, semiMinor: 3.2, tiltAngle: 0.45, baseDepth: -10.5, speed: 0.082, baseAngle: 1.1 };
+    asteroid.userData = { id: 'asteroid', semiMajor: 10.5, semiMinor: 6.8, tiltAngle: 0.45, baseDepth: -20.0, speed: 0.038, baseAngle: 1.1 };
     this.registerDisposable(asteroidGeo);
     this.registerDisposable(asteroidMat);
     this.backgroundCelestialGroup.add(asteroid);
@@ -1304,7 +1304,7 @@ export class KiroSceneManager {
         progress: 0,
         startX: 0,
         startY: 0,
-        startZ: -11.5,
+        startZ: -24.0,
         speed: 0.03
       };
 
@@ -1315,70 +1315,39 @@ export class KiroSceneManager {
     }
   }
 
-  // 2.5 Photorealistic Anime Astronomical Comet (Spectral Ribbon Ion Tail & Curved Stardust Plume)
+  // 2.5 Photorealistic Anime Astronomical Comet (Curved Spectral Ribbon Stardust Plume)
   buildLivingComet() {
     this.cometMesh = new THREE.Group();
-    this.cometMesh.position.set(-16.0, 4.2, -12.0);
+    this.cometMesh.position.set(-24.0, 14.0, -28.0);
 
     // 1. Brilliant Luminous Ion Coma & Nucleus with Anime Inverted Hull Outline
-    const coreGeo = new THREE.SphereGeometry(0.20, 20, 20);
+    const coreGeo = new THREE.SphereGeometry(0.22, 20, 20);
     const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
     this.cometHead = new THREE.Mesh(coreGeo, coreMat);
     const coreOutline = createAnimeOutlineMesh(coreGeo, 0.025, 0x11111B);
     this.cometHead.add(coreOutline);
     this.cometMesh.add(this.cometHead);
 
-    const innerComaGeo = new THREE.SphereGeometry(0.52, 20, 20);
+    const innerComaGeo = new THREE.SphereGeometry(0.48, 20, 20);
     const innerComaMat = new THREE.MeshBasicMaterial({
       color: 0x4EC9B0,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.75,
       blending: THREE.AdditiveBlending
     });
     this.cometMesh.add(new THREE.Mesh(innerComaGeo, innerComaMat));
 
-    const outerAtmosphereGeo = new THREE.SphereGeometry(1.05, 20, 20);
+    const outerAtmosphereGeo = new THREE.SphereGeometry(0.85, 20, 20);
     const outerAtmosphereMat = new THREE.MeshBasicMaterial({
       color: 0x94E2D5,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0.25,
       blending: THREE.AdditiveBlending
     });
     this.cometMesh.add(new THREE.Mesh(outerAtmosphereGeo, outerAtmosphereMat));
 
-    // 2. Multi-Filament Electric Spectral Ribbon Ion Tail (6 Parallel Streamers)
-    this.cometFilaments = [];
-    this.filamentSegments = 16;
-    const filamentColors = [0x4EC9B0, 0x94E2D5, 0x89DCEB, 0x4EC9B0, 0x94E2D5, 0xCBA6F7];
-
-    for (let f = 0; f < 6; f++) {
-      const fGeo = new THREE.BufferGeometry();
-      const fVerts = new Float32Array(this.filamentSegments * 3);
-      for (let s = 0; s < this.filamentSegments; s++) {
-        fVerts[s * 3]     = -s * 0.55; // 8.8 units long
-        fVerts[s * 3 + 1] = (f - 2.5) * 0.04;
-        fVerts[s * 3 + 2] = 0;
-      }
-      fGeo.setAttribute('position', new THREE.BufferAttribute(fVerts, 3));
-
-      const fMat = new THREE.LineBasicMaterial({
-        color: filamentColors[f],
-        transparent: true,
-        opacity: 0.75 - f * 0.06,
-        blending: THREE.AdditiveBlending
-      });
-      const fLine = new THREE.Line(fGeo, fMat);
-      fLine.userData = { lateralOffset: (f - 2.5) * 0.05, phase: f * 0.75 };
-      this.cometMesh.add(fLine);
-      this.cometFilaments.push(fLine);
-
-      this.registerDisposable(fGeo);
-      this.registerDisposable(fMat);
-    }
-    this.cometTail = this.cometFilaments[0]; // Backward-compatibility alias
-
-    // 3. Spectral Ribbon Fluid Tail (120 Instanced Particle Cloud with Anime Comet Shader)
-    const dustCount = 120;
+    // 2. Smooth Curved Spectral Ribbon Fluid Tail (160 Instanced Particle Cloud with Anime Comet Shader)
+    const dustCount = 160;
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(dustCount * 3);
     const aIndices = new Float32Array(dustCount);
@@ -1386,10 +1355,10 @@ export class KiroSceneManager {
     for (let d = 0; d < dustCount; d++) {
       const tProgress = d / dustCount;
       aIndices[d] = tProgress;
-      // Trailing dust curves downward and expands quadratically
-      const distBack = tProgress * 7.5;
-      const curveY = -Math.pow(tProgress, 1.7) * 1.8 + (Math.random() - 0.5) * 0.35 * (1 + tProgress * 3);
-      const spreadZ = (Math.random() - 0.5) * 0.45 * (1 + tProgress * 2.5);
+      // Trailing dust curves smoothly and expands quadratically with soft dispersion
+      const distBack = tProgress * 12.0;
+      const curveY = -Math.pow(tProgress, 1.6) * 2.2 + (Math.random() - 0.5) * 0.4 * (1 + tProgress * 2.0);
+      const spreadZ = (Math.random() - 0.5) * 0.35 * (1 + tProgress * 2.0);
 
       dustPositions[d * 3]     = -distBack;
       dustPositions[d * 3 + 1] = curveY;
@@ -1401,6 +1370,8 @@ export class KiroSceneManager {
     this.cometShaderMat = createAnimeCometShaderMaterial();
     this.cometDustTail = new THREE.Points(dustGeo, this.cometShaderMat);
     this.cometMesh.add(this.cometDustTail);
+    this.cometTail = this.cometDustTail; // Backward compatibility
+    this.cometFilaments = []; // Backward compatibility
 
     this.registerDisposable(coreGeo);
     this.registerDisposable(coreMat);
@@ -1422,6 +1393,7 @@ export class KiroSceneManager {
     this.spaceSystems.forEach(sys => {
       const group = new THREE.Group();
       group.position.set(sys.x, sys.y, sys.z);
+      group.visible = false; // Hidden in normal sanctuary view to prevent clutter!
 
       // 1. Central Wireframe Celestial Sphere
       const geo = new THREE.IcosahedronGeometry(sys.size, 2);
@@ -1691,37 +1663,18 @@ export class KiroSceneManager {
       }
     });
 
-    // 5. Photorealistic Astronomical Comet (Keplerian Parabolic Sweep & Dynamic Tail Physics)
+    // 5. Photorealistic Astronomical Comet (Keplerian Parabolic Sweep in Deep Space)
     if (this.cometMesh) {
-      // Natural parabolic celestial trajectory across deep space (Z = -12.0)
-      const cTime = time * 0.08;
-      const tNorm = ((cTime % 2.0) - 1.0) * 18.0; // Sweeps from -18.0 to +18.0
-      const cY = 4.2 - (tNorm * tNorm) * 0.008 + Math.sin(time * 0.2) * 0.4;
-      const cZ = -12.0 + Math.abs(tNorm) * 0.08;
+      // Natural parabolic celestial trajectory across deep space (Z = -28.0)
+      const cTime = time * 0.04;
+      const tNorm = ((cTime % 2.0) - 1.0) * 32.0; // Sweeps across wide deep space
+      const cY = 14.0 - (tNorm * tNorm) * 0.005 + Math.sin(time * 0.15) * 0.5;
+      const cZ = -28.0 + Math.abs(tNorm) * 0.05;
       this.cometMesh.position.set(tNorm, cY, cZ);
 
       // Comet orientation tangent to parabolic velocity vector
-      const dy_dx = -0.016 * tNorm;
+      const dy_dx = -0.010 * tNorm;
       this.cometMesh.rotation.z = Math.atan2(dy_dx, 1.0);
-
-      // Animate multi-filament plasma / ion tail micro-waves
-      if (this.cometFilaments && this.cometFilaments.length > 0) {
-        this.cometFilaments.forEach((filament) => {
-          const posAttr = filament.geometry.attributes.position;
-          const verts = posAttr.array;
-          const lateral = filament.userData.lateralOffset || 0;
-          const phase = filament.userData.phase || 0;
-
-          for (let s = 1; s < this.filamentSegments; s++) {
-            const distFromHead = s * 0.55;
-            // Higher amplitude wave further down the tail stream
-            const waveAmp = 0.02 + distFromHead * 0.035;
-            const wave = Math.sin(time * 7.5 - s * 0.45 + phase) * waveAmp;
-            verts[s * 3 + 1] = lateral + wave;
-          }
-          posAttr.needsUpdate = true;
-        });
-      }
 
       // Animate curved stardust tail rotation & anime shader uniforms
       if (this.cometDustTail) {
@@ -1732,7 +1685,7 @@ export class KiroSceneManager {
       }
     }
 
-    // 6. Sci-Fi Holographic Target Markers & Flight Crosshair Lock-On Detection
+    // 6. Sci-Fi Holographic Target Markers & Flight Crosshair Lock-On Detection (Telescope Mode Only)
     const isTelescope = KiroState.get('telescopeActive');
     let lockedTargetId = null;
     let closestTarget = null;
@@ -1765,45 +1718,43 @@ export class KiroSceneManager {
           }
         }
       });
-    }
 
-    this.targetSystemMeshes.forEach(target => {
-      // Idle rotation of 3D targeting rings and diamond marker
-      if (target.userData.reticleRing) target.userData.reticleRing.rotation.z += 0.018;
-      if (target.userData.diamond) {
-        target.userData.diamond.rotation.y += 0.025;
-        target.userData.diamond.rotation.x += 0.015;
-        const pulse = 1.0 + Math.sin(time * 4.0) * 0.15;
-        target.userData.diamond.scale.set(pulse, pulse, pulse);
-      }
+      this.targetSystemMeshes.forEach(target => {
+        // Idle rotation of 3D targeting rings and diamond marker
+        if (target.userData.reticleRing) target.userData.reticleRing.rotation.z += 0.018;
+        if (target.userData.diamond) {
+          target.userData.diamond.rotation.y += 0.025;
+          target.userData.diamond.rotation.x += 0.015;
+          const pulse = 1.0 + Math.sin(time * 4.0) * 0.15;
+          target.userData.diamond.scale.set(pulse, pulse, pulse);
+        }
 
-      if (isTelescope && closestTarget && target === closestTarget) {
-        lockedTargetId = target.userData.id;
-        target.userData.isLocked = true;
+        if (closestTarget && target === closestTarget) {
+          lockedTargetId = target.userData.id;
+          target.userData.isLocked = true;
 
-        // Visual lock state on the target in 3D: ONLY highlighted when centered in reticle
-        if (target.userData.bracketMesh) {
-          target.userData.bracketMesh.scale.set(1.35, 1.35, 1.35);
-          target.userData.bracketMesh.material.color.setHex(0x94E2D5);
-          target.userData.bracketMesh.material.opacity = 1.0;
+          // Visual lock state on the target in 3D: ONLY highlighted when centered in reticle
+          if (target.userData.bracketMesh) {
+            target.userData.bracketMesh.scale.set(1.35, 1.35, 1.35);
+            target.userData.bracketMesh.material.color.setHex(0x94E2D5);
+            target.userData.bracketMesh.material.opacity = 1.0;
+          }
+          if (target.userData.glowMesh) {
+            target.userData.glowMesh.material.opacity = 0.65;
+          }
+        } else {
+          target.userData.isLocked = false;
+          if (target.userData.bracketMesh) {
+            target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
+            target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
+            target.userData.bracketMesh.material.opacity = 0.35;
+          }
+          if (target.userData.glowMesh) {
+            target.userData.glowMesh.material.opacity = 0.25;
+          }
         }
-        if (target.userData.glowMesh) {
-          target.userData.glowMesh.material.opacity = 0.65;
-        }
-      } else {
-        target.userData.isLocked = false;
-        if (target.userData.bracketMesh) {
-          target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
-          target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
-          target.userData.bracketMesh.material.opacity = isTelescope ? 0.35 : 0.0;
-        }
-        if (target.userData.glowMesh) {
-          target.userData.glowMesh.material.opacity = 0.25;
-        }
-      }
-    });
+      });
 
-    if (isTelescope) {
       if (lockedTargetId) {
         if (this.lastAlignedTargetId !== lockedTargetId) {
           this.lastAlignedTargetId = lockedTargetId;
@@ -2594,6 +2545,12 @@ export class KiroSceneManager {
       const isActive = Boolean(newValue);
       if (this.cockpitGroup) this.cockpitGroup.visible = isActive;
 
+      if (this.targetSystemMeshes) {
+        this.targetSystemMeshes.forEach(target => {
+          target.visible = isActive;
+        });
+      }
+
       if (isActive) {
         this.triggerWarpAcceleration();
       } else {
@@ -2606,7 +2563,7 @@ export class KiroSceneManager {
           if (target.userData.bracketMesh) {
             target.userData.bracketMesh.scale.set(1.0, 1.0, 1.0);
             target.userData.bracketMesh.material.color.setHex(0x4EC9B0);
-            target.userData.bracketMesh.material.opacity = 0.50;
+            target.userData.bracketMesh.material.opacity = 0.35;
           }
           if (target.userData.glowMesh) {
             target.userData.glowMesh.material.opacity = 0.25;
@@ -4137,6 +4094,32 @@ export class KiroSceneManager {
     this.registerDisposable(thrusterMat);
 
     return ship;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Restore Standard Sanctuary from Wormhole / Stargate Modal
+     ───────────────────────────────────────────────────────────────────────── */
+  restoreSanctuaryFromWormhole() {
+    this.currentEnvironment = 'sanctuary';
+
+    if (this.wormholeRift) this.wormholeRift.visible = false;
+    if (this.corAmorisSilhouette) this.corAmorisSilhouette.visible = false;
+    if (this.sentinelGuardian) this.sentinelGuardian.visible = false;
+    if (this.capsuleShipModel) this.capsuleShipModel.visible = false;
+
+    if (this.kiroGroup) {
+      gsap.to(this.kiroGroup.position, { x: 0, y: 0, z: 0, duration: 0.8, ease: "power2.out" });
+      gsap.to(this.kiroGroup.scale, { x: 1, y: 1, z: 1, duration: 0.8 });
+    }
+    if (this.pedestal) {
+      gsap.to(this.pedestal.position, { x: 0, y: -0.92, z: 0, duration: 0.8 });
+    }
+    if (this.neonRing) {
+      gsap.to(this.neonRing.position, { x: 0, y: -0.92, z: 0, duration: 0.8 });
+    }
+    if (this.camera) {
+      gsap.to(this.camera.position, { x: 0, y: this.baseCameraY, z: this.baseCameraZ, duration: 0.8, ease: "power2.out" });
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────────────────

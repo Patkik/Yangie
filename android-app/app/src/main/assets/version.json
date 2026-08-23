@@ -1,10 +1,10 @@
 {
-  "version": "2.6.2",
-  "build": 100,
+  "version": "2.6.3",
+  "build": 101,
   "name": "Kiro",
-  "description": "Space Capsule V10.0 — Preloader Readiness Gate, 5-Second Post-Loading Dialogue Delay & Speech Sound Harmonization",
+  "description": "Space Capsule V10.1 — Deep Space Celestial Breathing Room, Cutscene Mesh Cleanup & Whisper-Soft Audio Harmonization",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V10.0: Enforced strict preloader lifecycle guard ensuring Kiro's dialogue speech bubble and audio chimes/giggle are never triggered during preloading, with an intentional 5-second grace period after dashboard reveal."
+  "changelog": "V10.1: Fixed stuck Stargate cutscene meshes with restoreSanctuaryFromWormhole, expanded all celestial systems and roaming orbits into deep space with generous breathing room, softened dialogue audio volume and eliminated thruster noise drone."
 }
 

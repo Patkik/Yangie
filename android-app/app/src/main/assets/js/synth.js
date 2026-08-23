@@ -342,7 +342,7 @@ export class CosmicSynthEngine {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. Procedural Engine Thruster Synthesizer (V5.0 Master Pipeline)
+  // 1. Procedural Engine Thruster Synthesizer (Ultra-Soft Cosmic Hum)
   // ─────────────────────────────────────────────────────────────────────────────
 
   startThruster() {
@@ -354,38 +354,37 @@ export class CosmicSynthEngine {
     this.thruster.active = true;
     const now = this.ctx.currentTime;
 
-    // 1. Sawtooth Oscillator (55Hz / A1 Base)
+    // 1. Soft Warm Sub Sine (42Hz Base)
     this.thruster.sawOsc = this.ctx.createOscillator();
-    this.thruster.sawOsc.type = 'sawtooth';
-    this.thruster.sawOsc.frequency.setValueAtTime(55, now);
+    this.thruster.sawOsc.type = 'sine';
+    this.thruster.sawOsc.frequency.setValueAtTime(42, now);
 
-    // 2. Triangle Oscillator (110Hz / A2 Harmonic)
+    // 2. Gentle Harmonic Sine (84Hz)
     this.thruster.triOsc = this.ctx.createOscillator();
-    this.thruster.triOsc.type = 'triangle';
-    this.thruster.triOsc.frequency.setValueAtTime(110, now);
+    this.thruster.triOsc.type = 'sine';
+    this.thruster.triOsc.frequency.setValueAtTime(84, now);
 
-    // 3. Subtle LFO Pitch-Drift (0.15Hz rate, ±3Hz swing)
+    // 3. Subtle LFO Pitch-Drift (0.10Hz rate, ±1.5Hz swing)
     this.thruster.lfoOsc = this.ctx.createOscillator();
     this.thruster.lfoGain = this.ctx.createGain();
     this.thruster.lfoOsc.type = 'sine';
-    this.thruster.lfoOsc.frequency.setValueAtTime(0.15, now);
-    this.thruster.lfoGain.gain.setValueAtTime(3.5, now);
+    this.thruster.lfoOsc.frequency.setValueAtTime(0.10, now);
+    this.thruster.lfoGain.gain.setValueAtTime(1.5, now);
     this.thruster.lfoOsc.connect(this.thruster.lfoGain);
     this.thruster.lfoGain.connect(this.thruster.sawOsc.frequency);
     this.thruster.lfoGain.connect(this.thruster.triOsc.frequency);
 
-    // 4. Resonant Lowpass Filter (Q = 6.0, Initial Cutoff = 120Hz)
+    // 4. Smooth Lowpass Filter (Q = 0.8, Initial Cutoff = 100Hz — No harsh resonance)
     this.thruster.filterNode = this.ctx.createBiquadFilter();
     this.thruster.filterNode.type = 'lowpass';
-    this.thruster.filterNode.Q.setValueAtTime(6.0, now);
-    this.thruster.filterNode.frequency.setValueAtTime(120, now);
+    this.thruster.filterNode.Q.setValueAtTime(0.8, now);
+    this.thruster.filterNode.frequency.setValueAtTime(100, now);
 
-    // 5. Thruster Gain (Idle Volume = 0.08)
+    // 5. Thruster Gain (Idle Volume = 0.0 — Completely silent when stationary!)
     this.thruster.gainNode = this.ctx.createGain();
-    this.thruster.gainNode.gain.setValueAtTime(0.001, now);
-    this.thruster.gainNode.gain.linearRampToValueAtTime(0.08, now + 0.8);
+    this.thruster.gainNode.gain.setValueAtTime(0.0, now);
 
-    // Route audio into master analyser for visual synesthesia
+    // Route audio into ambient gain
     this.thruster.sawOsc.connect(this.thruster.filterNode);
     this.thruster.triOsc.connect(this.thruster.filterNode);
     this.thruster.filterNode.connect(this.thruster.gainNode);
@@ -407,24 +406,24 @@ export class CosmicSynthEngine {
 
     const now = this.ctx.currentTime;
 
-    // Dynamic Speed Mapping:
-    // Base Hum:  55Hz pitch,  120Hz cutoff, 0.08 gain
-    // Full Burn: 180Hz pitch, 850Hz cutoff, 0.45 gain
-    const targetPitch = 55 + ratio * (180 - 55);
-    const targetCutoff = 120 + ratio * (850 - 120);
-    const targetGain = 0.08 + ratio * (0.45 - 0.08);
+    // Gentle Speed Mapping:
+    // Stationary: 42Hz pitch, 100Hz cutoff, 0.0 gain (silent)
+    // Steering:  68Hz pitch, 160Hz cutoff, 0.015 gain (whisper-soft warm sub hum)
+    const targetPitch = 42 + ratio * (68 - 42);
+    const targetCutoff = 100 + ratio * (160 - 100);
+    const targetGain = ratio > 0.02 ? ratio * 0.015 : 0.0;
 
     if (this.thruster.sawOsc) {
-      this.thruster.sawOsc.frequency.setTargetAtTime(targetPitch, now, 0.08);
+      this.thruster.sawOsc.frequency.setTargetAtTime(targetPitch, now, 0.12);
     }
     if (this.thruster.triOsc) {
-      this.thruster.triOsc.frequency.setTargetAtTime(targetPitch * 2.0, now, 0.08);
+      this.thruster.triOsc.frequency.setTargetAtTime(targetPitch * 2.0, now, 0.12);
     }
     if (this.thruster.filterNode) {
-      this.thruster.filterNode.frequency.setTargetAtTime(targetCutoff, now, 0.08);
+      this.thruster.filterNode.frequency.setTargetAtTime(targetCutoff, now, 0.12);
     }
     if (this.thruster.gainNode) {
-      this.thruster.gainNode.gain.setTargetAtTime(targetGain, now, 0.08);
+      this.thruster.gainNode.gain.setTargetAtTime(targetGain, now, 0.12);
     }
   }
 
@@ -826,25 +825,32 @@ export class CosmicSynthEngine {
 
   playChimeSound(frequency = 880) {
     if (!this.ctx) this.init();
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) return;
 
     const safeFreq = (typeof frequency === 'number' && Number.isFinite(frequency) && frequency > 0) ? frequency : 880;
     const now = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
     const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
     const gainNode = this.ctx.createGain();
 
     osc.type = 'sine';
     osc.frequency.setValueAtTime(safeFreq, now);
-    osc.frequency.exponentialRampToValueAtTime(safeFreq * 1.5, now + 0.2);
+    osc.frequency.exponentialRampToValueAtTime(safeFreq * 1.05, now + 0.15);
 
-    gainNode.gain.setValueAtTime(0.12, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2200, now);
 
-    osc.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.linearRampToValueAtTime(0.035, now + 0.015);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+
+    osc.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(this.sfxGain || this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 0.81);
+    osc.stop(now + 0.66);
   }
 
   playEngineDrone(duration = 2.5) {
@@ -1308,21 +1314,26 @@ export class CosmicSynthEngine {
     pitches.forEach((freq, idx) => {
       const t = now + idx * 0.045;
       const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
       const gain = this.ctx.createGain();
 
-      osc.type = 'triangle';
+      osc.type = 'sine';
       osc.frequency.setValueAtTime(freq * mult, t);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.35 * mult, t + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.22 * mult, t + 0.045);
 
-      gain.gain.setValueAtTime(0.001, t);
-      gain.gain.linearRampToValueAtTime(0.18, t + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1600, t);
 
-      osc.connect(gain);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(0.035, t + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.075);
+
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(t);
-      osc.stop(t + 0.09);
+      osc.stop(t + 0.08);
     });
   }
 
@@ -1533,40 +1544,11 @@ export class CosmicSynthEngine {
   }
 
   /**
-   * 9. Tickle Giggle (playGiggle)
-   * The Sound: High-pitched, rapid giggles when Kiro is petted.
-   * The Math: Four rapid, staccato sine wave bursts rising between 720Hz and 880Hz, lasting only 60 milliseconds each.
+   * 9. Tickle Giggle (playTickleGiggle)
+   * The Sound: Soft sweet staccato giggles when Kiro is petted.
    */
-  playGiggle() {
-    if (!this.ctx) this.init();
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-
-    const now = this.ctx.currentTime;
-    const mult = this.cutenessPitchMultiplier || 1.0;
-
-    for (let i = 0; i < 4; i++) {
-      const delay = i * 0.07;
-      const t = now + delay;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      const startF = (720 + i * 40) * mult;
-      const endF = (880 + i * 30) * mult;
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(startF, t);
-      osc.frequency.exponentialRampToValueAtTime(endF, t + 0.055);
-
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.16, t + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-
-      osc.connect(gain);
-      gain.connect(this.sfxGain || this.masterGain);
-
-      osc.start(t);
-      osc.stop(t + 0.065);
-    }
+  playTickleGiggle() {
+    this.playGiggle();
   }
 
   /**
@@ -1649,35 +1631,7 @@ export class CosmicSynthEngine {
     });
   }
 
-  playChimeSound(freq = 660) {
-    if (!this.ctx) this.init();
-    if (this.ctx.state === 'suspended') this.ctx.resume();
 
-    const safeFreq = (typeof freq === 'number' && Number.isFinite(freq) && freq > 0) ? freq : 660;
-    const now = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
-    const osc = this.ctx.createOscillator();
-    const oscHarmonic = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(safeFreq, now);
-
-    oscHarmonic.type = 'sine';
-    oscHarmonic.frequency.setValueAtTime(safeFreq * 2.0, now);
-
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.14, now + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
-
-    osc.connect(gain);
-    oscHarmonic.connect(gain);
-    gain.connect(this.sfxGain || this.masterGain);
-
-    osc.start(now);
-    oscHarmonic.start(now);
-    osc.stop(now + 0.70);
-    oscHarmonic.stop(now + 0.70);
-  }
 
   playTargetLockSound() {
     if (!this.ctx) this.init();
