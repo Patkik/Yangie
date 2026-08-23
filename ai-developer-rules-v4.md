@@ -156,6 +156,7 @@ You must adhere to these rigid engineering implementations for the primary featu
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-771900]** Safe View-Frustum BoundingSphere Culling, Flight Control Speed Scope Resolution & Non-Intrusive Weather Alert (V9.8)
 - **[DEC-761900]** Interdimensional Wormhole Portal & Gate Guardian Sentinel Cinematic Transition, Console-Grade DRS & Foveated VRS Shaders (V9.7)
 - **[DEC-751900]** Native WebView Sandbox Security Hardening, Process Death State Restoration & Offline Verification (V9.6)
 - **[DEC-741900]** Kiro App Rename, Interactive Rain Radar Alerts with Dynamic Got-It Feedback & WebRTC Incoming Call Notifications (V9.5)

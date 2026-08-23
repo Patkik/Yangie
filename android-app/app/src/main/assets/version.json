@@ -1,10 +1,10 @@
 {
-  "version": "2.5.9",
-  "build": 97,
+  "version": "2.6.0",
+  "build": 98,
   "name": "Kiro",
-  "description": "Space Capsule V9.7 — Interdimensional Wormhole & Gate Guardian Sentinel Cinematic Climax, Console-Grade DRS & Foveated VRS Shaders",
+  "description": "Space Capsule V9.8 — Safe View-Frustum BoundingSphere Culling, Flight Control Speed Scope Resolution & Non-Intrusive Weather Sheet Alert",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.7: Implemented the Interdimensional Wormhole Portal and crystalline Sentinel Gate Guardian WebGL scene, Dynamic Resolution Scaling (DRS) via EMA delta tracking, Variable Rate Shading (VRS) fbm_foveated procedural shaders, and full Stargate 01-27-2024 resonance lock transition into the permanent Cor Amoris sanctuary."
+  "changelog": "V9.8: Fixed Three.js frustum culling TypeError by implementing robust intersectsObjectSafe() bounding volume validation for Groups and Meshes, resolved onFlightMove undefined speed variable ReferenceError, and cleaned up Kiro weather reminder bubble to prevent viewport obstruction."
 }
 

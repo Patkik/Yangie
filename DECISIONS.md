@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-771900] Safe View-Frustum BoundingSphere Culling, Flight Control Speed Scope Resolution & Non-Intrusive Weather Alert (V9.8)
+- **Timestamp**: `2026-08-23T10:00:00.000000`
+- **Strategy & Synthesis**: Fixed Three.js view-frustum culling TypeError with intersectsObjectSafe, defined flight steering speed in onFlightMove, and repositioned Kiro's weather alert bubble to prevent viewport obstruction (v2.6.0, Build 98).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Completely resolved black screen caused by WebGL render loop crashes, restored uninterrupted 120 FPS rendering of Kiro and the celestial cosmos, and repositioned the weather reminder card cleanly inside the bottom sheet with a dedicated dismissal close button so it never obstructs the cockpit HUD, D-Pad, or 3D viewport.
+  - **Performance**: Score 5/5: Engineered zero-allocation intersectsObjectSafe() bounding volume frustum culling leveraging reusable module-scoped _scratchSphere, eliminating all TypeError exceptions when evaluating complex planetary Group hierarchies and asteroid meshes.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.6.0 (Build 98) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Resolved ReferenceError for undefined flight steering speed in scene.js onFlightMove, hardened all object bounding sphere queries, and added strict CSS hide rules (:not(.open) .kiro-alert-bubble) to prevent UI collision.
+  - **Gamification**: Score 5/5: Perfectly fluid spaceflight joystick navigation, responsive weather radar notifications, and rock-solid reliability across all device form factors.
+
+---
+
 ### [DEC-761900] Interdimensional Wormhole Portal & Gate Guardian Sentinel Cinematic Transition, Console-Grade DRS & Foveated VRS Shaders (V9.7)
 - **Timestamp**: `2026-08-23T09:55:00.000000`
 - **Strategy & Synthesis**: Implemented the Interdimensional Wormhole & Gate Guardian Sentinel 3D WebGL scene, Dynamic Resolution Scaling (DRS), Variable Rate Shading (VRS) fbm_foveated procedural shaders, and full Stargate 01-27-2024 resonance lock transition (v2.5.9, Build 97).

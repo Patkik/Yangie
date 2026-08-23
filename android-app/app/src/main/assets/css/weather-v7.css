@@ -322,35 +322,33 @@
 
 /* 5. Kiro Umbrella Reminds Alert Bubble */
 .kiro-alert-bubble {
-  position: absolute;
-  top: -70px; /* Float above the bottom sheet */
-  left: 3%;
-  width: 94%;
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  margin: 0.6rem 0 0.4rem 0;
   background: rgba(24, 24, 37, 0.98);
   border: 1px solid var(--gold-glow);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   border-radius: 16px;
   padding: 0.75rem 1rem;
   display: none;
-  z-index: 3000;
+  z-index: 10;
   pointer-events: auto;
   box-sizing: border-box;
 }
 
-.kiro-alert-bubble.active {
+.weather-bottom-sheet.open .kiro-alert-bubble.active {
   display: flex;
 }
 
+.weather-bottom-sheet:not(.open) .kiro-alert-bubble {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .bubble-triangle {
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid var(--gold-glow);
+  display: none;
 }
 
 .bubble-content {

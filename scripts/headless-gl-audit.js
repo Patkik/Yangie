@@ -1011,6 +1011,8 @@ if (fs.existsSync(sceneJsPath)) {
   assert(sceneCode.includes('buildCrownAccessory'), 'buildCrownAccessory verified in scene.js');
   assert(sceneCode.includes('buildProceduralHeart'), 'buildProceduralHeart verified in scene.js');
   assert(sceneCode.includes('buildCapsuleShuttleModel'), 'buildCapsuleShuttleModel verified in scene.js');
+  assert(sceneCode.includes('intersectsObjectSafe') && sceneCode.includes('_scratchSphere'), 'Safe boundingSphere frustum culling (intersectsObjectSafe) verified in scene.js');
+  assert(sceneCode.includes('const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 60);'), 'Flight steering speed variable properly defined in scene.js');
 }
 
 const corAmorisTransitionJsPath = path.join(ASSETS_DIR, 'js', 'cor-amoris.js');
@@ -1018,6 +1020,15 @@ if (fs.existsSync(corAmorisTransitionJsPath)) {
   const corAmorisCode = fs.readFileSync(corAmorisTransitionJsPath, 'utf8');
   assert(corAmorisCode.includes('loadWormholeTransitionScene') && corAmorisCode.includes('shatterRiftAndTransitToAmoris'), 'Wormhole transition & shatter WebGL triggers verified in cor-amoris.js');
   assert(corAmorisCode.includes('loadPermanentAmorisSanctuary'), 'loadPermanentAmorisSanctuary trigger verified in cor-amoris.js');
+}
+
+const weatherV7PlacementCssPath = path.join(ASSETS_DIR, 'css', 'weather-v7.css');
+const weatherV7PlacementJsPath = path.join(ASSETS_DIR, 'js', 'weather-v7.js');
+if (fs.existsSync(weatherV7PlacementCssPath) && fs.existsSync(weatherV7PlacementJsPath)) {
+  const weatherCss = fs.readFileSync(weatherV7PlacementCssPath, 'utf8');
+  const weatherJs = fs.readFileSync(weatherV7PlacementJsPath, 'utf8');
+  assert(weatherCss.includes(':not(.open) .kiro-alert-bubble') && weatherCss.includes('display: none !important'), 'Kiro alert bubble strictly hidden when weather sheet is not open');
+  assert(weatherJs.includes('bubble-close-btn') && weatherJs.includes('dismissKiroAlert'), 'Kiro alert bubble close button and dismissal handler verified');
 }
 
 

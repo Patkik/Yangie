@@ -43,6 +43,7 @@ const _scratchColor = new THREE.Color();
 const _scratchMat4 = new THREE.Matrix4();
 const _scratchQuat = new THREE.Quaternion();
 const _scratchRay = new THREE.Ray();
+const _scratchSphere = new THREE.Sphere();
 
 // Helper: Generate procedural radial glow texture for 100% reliable mobile star rendering
 function createGlowStarTexture() {
@@ -2456,6 +2457,7 @@ export class KiroSceneManager {
         const pitch = Math.max(-50, Math.min(50, startPitch - deltaY * 0.18));
         const yaw = Math.max(-50, Math.min(50, startYaw + deltaX * 0.18));
         KiroState.set('cockpitSteering', { pitch, yaw });
+        const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 60);
         if (!this.minigameActive && !KiroState.get('minigameActive')) {
           synthEngine.updateThrusterSpeed(speed);
         }
@@ -3882,6 +3884,30 @@ export class KiroSceneManager {
   /* ─────────────────────────────────────────────────────────────────────────
      Mathematical View-Frustum Culling (Zero Draw-Call Fill-Rate Optimization)
      ───────────────────────────────────────────────────────────────────────── */
+  intersectsObjectSafe(object) {
+    if (!object) return false;
+    try {
+      if (object.geometry) {
+        if (!object.geometry.boundingSphere) {
+          object.geometry.computeBoundingSphere();
+        }
+        if (object.geometry.boundingSphere) {
+          _scratchSphere.copy(object.geometry.boundingSphere).applyMatrix4(object.matrixWorld);
+          return this._frustum.intersectsSphere(_scratchSphere);
+        }
+      }
+      // For Group or compound hierarchical objects, test bounding volume around world position
+      if (object.position) {
+        _scratchSphere.center.setFromMatrixPosition(object.matrixWorld);
+        _scratchSphere.radius = 4.5;
+        return this._frustum.intersectsSphere(_scratchSphere);
+      }
+    } catch (e) {
+      return true; // Fallback to visible if calculation fails
+    }
+    return true;
+  }
+
   updateFrustumCulling() {
     if (!this.camera) return;
     if (!this._frustum) this._frustum = new THREE.Frustum();
@@ -3893,7 +3919,7 @@ export class KiroSceneManager {
     if (this.targetSystemMeshes) {
       this.targetSystemMeshes.forEach(mesh => {
         if (mesh) {
-          mesh.visible = this._frustum.intersectsObject(mesh);
+          mesh.visible = this.intersectsObjectSafe(mesh);
         }
       });
     }
@@ -3901,7 +3927,7 @@ export class KiroSceneManager {
     if (this.asteroids) {
       this.asteroids.forEach(ast => {
         if (ast && ast.mesh) {
-          ast.mesh.visible = this._frustum.intersectsObject(ast.mesh);
+          ast.mesh.visible = this.intersectsObjectSafe(ast.mesh);
         }
       });
     }

@@ -234,19 +234,25 @@ export default class KiroWeatherStationV7 {
                 </div>
             </div>
 
-            <!-- Hidden, slide-down Kiro dynamic bubble alert (attached to bottom sheet) -->
+            <!-- Dynamic Kiro dynamic bubble alert (inside bottom sheet) -->
             <div id="kiro-rain-warning-bubble" class="kiro-alert-bubble">
-                <div class="bubble-triangle"></div>
                 <div class="bubble-content">
                     <span class="kiro-emoji">☔</span>
-                    <div class="bubble-text-col">
+                    <div class="bubble-text-col" style="flex: 1;">
                         <div class="bubble-title">Kiro Reminds You!</div>
                         <div id="kiro-alert-text" class="bubble-desc">It's going to rain under your sky, don't forget an umbrella!</div>
                     </div>
+                    <button type="button" class="bubble-close-btn" id="bubble-close-btn" aria-label="Dismiss" style="background: transparent; border: none; color: #a6adc8; font-size: 1rem; cursor: pointer; padding: 4px;">✕</button>
                 </div>
             </div>
         `;
         document.body.appendChild(bottomSheet);
+
+        // Bind bubble close button
+        bottomSheet.querySelector('#bubble-close-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dismissKiroAlert();
+        });
 
         // Bind the top partner beacon pill click to open the bottom sheet
         const beaconPill = document.getElementById('partner-beacon-pill');
