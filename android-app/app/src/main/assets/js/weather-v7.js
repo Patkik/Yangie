@@ -533,44 +533,70 @@ export default class KiroWeatherStationV7 {
         const auditRain = () => {
             const patWeather = KiroState.get('weather.pat') || {};
             const yangWeather = KiroState.get('weather.yang') || {};
+            const currentPersona = KiroState.get('persona') || KiroState.get('currentUser') || 'pat';
             
             const patRain = patWeather.isRaining || (patWeather.condition || "").toLowerCase().includes('rain') || (patWeather.condition || "").toLowerCase().includes('storm');
             const yangRain = yangWeather.isRaining || (yangWeather.condition || "").toLowerCase().includes('rain') || (yangWeather.condition || "").toLowerCase().includes('storm');
 
             if (patRain || yangRain) {
                 let alertMsg = "";
+                let alertCity = "Sanctuary";
+
                 if (patRain && yangRain) {
                     alertMsg = "It's raining under BOTH of your skies! 🌧️ Don't forget starry umbrellas Pats & Yangiee! ☔";
+                    alertCity = "Malaybalay & Capas";
                 } else if (patRain) {
                     alertMsg = "Pats! Rain detected in Malaybalay! 🌧️ Please bring an umbrella with you! ☔";
+                    alertCity = "Malaybalay";
                 } else {
                     alertMsg = "Yangiee! Rain detected in Capas! 🌧️ Please bring an umbrella with you! ☔";
+                    alertCity = "Capas";
                 }
-                this.triggerKiroAlert(alertMsg);
+                this.triggerKiroAlert(alertMsg, alertCity);
             } else {
                 this.dismissKiroAlert();
             }
         };
+
+        // Register global bridge hook
+        if (typeof window !== 'undefined') {
+            window.handleRainFeedback = (action, city) => this.handleRainFeedback(action, city);
+        }
 
         setTimeout(auditRain, 1200);
         if (this.reminderInterval) clearInterval(this.reminderInterval);
         this.reminderInterval = setInterval(auditRain, 15000);
     }
 
-    triggerKiroAlert(message) {
+    triggerKiroAlert(message, city = 'Sanctuary') {
         const bubble = document.getElementById('kiro-rain-warning-bubble');
         const textEl = document.getElementById('kiro-alert-text');
         
-        if (!bubble || !textEl) return;
-        if (bubble.classList.contains('active') && this.currentAlertMessage === message) return;
-
+        if (this.currentAlertMessage === message) return;
         this.currentAlertMessage = message;
-        textEl.textContent = message;
-        bubble.classList.add('active');
 
-        // Also broadcast dialogue onto floating Anime Cloud over Kiro's head
+        if (bubble && textEl) {
+            textEl.textContent = message;
+            bubble.classList.add('active');
+        }
+
+        // Render In-App Floating Toast
+        this.renderSanctuaryRainToast(message, city);
+
+        // Native Android Notification Dispatch via AndroidHost bridge
+        if (typeof window !== 'undefined' && window.AndroidHost && typeof window.AndroidHost.sendRainNotification === 'function') {
+            const persona = KiroState.get('persona') || 'pat';
+            const userName = persona === 'pat' ? 'Pat' : 'Yangiee';
+            try {
+                window.AndroidHost.sendRainNotification(city, userName, message);
+            } catch (err) {
+                console.warn('[Weather] AndroidHost.sendRainNotification skipped:', err);
+            }
+        }
+
+        // Broadcast dialogue onto floating Anime Cloud over Kiro's head
         if (typeof window !== 'undefined' && typeof window.triggerKiroDialogue === 'function') {
-            window.triggerKiroDialogue(message, 6000);
+            window.triggerKiroDialogue(message, 6500);
         }
 
         // Play warning chimes
@@ -581,7 +607,7 @@ export default class KiroWeatherStationV7 {
             }
         }
 
-        if (window.gsap) {
+        if (bubble && window.gsap) {
             gsap.killTweensOf(bubble);
             gsap.fromTo(bubble, 
                 { opacity: 0, scale: 0.8, y: 15 }, 
@@ -599,10 +625,151 @@ export default class KiroWeatherStationV7 {
         }
     }
 
+    renderSanctuaryRainToast(message, city = 'Sanctuary') {
+        let toast = document.getElementById('sanctuary-rain-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'sanctuary-rain-toast';
+            toast.className = 'sanctuary-rain-toast';
+            document.body.appendChild(toast);
+        }
+
+        toast.innerHTML = `
+            <div class="rain-toast-header">
+                <span class="rain-toast-icon">🌧️</span>
+                <div class="rain-toast-title-wrap">
+                    <span class="rain-toast-title">Rain Radar Alert</span>
+                    <span class="rain-toast-city">${city}</span>
+                </div>
+                <button type="button" class="rain-toast-close-btn" id="rain-toast-close-btn" aria-label="Dismiss">✕</button>
+            </div>
+            <div class="rain-toast-desc">${message || "It's raining outside! Don't forget your umbrella ☂️"}</div>
+            <div class="rain-toast-actions" id="rain-toast-actions">
+                <button type="button" class="rain-feedback-btn primary" data-action="got_it">
+                    <span>Got it! ☔</span>
+                </button>
+                <button type="button" class="rain-feedback-btn secondary" data-action="thanks">
+                    <span>Thanks Kiro! 🌂</span>
+                </button>
+                <button type="button" class="rain-feedback-btn cozy" data-action="staying_warm">
+                    <span>Staying warm ☕</span>
+                </button>
+            </div>
+        `;
+        toast.style.display = 'flex';
+
+        toast.querySelector('#rain-toast-close-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dismissKiroAlert();
+        });
+
+        toast.querySelectorAll('.rain-feedback-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = btn.getAttribute('data-action') || 'got_it';
+                this.handleRainFeedback(action, city);
+            });
+        });
+    }
+
+    getDynamicKiroRainReply(action, city) {
+        const persona = KiroState.get('persona') || KiroState.get('currentUser') || 'pat';
+        const isPat = persona === 'pat';
+
+        const responses = {
+            got_it: isPat ? [
+                "Yay! Stay cozy and dry, Pat! 🍵 I'll keep our celestial sanctuary warm and snug!",
+                "Hehe, umbrella secured! ☂️ Listening to the soothing raindrops with you, Pat! 🌧️✨",
+                "Roger that, Captain Pat! 🚀 Got it logged in our starlight ledger! Keep warm!",
+                "Phew! Kiro is holding a tiny leaf umbrella over our space shuttle for you, Pat! 🍃🌧️",
+                "Aww thanks for letting me know, Pat! Stay dry and safe out there! 💖✨"
+            ] : [
+                "Aww yay! Stay snug and dry, Yangiee! 🌸 I'll keep the stars shining bright for you!",
+                "Umbrella deployed! ☂️ Listening to the cozy rain with you, Yangiee! 💖🌧️",
+                "Got it noted! Sip some warm tea and keep your hands warm, Yangiee! 🍵✨",
+                "Kiro is keeping watch over Capas sky for you, Yangiee! Stay warm and happy! 🧸🌸",
+                "Hehe sweet Yangiee! Sending cozy stardust cuddles while it rains! 💖🌧️"
+            ],
+            thanks: isPat ? [
+                "Aww you're welcome, Pat! 💖 Kiro is always looking after you under the stars!",
+                "Anytime, Pat! Make sure to sip some warm coffee while it pours outside! ☕✨",
+                "Hehe, Kiro's radar never misses! Stay cozy and warm, Pat! 🚀🌟"
+            ] : [
+                "Hehe you're the best, Yangiee! 🌸 Kiro will always keep you safe and dry!",
+                "Aww you're welcome, sweet Yangiee! Sending cozy stardust cuddles! 💖✨",
+                "Always here for you, Yangiee! Stay warm under your cozy umbrella! ☂️🌸"
+            ],
+            staying_warm: isPat ? [
+                "Mmm, warm and cozy! ☕✨ Let's watch the soft rain fall outside the shuttle window together!",
+                "Kiro wrapped you in a fluffy starlight blanket, Pat! Stay snug and warm! 🧸💖",
+                "Hot drink time! 🍵 Kiro is purring happily next to you, Pat! ✨"
+            ] : [
+                "Yay for cozy warmth! ☕🌸 Kiro brewed some virtual chamomile tea for you!",
+                "Snuggle mode activated! 🧸💖 Let's listen to the gentle raindrops together, Yangiee!",
+                "Stay toasty and snug, sweet Yangiee! Kiro loves cozy rainy days with you! 🌸✨"
+            ]
+        };
+
+        const pool = responses[action] || responses.got_it;
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    handleRainFeedback(action = 'got_it', city = '') {
+        const reply = this.getDynamicKiroRainReply(action, city);
+
+        // 1. Broadcast dynamic reply onto 3D Anime Cloud Bubble
+        if (typeof window !== 'undefined' && typeof window.triggerKiroDialogue === 'function') {
+            window.triggerKiroDialogue(reply, 7500);
+        }
+
+        // 2. Play cute procedural alien chirp & pet chime
+        if (this.synth) {
+            if (typeof this.synth.playAlienChirp === 'function') {
+                this.synth.playAlienChirp(1.45);
+            }
+            if (typeof this.synth.playPetChime === 'function') {
+                setTimeout(() => this.synth.playPetChime(), 160);
+            }
+        }
+
+        // 3. Award Wellbeing boost
+        const currentWb = KiroState.get('wellbeing') || 95;
+        KiroState.set('wellbeing', Math.min(100, currentWb + 5));
+
+        // 4. Update Toast to Acknowledged State
+        const toast = document.getElementById('sanctuary-rain-toast');
+        if (toast) {
+            const actionsWrap = toast.querySelector('#rain-toast-actions');
+            if (actionsWrap) {
+                actionsWrap.innerHTML = `
+                    <div class="rain-toast-ack-badge">
+                        <span>✨ Got it! Stay cozy under the stars! 🍵</span>
+                    </div>
+                `;
+            }
+            setTimeout(() => {
+                if (window.gsap) {
+                    gsap.to(toast, {
+                        opacity: 0,
+                        y: -15,
+                        duration: 0.45,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            toast.style.display = 'none';
+                        }
+                    });
+                } else {
+                    toast.style.display = 'none';
+                }
+            }, 2800);
+        }
+    }
+
     dismissKiroAlert() {
+        this.currentAlertMessage = null;
+
         const bubble = document.getElementById('kiro-rain-warning-bubble');
         if (bubble && bubble.classList.contains('active')) {
-            this.currentAlertMessage = null;
             if (window.gsap) {
                 gsap.killTweensOf(bubble);
                 gsap.to(bubble, {
@@ -617,6 +784,23 @@ export default class KiroWeatherStationV7 {
                 });
             } else {
                 bubble.classList.remove('active');
+            }
+        }
+
+        const toast = document.getElementById('sanctuary-rain-toast');
+        if (toast && toast.style.display !== 'none') {
+            if (window.gsap) {
+                gsap.to(toast, {
+                    opacity: 0,
+                    y: -15,
+                    duration: 0.35,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        toast.style.display = 'none';
+                    }
+                });
+            } else {
+                toast.style.display = 'none';
             }
         }
     }

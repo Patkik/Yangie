@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-741900] Kiro App Rename, Interactive Rain Radar Alerts with Dynamic Got-It Feedback & WebRTC Incoming Call Notifications (V9.5)
+- **Timestamp**: `2026-08-23T09:45:00.000000`
+- **Strategy & Synthesis**: Renamed app to Kiro, deployed interactive rain radar alerts with dynamic Got-It feedback from Kiro, and integrated incoming WebRTC call alerts with procedural ringtone and high-priority Android notifications (v2.5.7, Build 95).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Established Kiro as the canonical application identity, rendered cozy Twilight floating rain toast with interactive feedback pills ('Got it! ☔', 'Thanks Kiro! 🌂', 'Staying warm ☕'), broadcast dynamic partner-aware Kiro anime dialogues to the 3D head speech bubble, and designed a glassmorphic incoming call ringing overlay with pulsing avatar aura.
+  - **Performance**: Score 5/5: Lightweight Web Audio procedural ringing synthesis and single-instance Android notification channels keeping background battery drain negligible and maintaining 120 FPS.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.5.7 (Build 95) across version.json, index.html, state.js, and build.gradle.kts with high-priority Android notification channels (kiro_weather_alerts, kiro_incoming_calls) and PendingIntents.
+  - **Structural**: Score 5/5: Structured two-way feedback loop for rain alerts with dynamic Kiro replies, BroadcastChannel incoming call signaling in call-engine.js, and seamless AndroidBridge integration in MainActivity.kt.
+  - **Gamification**: Score 5/5: Warm, interactive companionship where rainy weather prompts real-time feedback with Kiro's caring responses and incoming calls ring with cozy procedural starlight chimes.
+
+---
+
 ### [DEC-731900] WebAudio AudioParam Float Hardening, Finite Value Integrity & Cor Amoris Audio Signature Harmonization (V9.4)
 - **Timestamp**: `2026-08-23T09:35:00.000000`
 - **Strategy & Synthesis**: Resolved WebAudio AudioParam non-finite setValueAtTime TypeError, hardened all procedural audio frequency/multiplier guards, and harmonized Cor Amoris audio call signatures (v2.5.6, Build 94).

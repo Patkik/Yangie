@@ -15,6 +15,7 @@
  */
 
 import { KiroState } from './state.js';
+import { synthEngine } from './synth.js';
 
 // ─── ICE Server Configuration ──────────────────────────────────────────────
 const ICE_SERVERS = [
@@ -43,6 +44,7 @@ export const CallState = Object.freeze({
 const SIGNAL_CH_OFFER  = 'kiro-rtc-offer';
 const SIGNAL_CH_ANSWER = 'kiro-rtc-answer';
 const SIGNAL_CH_ICE    = 'kiro-rtc-ice';
+const SIGNAL_CH_INVITE = 'kiro-rtc-invite';
 
 export class KiroCallEngine {
   constructor() {
@@ -74,14 +76,186 @@ export class KiroCallEngine {
     this._offerCh  = null;
     this._answerCh = null;
     this._iceCh    = null;
+    this._inviteCh = null;
 
     /** Bound to KiroCryptoEngine.encryptTransform — injected externally */
     this.cryptoEngine = null;
+
+    /** Active incoming call data */
+    this._activeIncomingCall = null;
+
+    this._initIncomingCallListener();
   }
 
   // ──────────────────────────────────────────────────────────────────────────
   // Public API
   // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Initialize persistent listener for incoming call invites.
+   */
+  _initIncomingCallListener() {
+    try {
+      this._inviteCh = new BroadcastChannel(SIGNAL_CH_INVITE);
+      this._inviteCh.onmessage = (e) => {
+        const data = e.data;
+        if (!data || typeof data !== 'object') return;
+
+        const currentPersona = KiroState.get('persona') || KiroState.get('currentUser') || 'pat';
+
+        if (data.type === 'call-invite') {
+          // Only trigger if invite came from partner
+          if (data.from && data.from !== currentPersona) {
+            this.triggerIncomingCall({ caller: data.from, isVideo: Boolean(data.isVideo) });
+          }
+        } else if (data.type === 'call-declined' || data.type === 'call-ended') {
+          this.dismissIncomingCallModal();
+        }
+      };
+    } catch (err) {
+      console.warn('[KiroRTC] BroadcastChannel invite listener skipped:', err);
+    }
+  }
+
+  /**
+   * Broadcast an incoming call invite to partner.
+   */
+  sendCallInvite({ isVideo = true } = {}) {
+    const currentPersona = KiroState.get('persona') || KiroState.get('currentUser') || 'pat';
+    try {
+      if (!this._inviteCh) this._inviteCh = new BroadcastChannel(SIGNAL_CH_INVITE);
+      this._inviteCh.postMessage({
+        type: 'call-invite',
+        from: currentPersona,
+        isVideo: isVideo,
+        timestamp: Date.now(),
+      });
+    } catch (err) {
+      console.warn('[KiroRTC] sendCallInvite failed:', err);
+    }
+  }
+
+  /**
+   * Displays the incoming call ringing overlay & triggers native Android notification.
+   */
+  triggerIncomingCall({ caller = 'yang', isVideo = true } = {}) {
+    const callerName = (caller === 'yang' || caller === 'yangiee') ? 'Yangiee' : 'Patrick';
+    this._activeIncomingCall = { caller, callerName, isVideo };
+
+    // 1. Play procedural ringing tone
+    synthEngine.startCallRinging();
+
+    // 2. Dispatch native Android Call Notification
+    if (typeof window !== 'undefined' && window.AndroidHost && typeof window.AndroidHost.sendCallNotification === 'function') {
+      try {
+        window.AndroidHost.sendCallNotification(callerName, isVideo);
+      } catch (err) {
+        console.warn('[KiroRTC] AndroidHost.sendCallNotification skipped:', err);
+      }
+    }
+
+    // 3. Render In-App Ringing Overlay
+    this._ensureIncomingCallOverlay(callerName, caller, isVideo);
+  }
+
+  _ensureIncomingCallOverlay(callerName, callerPersona, isVideo) {
+    let overlay = document.getElementById('kiro-incoming-call-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'kiro-incoming-call-overlay';
+      overlay.className = 'incoming-call-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    const isYang = (callerPersona === 'yang' || callerPersona === 'yangiee');
+    const callTypeStr = isVideo ? 'Starlight Video Call' : 'Starlight Audio Call';
+
+    overlay.innerHTML = `
+      <div class="incoming-call-card">
+        <div class="incoming-call-avatar-wrap">
+          <div class="incoming-call-avatar ${isYang ? 'yangiee' : 'patrick'}">
+            ${isYang ? '🌸' : '🚀'}
+          </div>
+          <div class="incoming-call-ring-badge">RINGING</div>
+        </div>
+        <div class="incoming-call-info">
+          <div class="incoming-call-name">${callerName}</div>
+          <div class="incoming-call-sub">Incoming ${callTypeStr}</div>
+        </div>
+        <div class="incoming-call-actions">
+          <button type="button" class="call-action-pill decline" id="inc-call-btn-decline">
+            <span>Decline ✕</span>
+          </button>
+          <button type="button" class="call-action-pill answer" id="inc-call-btn-answer">
+            <span>Answer 📞</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    overlay.classList.add('open');
+
+    overlay.querySelector('#inc-call-btn-decline')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.declineCallFromNotification();
+    });
+
+    overlay.querySelector('#inc-call-btn-answer')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.answerCallFromNotification();
+    });
+  }
+
+  dismissIncomingCallModal() {
+    synthEngine.stopCallRinging();
+    if (typeof window !== 'undefined' && window.AndroidHost && typeof window.AndroidHost.cancelCallNotification === 'function') {
+      try { window.AndroidHost.cancelCallNotification(); } catch (_) {}
+    }
+
+    const overlay = document.getElementById('kiro-incoming-call-overlay');
+    if (overlay) {
+      overlay.classList.remove('open');
+    }
+    this._activeIncomingCall = null;
+  }
+
+  /**
+   * Answers the incoming call from Android Notification Action or In-App Button.
+   */
+  async answerCallFromNotification() {
+    this.dismissIncomingCallModal();
+
+    // Open mailbox if available and trigger answer sequence
+    if (window.kiroMailbox && typeof window.kiroMailbox.open === 'function') {
+      window.kiroMailbox.open();
+      if (typeof window.kiroMailbox._onAnswerCall === 'function') {
+        await window.kiroMailbox._onAnswerCall();
+        return;
+      }
+    }
+
+    await this.answerCall({ video: true, audio: true });
+  }
+
+  /**
+   * Declines the incoming call.
+   */
+  declineCallFromNotification() {
+    this.dismissIncomingCallModal();
+    try {
+      if (!this._inviteCh) this._inviteCh = new BroadcastChannel(SIGNAL_CH_INVITE);
+      this._inviteCh.postMessage({ type: 'call-declined' });
+    } catch (_) {}
+  }
+
+  /**
+   * Helper to simulate an incoming call for testing.
+   */
+  simulateIncomingCall(callerName = null, isVideo = true) {
+    const currentPersona = KiroState.get('persona') || 'pat';
+    const simulatedCaller = callerName || (currentPersona === 'pat' ? 'yang' : 'pat');
+    this.triggerIncomingCall({ caller: simulatedCaller, isVideo });
+  }
 
   /**
    * Register UI callbacks.

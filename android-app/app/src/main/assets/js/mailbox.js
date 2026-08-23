@@ -152,6 +152,7 @@ export class StarlightMessenger {
   }
 
   init() {
+    window.kiroMailbox = this;
     this.render();
     this.bindEvents();
     this._initCallEngine();
@@ -454,6 +455,9 @@ export class StarlightMessenger {
     await kiroCryptoEngine.generateEpochKeyPair();
     kiroCallEngine.cryptoEngine = kiroCryptoEngine;
 
+    // Broadcast call invite to partner peer
+    kiroCallEngine.sendCallInvite({ isVideo: true });
+
     await kiroCallEngine.startCall({ video: true, audio: true });
     this.addMessageNode(this.localUser, `Calling ${this.partnerName}…`, 'text', { notify: false, save: true });
     synthEngine.playChimeSound(660);
@@ -473,6 +477,7 @@ export class StarlightMessenger {
 
   _onEndCall() {
     kiroCallEngine.endCall();
+    kiroCallEngine.dismissIncomingCallModal();
     kiroCryptoEngine.reset();
     this._isMuted  = false;
     this._isCamOff = false;

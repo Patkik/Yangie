@@ -2274,6 +2274,50 @@ export class CosmicSynthEngine {
       }, i * 60);
     });
   }
+  /**
+   * Procedural Incoming Call Ringtone Synthesis (Starlight Pentatonic Shimmer)
+   */
+  startCallRinging() {
+    if (this.callRingInterval) return;
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const ringPattern = () => {
+      if (!this.ctx) return;
+      const safeNow = (this.ctx && Number.isFinite(this.ctx.currentTime)) ? this.ctx.currentTime : 0;
+      const ringNotes = [587.33, 880.00, 1174.66]; // D5, A5, D6 harmonic chime
+
+      ringNotes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const startTime = safeNow + (idx * 0.14);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.02, startTime + 0.3);
+
+        gain.gain.setValueAtTime(0.0, startTime);
+        gain.gain.linearRampToValueAtTime(0.22, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.55);
+
+        osc.connect(gain);
+        gain.connect(this.sfxGain || this.masterGain);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.6);
+      });
+    };
+
+    ringPattern();
+    this.callRingInterval = setInterval(ringPattern, 2500);
+  }
+
+  stopCallRinging() {
+    if (this.callRingInterval) {
+      clearInterval(this.callRingInterval);
+      this.callRingInterval = null;
+    }
+  }
 
   /**
    * "Under the Same Sky" — 60 BPM Lo-Fi Ambient Procedural Masterpiece

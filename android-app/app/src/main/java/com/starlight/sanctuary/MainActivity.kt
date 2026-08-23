@@ -36,7 +36,18 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        private const val NOTIFICATION_CHANNEL_ID = "hakdog_notifications"
+        private const val NOTIFICATION_CHANNEL_ID = "kiro_notifications"
+        private const val CHANNEL_WEATHER_ID = "kiro_weather_alerts"
+        private const val CHANNEL_CALLS_ID = "kiro_incoming_calls"
+
+        const val ACTION_RAIN_ACK = "com.starlight.sanctuary.ACTION_RAIN_ACK"
+        const val ACTION_CALL_ANSWER = "com.starlight.sanctuary.ACTION_CALL_ANSWER"
+        const val ACTION_CALL_DECLINE = "com.starlight.sanctuary.ACTION_CALL_DECLINE"
+        const val EXTRA_CITY_NAME = "extra_city_name"
+        const val EXTRA_ACTION_CHOICE = "extra_action_choice"
+
+        const val NOTIFICATION_ID_RAIN = 7701
+        const val NOTIFICATION_ID_CALL = 7702
     }
 
     private lateinit var webView: WebView
@@ -61,7 +72,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 startService(serviceIntent)
             }
-            // TODO: Bind service and call attachMediaProjection(projection) after service starts
             Log.i(TAG, "MediaProjection granted — native audio capture service starting.")
             runOnUiThread {
                 webView.evaluateJavascript("window.KiroRTC && window.KiroRTC.onNativeCaptureStarted && window.KiroRTC.onNativeCaptureStarted();", null)
@@ -80,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         webView = WebView(this)
         setContentView(webView)
 
-        createNotificationChannel()
+        createNotificationChannels()
         requestNotificationPermission()
 
         setupAssetLoader()
@@ -96,21 +106,79 @@ class MainActivity : AppCompatActivity() {
         // Load via WebViewAssetLoader HTTPS domain
         loadSanctuaryUrl()
 
+        // Handle possible launch intents (e.g. notification action buttons)
+        handleIntentActions(intent)
+
         // Non-intrusive background check for OTA updates on launch
         performStartupUpdateCheck()
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Kiro Care & Update Notifications"
-            val descriptionText = "Alerts about Kiro's wellbeing, OTA updates, and celestial transmissions."
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance).apply {
-                description = descriptionText
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntentActions(intent)
+    }
+
+    private fun handleIntentActions(intent: Intent?) {
+        if (intent == null) return
+        when (intent.action) {
+            ACTION_RAIN_ACK -> {
+                val city = intent.getStringExtra(EXTRA_CITY_NAME) ?: "Sanctuary"
+                val choice = intent.getStringExtra(EXTRA_ACTION_CHOICE) ?: "got_it"
+                runOnUiThread {
+                    webView.evaluateJavascript("window.handleRainFeedback && window.handleRainFeedback('$choice', '${city.replace("'", "\\'")}');", null)
+                }
+                NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID_RAIN)
             }
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+            ACTION_CALL_ANSWER -> {
+                runOnUiThread {
+                    webView.evaluateJavascript("window.KiroRTC && window.KiroRTC.answerCallFromNotification && window.KiroRTC.answerCallFromNotification();", null)
+                }
+                NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID_CALL)
+            }
+            ACTION_CALL_DECLINE -> {
+                runOnUiThread {
+                    webView.evaluateJavascript("window.KiroRTC && window.KiroRTC.declineCallFromNotification && window.KiroRTC.declineCallFromNotification();", null)
+                }
+                NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID_CALL)
+            }
+        }
+    }
+
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // General Kiro Care & Updates Channel
+            val generalChannel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Kiro Sanctuary Updates",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Alerts about Kiro's wellbeing, OTA updates, and celestial transmissions."
+            }
+
+            // Weather & Rain Alerts Channel (High Priority with vibration)
+            val weatherChannel = NotificationChannel(
+                CHANNEL_WEATHER_ID,
+                "Kiro Weather & Rain Radar",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Real-time rain radar reminders and umbrella alerts from Kiro."
+                enableVibration(true)
+            }
+
+            // Incoming Calls Channel (High Priority with ringing)
+            val callsChannel = NotificationChannel(
+                CHANNEL_CALLS_ID,
+                "Kiro Incoming Calls",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Incoming WebRTC audio and video calls on Kiro Starlight."
+                enableVibration(true)
+            }
+
+            notificationManager.createNotificationChannels(listOf(generalChannel, weatherChannel, callsChannel))
         }
     }
 
@@ -456,6 +524,126 @@ class MainActivity : AppCompatActivity() {
             Log.e(TAG, "Failed to post notification", e)
         }
     }
+    /**
+     * Dispatches a dedicated rain reminder notification with an interactive "Got it! ☔" reply action.
+     */
+    fun sendRainNotification(cityName: String, userName: String, message: String) {
+        try {
+            val tapIntent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val tapPendingIntent = PendingIntent.getActivity(
+                this,
+                10,
+                tapIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // "Got it! ☔" Action PendingIntent
+            val ackIntent = Intent(this, MainActivity::class.java).apply {
+                action = ACTION_RAIN_ACK
+                putExtra(EXTRA_CITY_NAME, cityName)
+                putExtra(EXTRA_ACTION_CHOICE, "got_it")
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val ackPendingIntent = PendingIntent.getActivity(
+                this,
+                11,
+                ackIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val displayTitle = if (cityName.isNotEmpty()) "🌧️ Rain in $cityName • Umbrella Alert!" else "🌧️ Rain Detected • Umbrella Alert!"
+            val displayText = if (message.isNotEmpty()) message else "It's raining outside! Don't forget your umbrella $userName ☔ Tap 'Got it!' to let Kiro know."
+
+            val builder = NotificationCompat.Builder(this, CHANNEL_WEATHER_ID)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(displayTitle)
+                .setContentText(displayText)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(displayText))
+                .setContentIntent(tapPendingIntent)
+                .addAction(R.mipmap.ic_launcher, "Got it! ☔", ackPendingIntent)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < 33) {
+                NotificationManagerCompat.from(this).notify(NOTIFICATION_ID_RAIN, builder.build())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to post rain notification", e)
+        }
+    }
+
+    /**
+     * Dispatches a high-priority incoming call heads-up notification with Answer and Decline actions.
+     */
+    fun sendCallNotification(callerName: String, isVideo: Boolean) {
+        try {
+            val tapIntent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val tapPendingIntent = PendingIntent.getActivity(
+                this,
+                20,
+                tapIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val answerIntent = Intent(this, MainActivity::class.java).apply {
+                action = ACTION_CALL_ANSWER
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val answerPendingIntent = PendingIntent.getActivity(
+                this,
+                21,
+                answerIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val declineIntent = Intent(this, MainActivity::class.java).apply {
+                action = ACTION_CALL_DECLINE
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val declinePendingIntent = PendingIntent.getActivity(
+                this,
+                22,
+                declineIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val callTypeStr = if (isVideo) "Video Call" else "Audio Call"
+            val builder = NotificationCompat.Builder(this, CHANNEL_CALLS_ID)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("📞 Incoming $callTypeStr")
+                .setContentText("$callerName is calling you on Kiro Starlight...")
+                .setCategory(NotificationCompat.CATEGORY_CALL)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setFullScreenIntent(tapPendingIntent, true)
+                .setContentIntent(tapPendingIntent)
+                .addAction(R.mipmap.ic_launcher, "Answer 📞", answerPendingIntent)
+                .addAction(R.mipmap.ic_launcher, "Decline ❌", declinePendingIntent)
+                .setOngoing(true)
+                .setAutoCancel(true)
+
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < 33) {
+                NotificationManagerCompat.from(this).notify(NOTIFICATION_ID_CALL, builder.build())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to post call notification", e)
+        }
+    }
+
+    /**
+     * Cancels any active incoming call notification.
+     */
+    fun cancelCallNotification() {
+        try {
+            NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID_CALL)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to cancel call notification", e)
+        }
+    }
 
     /**
      * JavaScript-to-Native Bridge registered as "AndroidHost"
@@ -465,6 +653,21 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun sendNotification(title: String, message: String) {
             sendSystemNotification(title, message)
+        }
+
+        @JavascriptInterface
+        fun sendRainNotification(cityName: String, userName: String, message: String) {
+            this@MainActivity.sendRainNotification(cityName, userName, message)
+        }
+
+        @JavascriptInterface
+        fun sendCallNotification(callerName: String, isVideo: Boolean) {
+            this@MainActivity.sendCallNotification(callerName, isVideo)
+        }
+
+        @JavascriptInterface
+        fun cancelCallNotification() {
+            this@MainActivity.cancelCallNotification()
         }
 
         @JavascriptInterface

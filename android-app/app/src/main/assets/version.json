@@ -1,10 +1,10 @@
 {
-  "version": "2.5.6",
-  "build": 94,
-  "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V9.4 — WebAudio AudioParam Float Hardening & Finite Value Integrity",
+  "version": "2.5.7",
+  "build": 95,
+  "name": "Kiro",
+  "description": "Space Capsule V9.5 — App Rename to Kiro, Rain Notifications with Dynamic Got-It Feedback & Incoming Call Alerts",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.4: Resolved WebAudio AudioParam non-finite setValueAtTime TypeError, hardened all procedural audio frequency/multiplier guards, and streamlined Cor Amoris audio call signatures."
+  "changelog": "V9.5: Renamed app to Kiro, implemented interactive rain radar alerts with dynamic Got-it! feedback from Kiro, and added high-priority incoming WebRTC call heads-up notifications with procedural ringing."
 }
 

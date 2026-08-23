@@ -934,7 +934,62 @@ if (fs.existsSync(corAmorisAuditCodePath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 29. Final Audit Summary
+// 29. Auditing Kiro App Rename, Rain Notifications & Incoming Call Alerts (V9.5)...
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.CYAN}${Colors.BRIGHT}29. Auditing Kiro App Rename, Rain Notifications & Incoming Call Alerts (V9.5)...${Colors.RESET}`);
+
+// 1. App Rename to "Kiro"
+const stringsXmlPath = path.resolve(__dirname, '../android-app/app/src/main/res/values/strings.xml');
+if (fs.existsSync(stringsXmlPath)) {
+  const stringsContent = fs.readFileSync(stringsXmlPath, 'utf8');
+  assert(stringsContent.includes('<string name="app_name">Kiro</string>'), 'strings.xml app_name set to Kiro');
+}
+
+const versionJsonAuditPath = path.join(ASSETS_DIR, 'version.json');
+if (fs.existsSync(versionJsonAuditPath)) {
+  const versionJsonContent = fs.readFileSync(versionJsonAuditPath, 'utf8');
+  assert(versionJsonContent.includes('"name": "Kiro"'), 'version.json name set to Kiro');
+}
+
+// 2. Weather & Rain Notification Feedback
+const weatherV7AuditJsPath = path.join(ASSETS_DIR, 'js', 'weather-v7.js');
+if (fs.existsSync(weatherV7AuditJsPath)) {
+  const weatherCode = fs.readFileSync(weatherV7AuditJsPath, 'utf8');
+  assert(weatherCode.includes('renderSanctuaryRainToast') && weatherCode.includes('handleRainFeedback'), 'Sanctuary rain toast and handleRainFeedback verified in weather-v7.js');
+  assert(weatherCode.includes('getDynamicKiroRainReply') && weatherCode.includes('Got it! ☔'), 'Dynamic Kiro rain replies and Got it! response verified in weather-v7.js');
+  assert(weatherCode.includes('AndroidHost.sendRainNotification'), 'Native Android rain notification dispatch verified in weather-v7.js');
+}
+
+const weatherV7AuditCssPath = path.join(ASSETS_DIR, 'css', 'weather-v7.css');
+if (fs.existsSync(weatherV7AuditCssPath)) {
+  const cssCode = fs.readFileSync(weatherV7AuditCssPath, 'utf8');
+  assert(cssCode.includes('.sanctuary-rain-toast') && cssCode.includes('.rain-feedback-btn'), 'Sanctuary rain toast and feedback button CSS tokens verified in weather-v7.css');
+}
+
+// 3. Incoming Call Notifications & Ringing
+const callEngineAuditJsPath = path.join(ASSETS_DIR, 'js', 'call-engine.js');
+if (fs.existsSync(callEngineAuditJsPath)) {
+  const callEngineCode = fs.readFileSync(callEngineAuditJsPath, 'utf8');
+  assert(callEngineCode.includes('triggerIncomingCall') && callEngineCode.includes('answerCallFromNotification'), 'Incoming call trigger and notification answer handler verified in call-engine.js');
+  assert(callEngineCode.includes('declineCallFromNotification') && callEngineCode.includes('simulateIncomingCall'), 'Decline handler and incoming call simulation verified in call-engine.js');
+  assert(callEngineCode.includes('AndroidHost.sendCallNotification') && callEngineCode.includes('startCallRinging'), 'Android call notification dispatch and procedural ringing tone verified in call-engine.js');
+}
+
+if (fs.existsSync(synthJsPath)) {
+  const synthCode = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthCode.includes('startCallRinging') && synthCode.includes('stopCallRinging'), 'Procedural incoming call ringing tone synthesis verified in synth.js');
+}
+
+const mainActivityAuditPath = path.resolve(__dirname, '../android-app/app/src/main/java/com/starlight/sanctuary/MainActivity.kt');
+if (fs.existsSync(mainActivityAuditPath)) {
+  const mainActivityCode = fs.readFileSync(mainActivityAuditPath, 'utf8');
+  assert(mainActivityCode.includes('sendRainNotification') && mainActivityCode.includes('sendCallNotification'), 'sendRainNotification and sendCallNotification methods verified in MainActivity.kt');
+  assert(mainActivityCode.includes('ACTION_RAIN_ACK') && mainActivityCode.includes('ACTION_CALL_ANSWER'), 'Intent action constants ACTION_RAIN_ACK & ACTION_CALL_ANSWER verified in MainActivity.kt');
+  assert(mainActivityCode.includes('kiro_weather_alerts') && mainActivityCode.includes('kiro_incoming_calls'), 'Dedicated weather & call notification channels verified in MainActivity.kt');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 30. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

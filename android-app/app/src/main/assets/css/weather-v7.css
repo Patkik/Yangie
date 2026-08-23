@@ -532,3 +532,181 @@ body.eco-mode-active .glass-card {
   0% { transform: translateY(0px) scale(1); }
   100% { transform: translateY(-6px) scale(1.02); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   🌧️ Floating Sanctuary Rain Notification Toast with Interactive Feedback
+   ══════════════════════════════════════════════════════════════════════════ */
+.sanctuary-rain-toast {
+  position: fixed;
+  top: 72px; /* Sits cleanly below top dynamic island */
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 380px);
+  background: rgba(24, 24, 37, 0.94);
+  border: 1px solid rgba(148, 226, 213, 0.35);
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(148, 226, 213, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 0.85rem 1rem;
+  z-index: 3500;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  box-sizing: border-box;
+  animation: rain-toast-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+  user-select: none;
+}
+
+@keyframes rain-toast-pop {
+  0% { opacity: 0; transform: translate(-50%, -20px) scale(0.92); }
+  100% { opacity: 1; transform: translate(-50%, 0px) scale(1); }
+}
+
+.rain-toast-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.rain-toast-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  animation: umbrella-pulse 2s infinite alternate;
+  flex-shrink: 0;
+}
+
+.rain-toast-title-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1px;
+}
+
+.rain-toast-title {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold-glow, #f9e2af);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.rain-toast-city {
+  font-size: 0.68rem;
+  color: var(--emerald-neon, #94e2d5);
+  font-weight: 600;
+}
+
+.rain-toast-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94e2d5;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.rain-toast-close-btn:hover {
+  background: rgba(243, 139, 168, 0.2);
+  color: #f5b7c0;
+  border-color: #f5b7c0;
+}
+
+.rain-toast-desc {
+  font-size: 0.75rem;
+  color: #cdd6f4;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.rain-toast-actions {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.rain-feedback-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border-radius: 12px;
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rain-feedback-btn.primary {
+  background: rgba(78, 201, 176, 0.18);
+  border: 1px solid rgba(78, 201, 176, 0.5);
+  color: #4ec9b0;
+}
+
+.rain-feedback-btn.primary:hover,
+.rain-feedback-btn.primary:active {
+  background: rgba(78, 201, 176, 0.32);
+  border-color: #4ec9b0;
+  transform: scale(1.04);
+  box-shadow: 0 0 12px rgba(78, 201, 176, 0.35);
+}
+
+.rain-feedback-btn.secondary {
+  background: rgba(245, 194, 231, 0.18);
+  border: 1px solid rgba(245, 194, 231, 0.5);
+  color: #f5c2e7;
+}
+
+.rain-feedback-btn.secondary:hover,
+.rain-feedback-btn.secondary:active {
+  background: rgba(245, 194, 231, 0.32);
+  border-color: #f5c2e7;
+  transform: scale(1.04);
+  box-shadow: 0 0 12px rgba(245, 194, 231, 0.35);
+}
+
+.rain-feedback-btn.cozy {
+  background: rgba(249, 226, 175, 0.15);
+  border: 1px solid rgba(249, 226, 175, 0.45);
+  color: #f9e2af;
+}
+
+.rain-feedback-btn.cozy:hover,
+.rain-feedback-btn.cozy:active {
+  background: rgba(249, 226, 175, 0.28);
+  border-color: #f9e2af;
+  transform: scale(1.04);
+  box-shadow: 0 0 12px rgba(249, 226, 175, 0.35);
+}
+
+.rain-toast-ack-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.35rem 0.6rem;
+  background: rgba(78, 201, 176, 0.15);
+  border: 1px solid rgba(78, 201, 176, 0.4);
+  border-radius: 10px;
+  color: #4ec9b0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  animation: rain-toast-pop 0.3s ease;
+}
