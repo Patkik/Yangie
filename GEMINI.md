@@ -201,6 +201,7 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-711900]** Master Realistic Hand-Drawn Anime Celestial Shader Pipeline (4-Point Needle Starfield, Spectral Ribbon Comets, Ink-Outlined Asteroids & Glowing Meteors) V9.2
 - **[DEC-701900]** Top-Right Video Call Icon Button Eviction & Comms Hub Streamlining V9.1
 - **[DEC-691900]** Mathematically Projected 3D-to-2D Anime Cloud Speech Bubble, Safe HUD Coordinate Clamping, Persona Glow & Procedural Giggle Audio V9.0
 - **[DEC-681900]** 6-Pillar Mobile WebView Performance Optimization Suite (DPR Clamp, Particle Pool, Storage Debounce, 30Hz FFT, Memory Trim) V8.9

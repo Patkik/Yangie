@@ -1,10 +1,9 @@
 {
-  "version": "2.5.3",
-  "build": 91,
+  "version": "2.5.4",
+  "build": 92,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V9.1 — Streamlined Dynamic Island Comms Hub",
+  "description": "Space Capsule V9.2 — Master Realistic Hand-Drawn Anime Celestial Shader Pipeline",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.1: Evicted legacy top-bar video call icon button from the Dynamic Island header comms hub cluster to streamline top navigation and prevent touch overcrowding."
+  "changelog": "V9.2: Upgraded all celestial shaders (4-point flare starfield with polar vortex swirl, spectral ribbon fluid comets with hand-painted brush lines, ink-outlined low-poly asteroids with fBm rock texture, and glowing meteors) to realistic hand-drawn anime aesthetic."
 }
-

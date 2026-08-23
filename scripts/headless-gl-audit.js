@@ -432,7 +432,7 @@ if (fs.existsSync(sceneJsPath)) {
   const sceneContent = fs.readFileSync(sceneJsPath, 'utf8');
   
   // 100% GPU Starfield Rotation in Vertex Shader
-  assert((sceneContent.includes('cosA') && sceneContent.includes('sinA') && sceneContent.includes('u_time * 0.015')), '100% GPU Math: Starfield vertex shader computes zero-allocation orbital rotation natively on GPU registers');
+  assert((sceneContent.includes('cosA') && sceneContent.includes('sinA') && (sceneContent.includes('u_time * 0.015') || sceneContent.includes('swirlAngle') || sceneContent.includes('u_time * 0.08'))), '100% GPU Math: Starfield vertex shader computes zero-allocation orbital rotation natively on GPU registers');
   
   // Hard Pointer-Drag Guards
   assert(sceneContent.includes("KiroState.get('telescopeActive')") && sceneContent.includes('onFlightMove'), 'Hard pointer-drag guards prevent background galaxy drift unless telescope is active');
@@ -845,7 +845,42 @@ if (fs.existsSync(appJsPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 26. Final Audit Summary
+// 26. Auditing Realistic Hand-Drawn Anime Celestial Shaders (V9.2)...
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.CYAN}${Colors.BRIGHT}26. Auditing Realistic Hand-Drawn Anime Celestial Shaders (V9.2)...${Colors.RESET}`);
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneCode = fs.readFileSync(sceneJsPath, 'utf8');
+
+  // Starfield 4-point cross flare & vortex swirl
+  assert(sceneCode.includes('createAnimeStarfieldShaderMaterial') && sceneCode.includes('crossX') && sceneCode.includes('starFlare'), '4-Point anime needle star cross flares verified in scene.js');
+  assert(sceneCode.includes('swirlAngle = sin(u_time * 0.08'), 'Polar vortex orbital swirl dynamics verified in scene.js starfield shader');
+
+  // Spectral Ribbon Comet Shader
+  assert(sceneCode.includes('createAnimeCometShaderMaterial') && sceneCode.includes('waveOffset') && sceneCode.includes('brushStrokes'), 'Spectral ribbon fluid comet shader with hand-drawn brush lines verified in scene.js');
+  assert(sceneCode.includes('this.cometShaderMat') && sceneCode.includes('createAnimeCometShaderMaterial()'), 'Living comet dust plume mapped to Anime Comet Shader in scene.js');
+
+  // Low-Poly Ink Outlined Asteroid Shader
+  assert(sceneCode.includes('createAnimeAsteroidShaderMaterial') && sceneCode.includes('edgeRim') && sceneCode.includes('step(0.24, edgeRim)'), 'Ink outline rim-normal detection and fBm watercolor rock texture verified in scene.js');
+  assert(sceneCode.includes('createAnimeAsteroidShaderMaterial(new THREE.Vector3(0.8, 1.0, 0.6))'), 'Asteroid ring node upgraded to Anime Asteroid Material in scene.js');
+
+  // Anime Meteor Streak Shader
+  assert(sceneCode.includes('createAnimeMeteorShaderMaterial') && sceneCode.includes('u_colorHead') && sceneCode.includes('brushFade'), 'Anime meteor streak shader with glowing head and tapered brush tail verified in scene.js');
+
+  // Inverted-hull outline on comet nucleus
+  assert(sceneCode.includes('coreOutline = createAnimeOutlineMesh') && sceneCode.includes('this.cometHead.add(coreOutline)'), 'Inverted-hull anime outline bound to comet nucleus in scene.js');
+}
+
+const pipelineJsPath = path.join(ASSETS_DIR, 'js', 'anime-shader-pipeline.js');
+if (fs.existsSync(pipelineJsPath)) {
+  const pipelineCode = fs.readFileSync(pipelineJsPath, 'utf8');
+  assert(pipelineCode.includes('createPlanetShaderMaterial') && pipelineCode.includes('createNebulaShaderMaterial'), 'createPlanetShaderMaterial & createNebulaShaderMaterial exported in anime-shader-pipeline.js');
+  assert(pipelineCode.includes('createAnimeStarfieldShaderMaterial') && pipelineCode.includes('createAnimeCometShaderMaterial'), 'createAnimeStarfieldShaderMaterial & createAnimeCometShaderMaterial exported in anime-shader-pipeline.js');
+  assert(pipelineCode.includes('createAnimeAsteroidShaderMaterial') && pipelineCode.includes('createAnimeOutlineMesh'), 'createAnimeAsteroidShaderMaterial & createAnimeOutlineMesh exported in anime-shader-pipeline.js');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 27. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {
