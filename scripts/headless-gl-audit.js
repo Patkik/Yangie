@@ -986,6 +986,11 @@ if (fs.existsSync(mainActivityAuditPath)) {
   assert(mainActivityCode.includes('sendRainNotification') && mainActivityCode.includes('sendCallNotification'), 'sendRainNotification and sendCallNotification methods verified in MainActivity.kt');
   assert(mainActivityCode.includes('ACTION_RAIN_ACK') && mainActivityCode.includes('ACTION_CALL_ANSWER'), 'Intent action constants ACTION_RAIN_ACK & ACTION_CALL_ANSWER verified in MainActivity.kt');
   assert(mainActivityCode.includes('kiro_weather_alerts') && mainActivityCode.includes('kiro_incoming_calls'), 'Dedicated weather & call notification channels verified in MainActivity.kt');
+  assert(mainActivityCode.includes('allowFileAccessFromFileURLs = false') && mainActivityCode.includes('allowUniversalAccessFromFileURLs = false'), 'WebView file sandbox bypass protection verified in MainActivity.kt');
+  assert(mainActivityCode.includes('MIXED_CONTENT_NEVER_ALLOW'), 'Mixed content never allowed setting verified in MainActivity.kt');
+  assert(mainActivityCode.includes('setWebContentsDebuggingEnabled(BuildConfig.DEBUG)'), 'Conditional remote debugging tied to BuildConfig.DEBUG verified in MainActivity.kt');
+  assert(mainActivityCode.includes('onSaveInstanceState') && mainActivityCode.includes('onRestoreInstanceState'), 'Process death state preservation (onSaveInstanceState/onRestoreInstanceState) verified in MainActivity.kt');
+  assert(mainActivityCode.includes('appassets.androidplatform.net'), 'Secure virtual asset origin validation in geolocation and asset loader verified in MainActivity.kt');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -103,8 +103,12 @@ class MainActivity : AppCompatActivity() {
         // Register the JavaScript-to-Native Bridge under "AndroidHost"
         webView.addJavascriptInterface(AndroidBridge(this), "AndroidHost")
 
-        // Load via WebViewAssetLoader HTTPS domain
-        loadSanctuaryUrl()
+        // Load via WebViewAssetLoader HTTPS domain or restore process state
+        if (savedInstanceState != null) {
+            webView.restoreState(savedInstanceState)
+        } else {
+            loadSanctuaryUrl()
+        }
 
         // Handle possible launch intents (e.g. notification action buttons)
         handleIntentActions(intent)
@@ -394,9 +398,11 @@ class MainActivity : AppCompatActivity() {
             domStorageEnabled = true
             databaseEnabled = true
 
-            // Security Hardening: Strict sandbox isolation
+            // Security Hardening: Strict sandbox isolation (No local file bypasses)
             allowFileAccess = false
             allowContentAccess = false
+            allowFileAccessFromFileURLs = false
+            allowUniversalAccessFromFileURLs = false
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
 
             mediaPlaybackRequiresUserGesture = false
@@ -408,9 +414,8 @@ class MainActivity : AppCompatActivity() {
             cacheMode = WebSettings.LOAD_DEFAULT
         }
 
-        if (BuildConfig.DEBUG) {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
+        // Conditional debugging: Strictly enabled only in debug builds
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
     }
 
     private fun setupWebViewClients() {
@@ -442,6 +447,7 @@ class MainActivity : AppCompatActivity() {
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
+                // Strict origin check: Only grant geolocation to secure virtual asset host
                 if (origin != null && origin.startsWith("https://appassets.androidplatform.net")) {
                     callback?.invoke(origin, true, false)
                 } else {
@@ -461,6 +467,16 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webView.saveState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        webView.restoreState(savedInstanceState)
     }
 
     override fun onResume() {

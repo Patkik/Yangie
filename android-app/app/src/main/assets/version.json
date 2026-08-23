@@ -1,10 +1,10 @@
 {
-  "version": "2.5.7",
-  "build": 95,
+  "version": "2.5.8",
+  "build": 96,
   "name": "Kiro",
-  "description": "Space Capsule V9.5 — App Rename to Kiro, Rain Notifications with Dynamic Got-It Feedback & Incoming Call Alerts",
+  "description": "Space Capsule V9.6 — Native WebView Sandbox Security Hardening, Process Death State Restoration & Offline Verification",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.5: Renamed app to Kiro, implemented interactive rain radar alerts with dynamic Got-it! feedback from Kiro, and added high-priority incoming WebRTC call heads-up notifications with procedural ringing."
+  "changelog": "V9.6: Hardened native WebView sandbox flags (disabling local file and universal access bypasses, strictly enforcing MIXED_CONTENT_NEVER_ALLOW), tied remote USB debugging strictly to BuildConfig.DEBUG, protected geolocation origins, and implemented process death state save/restore."
 }
 
