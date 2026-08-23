@@ -391,3 +391,26 @@
   color: #cdd6f4;
   font-weight: 600;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GPU Compositing Plane Promotion & Layer Paint Isolation
+   ══════════════════════════════════════════════════════════════════════════ */
+.telemetry-station-card,
+.weather-telemetry-container,
+.capsule-core-status-pill,
+.glass-card,
+.interactive-element {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Disable expensive backdrop-filter blur on background panels during Eco Mode */
+.telemetry-station-card.eco-mode-active,
+.glass-card.eco-mode-active,
+body.eco-mode-active .telemetry-station-card,
+body.eco-mode-active .glass-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(17, 17, 27, 0.95) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}

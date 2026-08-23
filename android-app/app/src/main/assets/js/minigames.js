@@ -54,6 +54,75 @@ export const PointerShield = {
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
+// 1.5 Pre-Allocated Particle Pool (Zero-GC Recycler for 120 FPS Arcade Math)
+// ═════════════════════════════════════════════════════════════════════════════
+
+export class ParticlePool {
+  constructor(maxSize = 100) {
+    this.maxSize = maxSize;
+    this.pool = Array.from({ length: maxSize }, () => ({
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      life: 0,
+      color: '#F9E2AF',
+      size: 3,
+      active: false
+    }));
+  }
+
+  // Reuse dead objects instead of instantiating new coordinates
+  spawn(x, y, vx, vy, color = '#F9E2AF', size = 3) {
+    const p = this.pool.find(item => !item.active);
+    if (p) {
+      p.x = x;
+      p.y = y;
+      p.vx = vx;
+      p.vy = vy;
+      p.color = color;
+      p.size = size;
+      p.life = 1.0;
+      p.active = true;
+    }
+  }
+
+  update(delta) {
+    for (let i = 0; i < this.pool.length; i++) {
+      const p = this.pool[i];
+      if (p.active) {
+        p.x += p.vx * delta;
+        p.y += p.vy * delta;
+        p.life -= delta * 1.5;
+        if (p.life <= 0) {
+          p.active = false; // Return to pool
+        }
+      }
+    }
+  }
+
+  draw(ctx) {
+    if (!ctx) return;
+    for (let i = 0; i < this.pool.length; i++) {
+      const p = this.pool[i];
+      if (p.active) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  clear() {
+    this.pool.forEach(p => { p.active = false; });
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // 2. Master Minigame Engine & Manager
 // ═════════════════════════════════════════════════════════════════════════════
 

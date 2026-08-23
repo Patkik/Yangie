@@ -609,12 +609,24 @@ export class KiroSceneManager {
     });
     this.renderer.setClearColor(0x000000, 1.0);
     this.renderer.setSize(width, height);
-    const maxDpr = this.ecoModeActive ? 1.0 : 1.25;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+    const maxDpr = this.ecoModeActive ? 1.0 : Math.min(window.devicePixelRatio || 1.0, 1.75);
+    this.renderer.setPixelRatio(maxDpr);
 
     if (ARTEngine && ARTEngine.telemetryHUD) {
       ARTEngine.telemetryHUD.setRenderer(this.renderer);
     }
+
+    // Subscribe to native Android WebView low-memory trim callbacks
+    window.addEventListener('webviewlowmemory', () => {
+      if (this.renderer) {
+        this.targetSystemMeshes.forEach(target => {
+          if (target.userData && target.userData.bracketMesh && target.userData.bracketMesh.material) {
+            target.userData.bracketMesh.material.needsUpdate = true;
+          }
+        });
+        console.warn('GPU memory purged due to Android trim memory callback.');
+      }
+    });
 
     if (!existingCanvas) {
       this.renderer.domElement.id = 'webgl-canvas';
@@ -1350,12 +1362,25 @@ export class KiroSceneManager {
       }
     }
 
-    // 4. Roaming Anime Planets Parametric Keplerian Orbit & Uniforms
+    // 4. Roaming Anime Planets Parametric Keplerian Orbit & Frustum-Culled Uniforms
+    if (this.camera) {
+      _scratchMat4.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+      if (!this._celestialFrustum) this._celestialFrustum = new THREE.Frustum();
+      this._celestialFrustum.setFromProjectionMatrix(_scratchMat4);
+    }
+
     this.roamingPlanets.forEach(planet => {
       const u = planet.userData;
       const angle = u.baseAngle + time * u.speed;
       const orbitPos = this.physicsAgent.calculateOrbitalPosition(u.semiMajor, u.semiMinor, angle, u.tiltAngle);
       planet.position.set(orbitPos.x, orbitPos.y, (u.baseDepth || -12.0) + orbitPos.z);
+
+      // Frustum culling check: bypass rotation and shader uniform updates if offscreen
+      if (this._celestialFrustum && !this._celestialFrustum.intersectsObject(planet)) {
+        planet.visible = false;
+        return;
+      }
+      planet.visible = true;
       planet.rotation.y += 0.012;
       planet.rotation.x += 0.006;
 

@@ -768,7 +768,50 @@ if (fs.existsSync(indexHtmlAuditPath)) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 24. Final Audit Summary
+// 24. Auditing 6-Pillar Mobile WebView Performance Suite (V8.9)...
+// ─────────────────────────────────────────────────────────────────────────────
+console.log(`\n${Colors.CYAN}${Colors.BRIGHT}24. Auditing 6-Pillar Mobile WebView Performance Suite (V8.9)...${Colors.RESET}`);
+
+if (fs.existsSync(sceneJsPath)) {
+  const sceneCode = fs.readFileSync(sceneJsPath, 'utf8');
+  assert(sceneCode.includes('Math.min(window.devicePixelRatio || 1.0, 1.75)'), 'Pillar 1: DPR clamped to 1.75x max verified in scene.js');
+  assert(sceneCode.includes('_celestialFrustum') && sceneCode.includes('intersectsObject'), 'Pillar 1: Camera Frustum Culling for celestial bodies verified in scene.js');
+  assert(sceneCode.includes('webviewlowmemory'), 'Pillar 6: WebView low memory event subscription verified in scene.js');
+}
+
+const weatherCssAuditPath = path.join(ASSETS_DIR, 'css', 'weather-v7.css');
+if (fs.existsSync(weatherCssAuditPath)) {
+  const weatherCss = fs.readFileSync(weatherCssAuditPath, 'utf8');
+  assert(weatherCss.includes('will-change: transform, opacity;') && weatherCss.includes('transform: translateZ(0);'), 'Pillar 2: GPU Layer Compositing promotion verified in weather-v7.css');
+  assert(weatherCss.includes('backdrop-filter: none !important;'), 'Pillar 2: Eco-mode backdrop filter pruning fallback verified in weather-v7.css');
+}
+
+const minigamesJsAuditPath = path.join(ASSETS_DIR, 'js', 'minigames.js');
+if (fs.existsSync(minigamesJsAuditPath)) {
+  const minigamesCode = fs.readFileSync(minigamesJsAuditPath, 'utf8');
+  assert(minigamesCode.includes('class ParticlePool') && minigamesCode.includes('spawn('), 'Pillar 3: Zero-GC pre-allocated ParticlePool class verified in minigames.js');
+}
+
+const stateJsPath = path.join(ASSETS_DIR, 'js', 'state.js');
+if (fs.existsSync(stateJsPath)) {
+  const stateCode = fs.readFileSync(stateJsPath, 'utf8');
+  assert(stateCode.includes('debounceStorageWrite') && stateCode.includes('writeDebounceTimers'), 'Pillar 4: Debounced Write-Behind LocalStorage Cache verified in state.js');
+}
+
+if (fs.existsSync(synthJsPath)) {
+  const synthCode = fs.readFileSync(synthJsPath, 'utf8');
+  assert(synthCode.includes('fftThrottleMs = 33.3') || synthCode.includes('fftThrottleMs || 33.3'), 'Pillar 5: 30Hz Sub-sampled Audio Analyser verified in synth.js');
+  assert(synthCode.includes('resetInactivityWatchdog') && synthCode.includes('120000'), 'Pillar 5: 120s AudioContext Sleep Watchdog verified in synth.js');
+}
+
+const mainActivityPath = path.join(__dirname, '..', 'android-app', 'app', 'src', 'main', 'java', 'com', 'starlight', 'sanctuary', 'MainActivity.kt');
+if (fs.existsSync(mainActivityPath)) {
+  const ktCode = fs.readFileSync(mainActivityPath, 'utf8');
+  assert(ktCode.includes('TRIM_MEMORY_RUNNING_LOW') && ktCode.includes('webviewlowmemory'), 'Pillar 6: Android onTrimMemory low-memory dispatch to WebView verified in MainActivity.kt');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 25. Final Audit Summary
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${Colors.BRIGHT}===============================================================================${Colors.RESET}`);
 if (failedChecks === 0) {

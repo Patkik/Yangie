@@ -50,13 +50,14 @@ class StateEmitter {
 export class KiroStateManager extends StateEmitter {
   constructor() {
     super();
+    this.writeDebounceTimers = new Map();
 
     // Default V3 Master State Schema
     this.state = {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.5.0',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.5.1',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)
@@ -233,12 +234,25 @@ export class KiroStateManager extends StateEmitter {
     }
   }
 
+  debounceStorageWrite(key, value, delay = 800) {
+    if (this.writeDebounceTimers && this.writeDebounceTimers.has(key)) {
+      clearTimeout(this.writeDebounceTimers.get(key));
+    }
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+      } catch (e) {
+        console.warn(`[KiroState] Debounced disk write error for "${key}":`, e);
+      }
+      if (this.writeDebounceTimers) this.writeDebounceTimers.delete(key);
+    }, delay);
+    if (this.writeDebounceTimers) this.writeDebounceTimers.set(key, timer);
+  }
+
   saveInventory() {
-    try {
-      localStorage.setItem('kiro_inventory', JSON.stringify(this.state.inventory));
-      localStorage.setItem('kiro_stardust_shards', String(this.state.stardustShards));
-      localStorage.setItem('kiro_cosmic_essence', String(this.state.cosmicEssence));
-    } catch (e) {}
+    this.debounceStorageWrite('kiro_inventory', this.state.inventory);
+    this.debounceStorageWrite('kiro_stardust_shards', this.state.stardustShards);
+    this.debounceStorageWrite('kiro_cosmic_essence', this.state.cosmicEssence);
   }
 
   startPassiveStardustTick() {
@@ -301,12 +315,10 @@ export class KiroStateManager extends StateEmitter {
   }
 
   syncCurrencyToStorageAndBridge() {
-    try {
-      localStorage.setItem('kiro_stardust_shards', String(this.state.stardustShards));
-      localStorage.setItem('kiro_cosmic_essence', String(this.state.cosmicEssence));
-      localStorage.setItem('kiro_unlocked_planets', JSON.stringify(this.state.unlockedPlanets));
-      localStorage.setItem('kiro_current_planet', this.state.currentPlanet);
-    } catch (e) {}
+    this.debounceStorageWrite('kiro_stardust_shards', this.state.stardustShards);
+    this.debounceStorageWrite('kiro_cosmic_essence', this.state.cosmicEssence);
+    this.debounceStorageWrite('kiro_unlocked_planets', this.state.unlockedPlanets);
+    this.debounceStorageWrite('kiro_current_planet', this.state.currentPlanet);
 
     // Safe Serialized Token Bridge to Kotlin Host
     if (typeof window !== 'undefined' && window.AndroidHost && typeof window.AndroidHost.onCurrencyUpdate === 'function') {
@@ -672,14 +684,12 @@ export class KiroStateManager extends StateEmitter {
   }
 
   saveVitals() {
-    try {
-      localStorage.setItem('kiro_vitals', JSON.stringify({
-        wellbeing: this.state.wellbeing,
-        food: this.state.food,
-        water: this.state.water,
-        energy: this.state.energy
-      }));
-    } catch (e) {}
+    this.debounceStorageWrite('kiro_vitals', {
+      wellbeing: this.state.wellbeing,
+      food: this.state.food,
+      water: this.state.water,
+      energy: this.state.energy
+    });
   }
 
   get(path) {

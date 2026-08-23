@@ -416,9 +416,11 @@ class MainActivity : AppCompatActivity() {
             }
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL,
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
             ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
-                Log.d(TAG, "Memory Trim: Critical level $level. Flushing WebView caches.")
+                Log.d(TAG, "Memory Trim: Critical level $level. Flushing WebView caches and notifying WebGL engine.")
                 webView.clearCache(false)
+                webView.evaluateJavascript("window.dispatchEvent(new CustomEvent('webviewlowmemory', { detail: { level: $level } }));", null)
             }
         }
     }

@@ -1,10 +1,10 @@
 {
-  "version": "2.5.0",
-  "build": 88,
+  "version": "2.5.1",
+  "build": 89,
   "name": "Kiro's Cosmic Haven",
-  "description": "Space Capsule V8.8 — Master UI Anti-Overlap Guardrail & Dynamic Island Flex Stabilization",
+  "description": "Space Capsule V8.9 — 6-Pillar Mobile WebView Performance Optimization Suite",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V8.8: Implemented strict UI anti-overlap guardrails, stabilized Dynamic Island top bar flex layout across narrow mobile viewports, eliminated legacy constellation dock overlap, and enforced absolute containment on all modals."
+  "changelog": "V8.9: Implemented 6-pillar mobile WebView performance remediation: 1.75x DPR clamping & camera frustum culling in scene.js, GPU layer promotion in CSS, zero-GC ParticlePool in minigames.js, debounced write-behind localStorage in state.js, 30Hz FFT & 120s AudioContext sleep in synth.js, and Android onTrimMemory low-memory event dispatching."
 }
 

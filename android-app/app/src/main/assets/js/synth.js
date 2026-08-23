@@ -73,13 +73,22 @@ export class CosmicSynthEngine {
     KiroState.on('audio:ambientVolume', (val) => this.setAmbientVolume(val));
     KiroState.on('audio:pitchMultiplier', (val) => this.setCutenessPitchMultiplier(val));
 
-    // Adaptive Resource Throttling (ART) FFT Throttle
-    this.fftThrottleMs = 16;
+    // Adaptive Resource Throttling (ART) & 30Hz Sub-Sampled FFT Cache
+    this.fftThrottleMs = 33.3; // 30Hz max frequency resolution to protect main-thread frame budget
     this._lastFftTime = 0;
     this._cachedAudioLevel = 0.0;
     KiroState.on('art:scale_change', ({ audioFftRate }) => {
-      this.fftThrottleMs = Math.max(16, (audioFftRate || 1) * 16);
+      this.fftThrottleMs = Math.max(33.3, (audioFftRate || 1) * 33.3);
     });
+
+    // 120s AudioContext Inactivity Sleep Watchdog
+    this.inactivityTimer = null;
+    this.resetInactivityWatchdog();
+    if (typeof window !== 'undefined') {
+      ['touchstart', 'mousedown', 'keydown', 'pointerdown'].forEach(evt => {
+        window.addEventListener(evt, () => this.resetInactivityWatchdog(), { passive: true });
+      });
+    }
 
     KiroState.on('cockpitSteering:change', (steering) => {
       if (steering) {
@@ -269,10 +278,24 @@ export class CosmicSynthEngine {
     }
   }
 
+  resetInactivityWatchdog() {
+    if (this.isDutyCycleAsleep) {
+      this.wakeFromDutyCycleSleep();
+    }
+    if (this.inactivityTimer) clearTimeout(this.inactivityTimer);
+    this.inactivityTimer = setTimeout(() => {
+      // If no ambient channel has active volume and thrusters are off, suspend context
+      const hasActiveAmbient = Object.values(this.channels).some(ch => ch.volume > 0);
+      if (!hasActiveAmbient && (!this.thruster || !this.thruster.active)) {
+        this.enterDutyCycleSleep();
+      }
+    }, 120000); // 120-second watchdog
+  }
+
   getAudioReactiveLevel() {
     if (!this.analyser || !this.analyserData || !this.isPlaying) return 0;
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-    if (this._lastFftTime && (now - this._lastFftTime < (this.fftThrottleMs || 16))) {
+    if (this._lastFftTime && (now - this._lastFftTime < (this.fftThrottleMs || 33.3))) {
       return this._cachedAudioLevel || 0;
     }
     this._lastFftTime = now;
