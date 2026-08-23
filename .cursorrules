@@ -171,6 +171,7 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-791900]** Preloader Readiness Gate, 5-Second Post-Loading Dialogue Delay & Speech Sound Harmonization (V10.0)
 - **[DEC-781900]** Roaming Planets Safe Frustum BoundingSphere Culling & Universal Background Black Screen Fix (V9.9)
 - **[DEC-771900]** Safe View-Frustum BoundingSphere Culling, Flight Control Speed Scope Resolution & Non-Intrusive Weather Alert (V9.8)
 - **[DEC-761900]** Interdimensional Wormhole Portal & Gate Guardian Sentinel Cinematic Transition, Console-Grade DRS & Foveated VRS Shaders (V9.7)

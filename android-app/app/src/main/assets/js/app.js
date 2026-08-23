@@ -177,6 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.classList.add('hidden');
       overlay.style.pointerEvents = 'none';
     }
+    // Set dashboard ready state & trigger readiness event
+    KiroState.set('isDashboardReady', true);
+    KiroState.emit('app:dashboard_ready');
+
     // Cinematic Boot Warp: quick starburst acceleration on dashboard reveal
     if (sceneManager && typeof sceneManager.triggerBootWarp === 'function') {
       sceneManager.triggerBootWarp();
@@ -1498,7 +1502,17 @@ document.addEventListener('DOMContentLoaded', () => {
  * ☁️ Kiro Dialogue Cloud Bubble Narrative Trigger
  * Projects speech dynamically above Kiro's 3D head with authentic anime pop & bounce.
  */
-export function triggerKiroDialogue(text, duration = 5000) {
+export function triggerKiroDialogue(text, duration = 5000, force = false) {
+  // Preloader / Loading Screen Guard: Defer dialogue until 5s after dashboard is revealed
+  if (!force && !KiroState.get('isDashboardReady')) {
+    KiroState.once('app:dashboard_ready', () => {
+      setTimeout(() => {
+        triggerKiroDialogue(text, duration, true);
+      }, 5000);
+    });
+    return;
+  }
+
   const cloud = document.getElementById('kiro-dialogue-cloud');
   const cloudText = document.getElementById('kiro-cloud-text');
   

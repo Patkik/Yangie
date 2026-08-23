@@ -17,6 +17,18 @@ class StateEmitter {
     return () => this.off(event, callback);
   }
 
+  once(event, callback) {
+    const wrapper = (data) => {
+      this.off(event, wrapper);
+      try {
+        callback(data);
+      } catch (e) {
+        console.error(`[KiroState Once Error in "${event}"]:`, e);
+      }
+    };
+    return this.on(event, wrapper);
+  }
+
   subscribe(path, callback) {
     // Allows subscribing either to a state path or custom event
     if (path.startsWith('change:') || path.includes(':')) {
@@ -57,7 +69,8 @@ export class KiroStateManager extends StateEmitter {
       persona: localStorage.getItem('starlight_persona') || null,
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.1',
+      isDashboardReady: false,
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.2',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)

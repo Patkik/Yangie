@@ -569,12 +569,29 @@ export default class KiroWeatherStationV7 {
             window.handleRainFeedback = (action, city) => this.handleRainFeedback(action, city);
         }
 
-        setTimeout(auditRain, 1200);
-        if (this.reminderInterval) clearInterval(this.reminderInterval);
-        this.reminderInterval = setInterval(auditRain, 15000);
+        const scheduleInitialAudit = () => {
+            setTimeout(auditRain, 5000);
+            if (this.reminderInterval) clearInterval(this.reminderInterval);
+            this.reminderInterval = setInterval(auditRain, 20000);
+        };
+
+        if (KiroState.get('isDashboardReady')) {
+            scheduleInitialAudit();
+        } else {
+            KiroState.once('app:dashboard_ready', () => {
+                scheduleInitialAudit();
+            });
+        }
     }
 
-    triggerKiroAlert(message, city = 'Sanctuary') {
+    triggerKiroAlert(message, city = 'Sanctuary', force = false) {
+        if (!force && !KiroState.get('isDashboardReady')) {
+            KiroState.once('app:dashboard_ready', () => {
+                setTimeout(() => this.triggerKiroAlert(message, city, true), 5000);
+            });
+            return;
+        }
+
         const bubble = document.getElementById('kiro-rain-warning-bubble');
         const textEl = document.getElementById('kiro-alert-text');
         

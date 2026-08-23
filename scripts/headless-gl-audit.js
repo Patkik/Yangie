@@ -1031,6 +1031,19 @@ if (fs.existsSync(weatherV7PlacementCssPath) && fs.existsSync(weatherV7Placement
   const weatherJs = fs.readFileSync(weatherV7PlacementJsPath, 'utf8');
   assert(weatherCss.includes(':not(.open) .kiro-alert-bubble') && weatherCss.includes('display: none !important'), 'Kiro alert bubble strictly hidden when weather sheet is not open');
   assert(weatherJs.includes('bubble-close-btn') && weatherJs.includes('dismissKiroAlert'), 'Kiro alert bubble close button and dismissal handler verified');
+  assert(weatherJs.includes('app:dashboard_ready') && weatherJs.includes('setTimeout(auditRain, 5000)'), 'Weather rain audit strictly waits for app:dashboard_ready with 5s delay in weather-v7.js');
+}
+
+{
+  const stateJsPath = path.join(ASSETS_DIR, 'js', 'state.js');
+  const appJsPath = path.join(ASSETS_DIR, 'js', 'app.js');
+  if (fs.existsSync(stateJsPath) && fs.existsSync(appJsPath)) {
+    const stateCode = fs.readFileSync(stateJsPath, 'utf8');
+    const appCode = fs.readFileSync(appJsPath, 'utf8');
+    assert(stateCode.includes('isDashboardReady: false') && stateCode.includes('once(event, callback)'), 'isDashboardReady initial state & once emitter verified in state.js');
+    assert(appCode.includes("KiroState.set('isDashboardReady', true)") && appCode.includes("KiroState.emit('app:dashboard_ready')"), 'revealDashboard emits app:dashboard_ready in app.js');
+    assert(appCode.includes("!force && !KiroState.get('isDashboardReady')") && appCode.includes('5000'), 'triggerKiroDialogue preloader guard & 5s post-loading delay verified in app.js');
+  }
 }
 
 

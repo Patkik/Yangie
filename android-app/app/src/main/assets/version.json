@@ -1,10 +1,10 @@
 {
-  "version": "2.6.1",
-  "build": 99,
+  "version": "2.6.2",
+  "build": 100,
   "name": "Kiro",
-  "description": "Space Capsule V9.9 — Roaming Planets Safe Frustum BoundingSphere Culling & Universal Background Black Screen Fix",
+  "description": "Space Capsule V10.0 — Preloader Readiness Gate, 5-Second Post-Loading Dialogue Delay & Speech Sound Harmonization",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V9.9: Fully eliminated uncaught boundingSphere TypeError in updateCelestialLayer roaming planets by migrating _celestialFrustum to intersectsObjectSafe, ensuring uninterrupted 120 FPS WebGL rendering of Kiro and the celestial cosmos on all Android mobile devices."
+  "changelog": "V10.0: Enforced strict preloader lifecycle guard ensuring Kiro's dialogue speech bubble and audio chimes/giggle are never triggered during preloading, with an intentional 5-second grace period after dashboard reveal."
 }
 
