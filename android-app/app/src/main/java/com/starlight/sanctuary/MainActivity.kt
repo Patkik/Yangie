@@ -392,6 +392,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
+    @Suppress("DEPRECATION")
     private fun setupWebViewSettings() {
         webView.settings.apply {
             javaScriptEnabled = true

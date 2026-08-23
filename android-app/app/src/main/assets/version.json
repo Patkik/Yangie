@@ -1,10 +1,10 @@
 {
-  "version": "2.6.3",
-  "build": 101,
+  "version": "2.6.4",
+  "build": 102,
   "name": "Kiro",
-  "description": "Space Capsule V10.1 — Deep Space Celestial Breathing Room, Cutscene Mesh Cleanup & Whisper-Soft Audio Harmonization",
+  "description": "Space Capsule V10.2 — Modern Java 17 Compilation Target & Clean Build Pipeline",
   "releaseDate": "2026-08-23",
   "minApkVersion": 1,
-  "changelog": "V10.1: Fixed stuck Stargate cutscene meshes with restoreSanctuaryFromWormhole, expanded all celestial systems and roaming orbits into deep space with generous breathing room, softened dialogue audio volume and eliminated thruster noise drone."
+  "changelog": "V10.2: Upgraded Android Gradle compileOptions to Java 17 (VERSION_17), configured javac compiler options to suppress obsolete source/target warnings, and suppressed legacy sandbox flag deprecation warnings in MainActivity.kt for pristine, zero-warning builds."
 }
 

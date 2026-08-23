@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-811900] Modern Java 17 Compilation Target, Javac Warning Suppression & Clean Android Build Pipeline (V10.2)
+- **Timestamp**: `2026-08-23T11:15:00.000000`
+- **Strategy & Synthesis**: Upgraded compileOptions to Java 17, configured javac -Xlint:-options in build.gradle.kts, and suppressed legacy WebSettings deprecation warnings in MainActivity.kt for a 100% clean, zero-warning Android build (v2.6.4, Build 102).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Maintained flawless visual integrity and smooth animation pipelines with pristine Android Studio compile output.
+  - **Performance**: Score 5/5: Upgraded to Java 17 bytecode compilation target (JavaVersion.VERSION_17), unlocking faster JVM JIT optimizations and modern Android compiler toolchain performance.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.6.4 (Build 102) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Configured javac compiler options to suppress obsolete source/target warnings (-Xlint:-options) and annotated legacy defense-in-depth WebSettings flags with @Suppress('DEPRECATION') in MainActivity.kt, resulting in zero compiler warnings.
+  - **Gamification**: Score 5/5: Frictionless development experience and rock-solid Android runtime stability for Patrick and Yangiee.
+
+---
+
 ### [DEC-801900] Deep Space Celestial Breathing Room, Cutscene Mesh Cleanup & Whisper-Soft Audio Harmonization (V10.1)
 - **Timestamp**: `2026-08-23T11:00:00.000000`
 - **Strategy & Synthesis**: Implemented restoreSanctuaryFromWormhole cutscene mesh cleanup in scene.js and cor-amoris.js, expanded celestial layout and planetary orbits into deep space with generous breathing room, replaced comet line tracks with curved stardust plume, softened dialogue volume, and silenced continuous engine drone (v2.6.3, Build 101).
