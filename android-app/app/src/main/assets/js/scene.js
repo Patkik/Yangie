@@ -768,6 +768,8 @@ export class KiroSceneManager {
     this.hudRadarGroup = null;
     this.radarSweepLine = null;
     this.radarBlipMeshes = [];
+    this.shootingStars = [];
+    this.lastShootingStarSpawn = 0;
     this.targetSystemMeshes = [];
     this.lastAlignedTargetId = null;
     this.spaceSystems = [
@@ -1501,6 +1503,55 @@ export class KiroSceneManager {
       this.backgroundCelestialGroup.add(group);
       this.targetSystemMeshes.push(group);
     });
+
+    // 6. Procedural Shooting Star / Meteor Shower Pool (V10.6)
+    this.shootingStars = [];
+    for (let m = 0; m < 4; m++) {
+      const starGeo = new THREE.BufferGeometry();
+      starGeo.name = `shootingStarGeo_${m}`;
+      const verts = new Float32Array([
+        0, 0, 0,
+        -1.4, 0.9, 0.5
+      ]);
+      starGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+      const starMat = new THREE.LineBasicMaterial({
+        color: 0xF9E2AF,
+        transparent: true,
+        opacity: 0
+      });
+      starMat.name = `shootingStarMat_${m}`;
+      const line = new THREE.Line(starGeo, starMat);
+      line.name = `shootingStarMesh_${m}`;
+      line.visible = false;
+      line.userData = { active: false, progress: 0, duration: 1.0, vx: 0, vy: 0, vz: 0, startPos: new THREE.Vector3() };
+      this.backgroundCelestialGroup.add(line);
+      this.shootingStars.push(line);
+      this.registerDisposable(starGeo);
+      this.registerDisposable(starMat);
+    }
+  }
+
+  spawnShootingStar() {
+    if (!this.shootingStars || this.shootingStars.length === 0) return;
+    const star = this.shootingStars.find(s => !s.userData.active);
+    if (!star) return;
+
+    const startX = (Math.random() > 0.5 ? 1 : -1) * (7.0 + Math.random() * 8.0);
+    const startY = 6.0 + Math.random() * 5.0;
+    const startZ = -22.0 - Math.random() * 6.0;
+
+    star.position.set(startX, startY, startZ);
+    star.userData.startPos.set(startX, startY, startZ);
+    star.userData.vx = (startX > 0 ? -1 : 1) * (14.0 + Math.random() * 6.0);
+    star.userData.vy = -(10.0 + Math.random() * 4.0);
+    star.userData.vz = 2.0 + Math.random() * 2.0;
+    star.userData.progress = 0;
+    star.userData.duration = 0.85 + Math.random() * 0.40;
+    star.userData.active = true;
+    star.visible = true;
+    star.material.opacity = 0.95;
+
+    synthEngine.playShootingStarChime();
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -1774,6 +1825,30 @@ export class KiroSceneManager {
           KiroState.set('cockpitSteering.currentTarget', null);
         }
       }
+    }
+
+    // 6.5 Procedural Shooting Stars / Meteor Showers Update (V10.6)
+    if (this.shootingStars && this.shootingStars.length > 0) {
+      const nowMs = performance.now();
+      if (!this.lastShootingStarSpawn || (nowMs - this.lastShootingStarSpawn > 16000)) {
+        this.lastShootingStarSpawn = nowMs;
+        this.spawnShootingStar();
+      }
+      this.shootingStars.forEach(star => {
+        if (star.userData && star.userData.active) {
+          star.userData.progress += delta;
+          const p = star.userData.progress / star.userData.duration;
+          if (p >= 1.0) {
+            star.userData.active = false;
+            star.visible = false;
+          } else {
+            star.position.x = star.userData.startPos.x + star.userData.vx * star.userData.progress;
+            star.position.y = star.userData.startPos.y + star.userData.vy * star.userData.progress;
+            star.position.z = star.userData.startPos.z + star.userData.vz * star.userData.progress;
+            star.material.opacity = Math.sin(p * Math.PI) * 0.95;
+          }
+        }
+      });
     }
 
     // 7. Sleeping ZZZ Floating Particles Animation
@@ -2664,6 +2739,27 @@ export class KiroSceneManager {
           }
         }
         return;
+      }
+
+      // 1. Catch Shooting Star on Click/Tap (+5 Stardust Shards)
+      if (this.shootingStars && this.shootingStars.length > 0) {
+        const normX = (e.clientX / window.innerWidth) * 2 - 1;
+        const normY = -(e.clientY / window.innerHeight) * 2 + 1;
+        const starRay = new THREE.Raycaster();
+        starRay.params.Line = { threshold: 1.5 };
+        starRay.setFromCamera(new THREE.Vector2(normX, normY), this.camera);
+        const activeStars = this.shootingStars.filter(s => s.userData && s.userData.active);
+        const starHits = starRay.intersectObjects(activeStars, true);
+        if (starHits.length > 0) {
+          const hitStar = starHits[0].object;
+          hitStar.userData.active = false;
+          hitStar.visible = false;
+          KiroState.triggerHaptic('pop');
+          KiroState.addStardust(5, 'caught_shooting_star');
+          synthEngine.playPetChime(880);
+          this.spawnHeartParticles();
+          return;
+        }
       }
 
       if (!this.kiroGroup) return;

@@ -372,8 +372,9 @@ export class StarlightMessenger {
     this.overlay.querySelectorAll('.emoji-tap-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const emoji = btn.getAttribute('data-emoji');
+        KiroState.triggerHaptic('pop');
         this.addMessageNode(this.localUser, emoji, 'text', { notify: false, save: true });
-        synthEngine.playChimeSound(880);
+        synthEngine.playStampChime();
       });
     });
 

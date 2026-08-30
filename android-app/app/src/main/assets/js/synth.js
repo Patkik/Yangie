@@ -1014,6 +1014,49 @@ export class CosmicSynthEngine {
     });
   }
 
+  playShootingStarChime() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const notes = [1046.50, 1318.51, 1567.98, 2093.00];
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const delay = idx * 0.05;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.08, now + delay + 0.3);
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.025, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.6);
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.65);
+    });
+  }
+
+  playStampChime() {
+    if (!this.ctx) this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const freqs = [659.25, 880.00, 1174.66];
+    freqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const delay = idx * 0.04;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + delay);
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.04, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.45);
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.5);
+    });
+  }
+
   playYangieeChord() {
     if (!this.ctx) this.init();
     if (this.ctx.state === 'suspended') this.ctx.resume();

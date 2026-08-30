@@ -1,10 +1,10 @@
 {
-  "version": "2.6.7",
-  "build": 105,
+  "version": "2.6.8",
+  "build": 106,
   "name": "Kiro",
-  "description": "Space Capsule V10.5 — Tactile Native Android Haptics Engine, 3D Cockpit Mini-Radar & Circadian Celestial Sky Lighting",
+  "description": "Space Capsule V10.6 — Procedural Meteor Showers, Twin Starlight Leaderboards & Celestial Stamps",
   "releaseDate": "2026-08-31",
   "minApkVersion": 1,
-  "changelog": "V10.5: Implemented native Android Vibrator/VibrationEffect bridge & Web Haptics engine supporting soothing purrs, treat pops, target lock clicks, and warp rumbles; rendered 3D holographic mini-radar globe with rotating scanner sweep line and live celestial blips in cockpit console; engineered real-time circadian sky lighting adapting ambient light, key lights, and color temperature to Patrick & Yangiee's local time."
+  "changelog": "V10.6: Added procedural shooting stars and meteor showers in panoramic space shuttle cockpit with interactive raycasting (+5 Stardust Shards on catch & sparkle audio); built Twin Starlight Arcade Leaderboards tracking Patrick vs Yangiee personal bests in minigames; and integrated animated Celestial Reaction Stamps in Starlight Mailbox with tactile haptic pops and pentatonic chimes."
 }
 

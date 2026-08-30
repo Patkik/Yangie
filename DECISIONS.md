@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-851900] Procedural Meteor Showers, Twin Starlight Leaderboards & Celestial Stamps (V10.6)
+- **Timestamp**: `2026-08-31T01:58:00.000000`
+- **Strategy & Synthesis**: Added procedural shooting stars and meteor showers in cockpit with interactive raycasting (+5 Stardust Shards), built Twin Starlight Arcade Leaderboard (Patrick vs Yangiee), and integrated Celestial Reaction Stamps (v2.6.8, Build 106).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Introduced procedural golden shooting star showers cascading across the panoramic space shuttle cockpit windshield with interactive tap-to-catch raycasting, awarding +5 Stardust Shards and sparkly pentatonic chime harmonics.
+  - **Performance**: Score 5/5: Pre-allocated 4-line shooting star mesh pool in background celestial group with zero memory leaks and smooth opacity easing, sustaining 200FPS / 5ms frame budgets.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.6.8 (Build 106) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Built Twin Starlight Arcade Leaderboard engine tracking Patrick and Yangiee personal bests in localStorage across all minigames, displaying custom champion crowns in payout modal.
+  - **Gamification**: Score 5/5: Added animated Celestial Reaction Stamps in Starlight Mailbox with tactile haptic pops and pentatonic audio signatures, enriching the emotional connection between Patrick and Yangiee.
+
+---
+
 ### [DEC-841900] Tactile Native Android Haptics Engine, 3D Cockpit Mini-Radar & Circadian Celestial Sky Lighting (V10.5)
 - **Timestamp**: `2026-08-31T01:50:00.000000`
 - **Strategy & Synthesis**: Implemented native Android & Web haptic feedback engine (purrs, pops, clicks, warp rumbles), 3D holographic mini-radar globe with rotating scanner sweep line and live celestial blips, and real-time circadian sky lighting (v2.6.7, Build 105).

@@ -201,6 +201,7 @@ Before writing or refactoring code, evaluate all 5 perspectives:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-851900]** Procedural Meteor Showers, Twin Starlight Leaderboards & Celestial Stamps (V10.6)
 - **[DEC-841900]** Tactile Native Android Haptics Engine, 3D Cockpit Mini-Radar & Circadian Celestial Sky Lighting (V10.5)
 - **[DEC-831900]** Panoramic Space Shuttle Cockpit Viewport & Extended Celestial Planetary Navigation (V10.4)
 - **[DEC-821900]** Intro Pacing Refinement, Smooth Animation Sequences & Whisper-Soft Dialogue Audio (V10.3)

@@ -70,7 +70,7 @@ export class KiroStateManager extends StateEmitter {
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
       isDashboardReady: false,
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.7',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.8',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)
@@ -246,6 +246,27 @@ export class KiroStateManager extends StateEmitter {
         }
       }
     } catch (_) {}
+  }
+
+  /**
+   * 🏆 Twin Starlight High-Score & Arcade Leaderboard (V10.6)
+   */
+  getHighScore(gameId, user = null) {
+    const targetUser = user || this.state.currentUser || 'pat';
+    const key = `kiro_highscore_${gameId}_${targetUser}`;
+    return parseInt(localStorage.getItem(key), 10) || 0;
+  }
+
+  setHighScore(gameId, score, user = null) {
+    const targetUser = user || this.state.currentUser || 'pat';
+    const key = `kiro_highscore_${gameId}_${targetUser}`;
+    const currentHigh = this.getHighScore(gameId, targetUser);
+    if (score > currentHigh) {
+      localStorage.setItem(key, String(score));
+      this.emit('highscore:new', { gameId, score, user: targetUser });
+      return true;
+    }
+    return false;
   }
 
   loadPersistedVitals() {

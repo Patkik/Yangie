@@ -351,6 +351,12 @@ export class KiroMinigameEngine {
     // Atomically award the Stardust Shards to KiroState
     KiroState.addStardust(payoutResult.totalPayout, `minigame_${this.currentGameId}`);
 
+    // Update Twin Starlight High Scores
+    const currentUser = KiroState.get('currentUser') || 'pat';
+    const isNewHigh = KiroState.setHighScore(this.currentGameId, Math.round(baseScore), currentUser);
+    const patHigh = KiroState.getHighScore(this.currentGameId, 'pat');
+    const yangHigh = KiroState.getHighScore(this.currentGameId, 'yang');
+
     // Play procedural victory SFX
     synthEngine.playMinigameVictory();
 
@@ -362,6 +368,26 @@ export class KiroMinigameEngine {
         <div class="payout-sparkle">✦ ✦ ✦</div>
         <h3 class="payout-title">EXPEDITION COMPLETE!</h3>
         <div class="payout-game-name">${this.currentGameId.toUpperCase()} • MISSION REWARD</div>
+
+        <!-- Twin Starlight Leaderboard -->
+        <div class="twin-leaderboard-box" style="margin: 10px 0; background: rgba(17, 17, 27, 0.85); border: 1px solid rgba(148, 226, 213, 0.35); border-radius: 12px; padding: 10px 14px; text-align: left;">
+          <div style="font-size: 10px; color: #CDD6F4; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span>TWIN STARLIGHT BEST</span>
+            ${isNewHigh ? '<span style="color: #F9E2AF; font-weight: 800;">✨ NEW PERSONAL BEST!</span>' : ''}
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; color: #4EC9B0;">
+              <span>🌱 Patrick:</span>
+              <strong style="color: #FFF;">${patHigh} pts</strong>
+              ${patHigh >= yangHigh && patHigh > 0 ? '👑' : ''}
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; color: #F5C2E7;">
+              <span>🌸 Yangiee:</span>
+              <strong style="color: #FFF;">${yangHigh} pts</strong>
+              ${yangHigh >= patHigh && yangHigh > 0 ? '👑' : ''}
+            </div>
+          </div>
+        </div>
 
         <div class="payout-formula-box">
           <div class="formula-header">MATHEMATICAL PAYOUT FORMULA</div>
