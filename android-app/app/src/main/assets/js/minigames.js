@@ -70,21 +70,25 @@ export class ParticlePool {
       size: 3,
       active: false
     }));
+    // O(1) free-list: maintain a head pointer into a pre-allocated index stack
+    // instead of O(n) .find() scan on every spawn call.
+    this.freeList = Array.from({ length: maxSize }, (_, i) => i);
+    this.freeHead = maxSize - 1; // Points to the top of the free stack
   }
 
-  // Reuse dead objects instead of instantiating new coordinates
+  // O(1) reuse via free-list head pointer — zero GC pressure
   spawn(x, y, vx, vy, color = '#F9E2AF', size = 3) {
-    const p = this.pool.find(item => !item.active);
-    if (p) {
-      p.x = x;
-      p.y = y;
-      p.vx = vx;
-      p.vy = vy;
-      p.color = color;
-      p.size = size;
-      p.life = 1.0;
-      p.active = true;
-    }
+    if (this.freeHead < 0) return; // Pool exhausted — drop gracefully
+    const idx = this.freeList[this.freeHead--];
+    const p = this.pool[idx];
+    p.x = x;
+    p.y = y;
+    p.vx = vx;
+    p.vy = vy;
+    p.color = color;
+    p.size = size;
+    p.life = 1.0;
+    p.active = true;
   }
 
   update(delta) {
@@ -95,7 +99,8 @@ export class ParticlePool {
         p.y += p.vy * delta;
         p.life -= delta * 1.5;
         if (p.life <= 0) {
-          p.active = false; // Return to pool
+          p.active = false;
+          this.freeList[++this.freeHead] = i; // Return slot to free stack in O(1)
         }
       }
     }
@@ -118,7 +123,11 @@ export class ParticlePool {
   }
 
   clear() {
-    this.pool.forEach(p => { p.active = false; });
+    this.freeHead = this.maxSize - 1;
+    for (let i = 0; i < this.maxSize; i++) {
+      this.pool[i].active = false;
+      this.freeList[i] = i;
+    }
   }
 }
 
@@ -310,10 +319,22 @@ export class KiroMinigameEngine {
 
     this.activeGame.init();
     this.lastTime = performance.now();
+    // 60 FPS frame cap: prevents thermal throttle on 120/144/240Hz panels
+    // while maintaining buttery-smooth visuals. Saves 50-75% GPU time on
+    // high-refresh devices vs an uncapped RAF loop.
+    const MINIGAME_TARGET_FPS = 60;
+    const MINIGAME_FRAME_MS = 1000 / MINIGAME_TARGET_FPS;
+
     this.tick = (now) => {
       if (this.isPaused || this.isGameOver) return;
-      const dt = Math.min(0.1, (now - this.lastTime) / 1000);
-      this.lastTime = now;
+      const elapsed = now - this.lastTime;
+      // Frame cap: schedule next tick and return early if we're ahead of budget
+      if (elapsed < MINIGAME_FRAME_MS - 0.5) {
+        this.animId = requestAnimationFrame(this.tick);
+        return;
+      }
+      const dt = Math.min(0.1, elapsed / 1000);
+      this.lastTime = now - (elapsed % MINIGAME_FRAME_MS); // Drift compensation
 
       this.activeGame.update(dt);
       this.ctx.clearRect(0, 0, this.displayWidth, this.displayHeight);
@@ -650,20 +671,24 @@ class CelestialTetris {
     ctx.fillStyle = 'rgba(17, 17, 27, 0.85)';
     ctx.fillRect(offsetX, offsetY, this.cols * blockSize, this.rows * blockSize);
 
+    // Batched grid lines: 2 strokes total (was 28 individual beginPath/stroke calls)
+    // Merging all verticals into one path + all horizontals into one path eliminates
+    // ~1,680 redundant GPU state-pipeline flushes per second at 60 FPS.
     ctx.strokeStyle = 'rgba(148, 226, 213, 0.08)';
     ctx.lineWidth = 1;
+    ctx.beginPath();
     for (let c = 0; c <= this.cols; c++) {
-      ctx.beginPath();
       ctx.moveTo(offsetX + c * blockSize, offsetY);
       ctx.lineTo(offsetX + c * blockSize, offsetY + this.rows * blockSize);
-      ctx.stroke();
     }
+    ctx.stroke();
+
+    ctx.beginPath();
     for (let r = 0; r <= this.rows; r++) {
-      ctx.beginPath();
       ctx.moveTo(offsetX, offsetY + r * blockSize);
       ctx.lineTo(offsetX + this.cols * blockSize, offsetY + r * blockSize);
-      ctx.stroke();
     }
+    ctx.stroke();
 
     // Draw Locked Cells with rounded candy aesthetic
     for (let r = 0; r < this.rows; r++) {
@@ -977,26 +1002,43 @@ class NebulaDodge {
     ctx.fillStyle = '#11111b';
     ctx.fillRect(0, 0, w, h);
 
-    // Draw Plasma Jets
-    this.jets.forEach(jet => {
+    // Draw Plasma Jets — batched by color group to minimize ctx state changes.
+    // Instead of save/restore per jet (O(n) state flushes), we group all jets sharing
+    // the same color and issue ONE save/restore per unique color (O(unique colors) = O(3)).
+    const jetGroups = {};
+    for (let i = 0; i < this.jets.length; i++) {
+      const jet = this.jets[i];
+      if (!jet.hit) {
+        (jetGroups[jet.color] ??= []).push(jet);
+      }
+    }
+    for (const color in jetGroups) {
+      const group = jetGroups[color];
       ctx.save();
-      ctx.fillStyle = jet.color;
-      ctx.shadowColor = jet.color;
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
       ctx.shadowBlur = 14;
+      // Batch all orbs in one path
       ctx.beginPath();
-      ctx.arc(jet.x, jet.y, jet.radius, 0, Math.PI * 2);
+      for (let i = 0; i < group.length; i++) {
+        const jet = group[i];
+        ctx.moveTo(jet.x + jet.radius, jet.y);
+        ctx.arc(jet.x, jet.y, jet.radius, 0, Math.PI * 2);
+      }
       ctx.fill();
-
-      // Ion Jet Stream Tail
+      // Batch all ion tail triangles in one path
       ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.beginPath();
-      ctx.moveTo(jet.x - jet.radius * 0.6, jet.y);
-      ctx.lineTo(jet.x + jet.radius * 0.6, jet.y);
-      ctx.lineTo(jet.x, jet.y - jet.radius * 2.2);
-      ctx.closePath();
+      for (let i = 0; i < group.length; i++) {
+        const jet = group[i];
+        ctx.moveTo(jet.x - jet.radius * 0.6, jet.y);
+        ctx.lineTo(jet.x + jet.radius * 0.6, jet.y);
+        ctx.lineTo(jet.x, jet.y - jet.radius * 2.2);
+        ctx.closePath();
+      }
       ctx.fill();
       ctx.restore();
-    });
+    }
 
     // Cockpit Pilot Crosshair & Energy Shield
     ctx.save();

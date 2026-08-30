@@ -3773,7 +3773,14 @@ export class KiroSceneManager {
     const frameMs = deltaMs;
     this.lastFrameTime = now;
 
-    // Feed Adaptive Resource Throttling (ART) Engine & Telemetry HUD
+    // 0. Locked Minigame Guard — grants 100% of CPU/GPU frame budget to the 2D canvas game.
+    // MUST be the very first check after clock delta — skips ART, DRS, DOM writes, and circadian
+    // solar arc trig (all zero visible effect while a 2D minigame overlay is active).
+    if (this.minigameActive) {
+      return;
+    }
+
+    // Feed Adaptive Resource Throttling (ART) Engine & Telemetry HUD (Sanctuary/Cockpit only)
     if (ARTEngine) {
       ARTEngine.recordFrameTick(now);
       if (ARTEngine.telemetryHUD) {
@@ -3781,7 +3788,7 @@ export class KiroSceneManager {
       }
     }
 
-    // Performance Monitor update
+    // Performance Monitor DOM write (Sanctuary/Cockpit only — avoids layout thrash during minigames)
     if (this.devFpsBadge) {
       this.fpsHistory.push(frameMs);
       if (this.fpsHistory.length > 30) this.fpsHistory.shift();
@@ -3791,20 +3798,13 @@ export class KiroSceneManager {
       this.devFpsBadge.textContent = `${currentFps} FPS | ${avgMs.toFixed(1)}ms [ART: ${tierId}]`;
     }
 
-    // Dynamic Resolution Scaling (DRS) Active Frame-Budget Balancing
+    // Dynamic Resolution Scaling (DRS) Active Frame-Budget Balancing (Sanctuary/Cockpit only)
     if (this.drs) {
       this.applyDynamicResolutionScaling(frameMs);
     }
 
-    // Circadian Sky Lighting Engine (Time-of-Day Adaptive Palette)
+    // Circadian Sky Lighting Engine (Time-of-Day Adaptive Palette — Sanctuary/Cockpit only)
     this.updateCircadianLighting(delta);
-
-    // 0. High-Efficiency Early Exit for Active Minigames (Locked 120 FPS Background Pausing)
-    if (this.minigameActive) {
-      // Completely pause 3D WebGL render loop while 2D canvas minigame runs!
-      // This eliminates GPU draw collisions and grants 100% of frame budget to the minigame.
-      return;
-    }
 
     // 1. Gyro Parallax Smooth Interpolation
     this.gyro.x += (this.gyro.targetX - this.gyro.x) * 0.08;

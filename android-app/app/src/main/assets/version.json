@@ -1,10 +1,11 @@
 {
-  "version": "2.6.9",
-  "build": 107,
+  "version": "2.7.0",
+  "build": 108,
   "name": "Kiro",
-  "description": "Space Capsule V10.7 — Advanced Real-Time Circadian Sky Lighting Engine with 3D Solar Arcs & Dynamic Storm Dimming",
+  "description": "Space Capsule V11.0 — Runtime Efficiency Suite: Minigame 60 FPS Cap, Batched Canvas Draw Calls & O(1) Particle Pool",
   "releaseDate": "2026-08-31",
   "minApkVersion": 1,
-  "changelog": "V10.7: Engineered advanced Real-Time Circadian Sky Lighting tracking 3D solar/lunar orbital trajectories (elevation & azimuth), dynamic dawn/day/dusk/midnight color temperatures, rim/fill light harmonization, and live atmospheric storm desaturation dimming."
+  "changelog": "V11.0: 5-fix performance suite — minigame guard moved to top of RAF loop (eliminates circadian trig during gameplay), 60 FPS cap on all minigame loops (saves 50-75% GPU on high-refresh panels), Tetris grid batched from 28 individual strokes to 2 paths, NebulaDodge plasma jets batched by color group eliminating per-object save/restore flushes, and ParticlePool upgraded from O(n) linear scan to O(1) free-list head pointer."
 }
+
 
