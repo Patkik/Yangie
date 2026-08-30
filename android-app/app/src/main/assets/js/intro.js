@@ -12,7 +12,7 @@ import { KiroState } from './state.js';
 import { synthEngine } from './synth.js';
 
 export class KiroIntroManager {
-  constructor(overlayId, onCompleteCallback) {
+  constructor(overlayId, onCompleteCallback, startImmediately = true) {
     this.overlay = document.getElementById(overlayId);
     this.onComplete = onCompleteCallback;
     this.selectedPersona = KiroState.get('persona') || null;
@@ -39,7 +39,9 @@ export class KiroIntroManager {
     this.supernovaParticles = [];
     this.stardustTrailParticles = [];
 
-    this.init();
+    if (startImmediately) {
+      this.init();
+    }
   }
 
   init(force = false) {
@@ -54,6 +56,17 @@ export class KiroIntroManager {
       if (this.onComplete) this.onComplete(persona);
       return;
     }
+
+    this.dispose();
+    this.isDisposed = false;
+    this.isSelecting = false;
+    this.warpSpeed = 1.0;
+    this.streakLength = 0.5;
+
+    this.overlay.classList.remove('hidden');
+    this.overlay.style.display = 'flex';
+    this.overlay.style.opacity = '1';
+    this.overlay.style.pointerEvents = 'auto';
 
     this.renderDOM();
     this.initThree();
@@ -461,45 +474,45 @@ export class KiroIntroManager {
 
     const tl = gsap.timeline();
 
-    // Act I: The Quiet Boot-Up (0 to 2s)
-    tl.to({}, { duration: 0.1 })
+    // Act I: The Quiet Celestial Boot-Up (0 to 2.2s)
+    tl.to({}, { duration: 0.2 })
       .call(() => {
         if (hudBoot) hudBoot.classList.add('visible');
-        synthEngine.playEngineDrone(2.5);
+        synthEngine.playEngineDrone(3.0);
       })
-      .to(this, { warpSpeed: 2.2, duration: 1.8, ease: 'sine.in' })
+      .to(this, { warpSpeed: 2.5, duration: 2.0, ease: 'sine.inOut' });
 
-    // Act II: The Lightspeed Warp & Chromatic Surge (2 to 5s)
+    // Act II: The Lightspeed Warp & Chromatic Surge (2.2 to 5.6s)
     tl.call(() => {
         if (hudBoot) hudBoot.classList.remove('visible');
-        synthEngine.playWarpSwoosh(3.0);
+        synthEngine.playWarpSwoosh(3.4);
       })
       .to(this, {
-        warpSpeed: 40.0,
-        streakLength: 45.0,
-        duration: 2.8,
+        warpSpeed: 12.0,
+        streakLength: 14.0,
+        duration: 3.4,
         ease: 'power2.inOut'
-      })
+      });
 
-    // Act III: Entering Orbit & Nebula Atmosphere (5 to 7s)
+    // Act III: Entering Orbit & Nebula Atmosphere (5.6 to 8.4s)
     tl.to(this, {
         warpSpeed: 0.8,
-        streakLength: 1.2,
-        duration: 2.2,
-        ease: 'power3.out'
+        streakLength: 1.0,
+        duration: 2.8,
+        ease: 'power2.out'
       })
       .to(this.nebulaMaterial ? this.nebulaMaterial.uniforms.u_opacity : {}, {
         value: 0.95,
-        duration: 1.8
-      }, '-=1.8')
+        duration: 2.4
+      }, '-=2.2')
       .call(() => {
         if (letterboxTop) letterboxTop.classList.add('retracted');
         if (letterboxBottom) letterboxBottom.classList.add('retracted');
         synthEngine.playArrivalChime();
         synthEngine.startCosmicAtmosphere();
-      }, null, '-=1.2')
+      }, null, '-=1.4');
 
-    // Act IV: The Portals of Identity (7s onward)
+    // Act IV: The Portals of Identity (8.4s onward)
     tl.call(() => {
       if (portalStage) portalStage.classList.add('active');
     });

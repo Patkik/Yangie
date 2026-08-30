@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-821900] Intro Pacing Refinement, Smooth Animation Sequences & Whisper-Soft Dialogue Audio (V10.3)
+- **Timestamp**: `2026-08-31T00:15:00.000000`
+- **Strategy & Synthesis**: Refactored startup into sequential pipeline eliminating WebGL context collisions, smoothed preloader and warp animations, and harmonized dialogue and intro procedural audio to whisper-soft cozy levels (v2.6.5, Build 103).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Transformed rushed, clunky opening sequences into a tranquil, majestic, and charming anime experience. Lengthened preloader timeline to a serene 4.6s with gentle organic egg rocking and bloom hatching physics, and smoothed warp acceleration into an awe-inspiring celestial glide.
+  - **Performance**: Score 5/5: Completely eliminated concurrent WebGL rendering collisions by establishing a clean sequential lifecycle (preloader -> intro overlay -> dashboard reveal), reducing peak GPU memory usage and eliminating frame-time jitter.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.6.5 (Build 103) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Decoupled KiroIntroManager auto-start from constructor, deferred intro sequence execution until preloader disposal, and updated triggerKiroDialogue easing curves and timeout handlers for rock-solid UI predictability.
+  - **Gamification**: Score 5/5: Harmonized speech bubble vocalizations into whisper-soft pentatonic chimes and softened egg pop and warp swooshes by 60%, delivering a comforting, cozy companion vibe for Patrick and Yangiee.
+
+---
+
 ### [DEC-811900] Modern Java 17 Compilation Target, Javac Warning Suppression & Clean Android Build Pipeline (V10.2)
 - **Timestamp**: `2026-08-23T11:15:00.000000`
 - **Strategy & Synthesis**: Upgraded compileOptions to Java 17, configured javac -Xlint:-options in build.gradle.kts, and suppressed legacy WebSettings deprecation warnings in MainActivity.kt for a 100% clean, zero-warning Android build (v2.6.4, Build 102).

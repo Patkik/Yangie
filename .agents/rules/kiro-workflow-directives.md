@@ -122,6 +122,7 @@ Commands:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-821900]** Intro Pacing Refinement, Smooth Animation Sequences & Whisper-Soft Dialogue Audio (V10.3)
 - **[DEC-811900]** Modern Java 17 Compilation Target, Javac Warning Suppression & Clean Android Build Pipeline (V10.2)
 - **[DEC-801900]** Deep Space Celestial Breathing Room, Cutscene Mesh Cleanup & Whisper-Soft Audio Harmonization (V10.1)
 - **[DEC-791900]** Preloader Readiness Gate, 5-Second Post-Loading Dialogue Delay & Speech Sound Harmonization (V10.0)

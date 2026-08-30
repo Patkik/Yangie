@@ -364,12 +364,12 @@ export default class KiroPreloaderV6 {
      ───────────────────────────────────────────────────────────────────────── */
   startProgressTimeline() {
     const milestones = [
-      { p: 15, text: 'Waking cosmic egg...', delay: 200 },
-      { p: 35, text: 'Attuning starlight harmonics...', delay: 500 },
-      { p: 60, text: 'Compiling neural shaders...', delay: 900, action: () => this.warmupShaders() },
-      { p: 85, text: 'Cracking celestial shell...', delay: 1400 },
-      { p: 98, text: 'Kiro ready to emerge!', delay: 1800 },
-      { p: 100, text: 'Hatching!', delay: 2100, action: () => this.triggerHatchSequence() }
+      { p: 18, text: 'Nurturing cosmic egg...', delay: 500 },
+      { p: 42, text: 'Attuning starlight harmonics...', delay: 1300 },
+      { p: 68, text: 'Compiling neural shaders...', delay: 2200, action: () => this.warmupShaders() },
+      { p: 88, text: 'Cracking celestial shell...', delay: 3200 },
+      { p: 98, text: 'Kiro ready to emerge...', delay: 4000 },
+      { p: 100, text: 'Kiro Awakens!', delay: 4600, action: () => this.triggerHatchSequence() }
     ];
 
     milestones.forEach(({ p, text, delay, action }) => {
@@ -382,7 +382,7 @@ export default class KiroPreloaderV6 {
         if (this.crackMaterial && this.crackMaterial.uniforms) {
           gsap.to(this.crackMaterial.uniforms.uCrackProgress, {
             value: p / 100,
-            duration: 0.45,
+            duration: 0.8,
             ease: 'power2.out'
           });
         }
@@ -399,7 +399,7 @@ export default class KiroPreloaderV6 {
     if (this.isHatched) return;
     this.isHatched = true;
 
-    if (this.statusLabel) this.statusLabel.textContent = 'Kiro Awakens!';
+    if (this.statusLabel) this.statusLabel.textContent = 'Kiro Awakens! ✨';
     if (this.hatchMsg) this.hatchMsg.classList.add('visible');
 
     // 1. Synthesize Procedural Pop Chime
@@ -413,67 +413,67 @@ export default class KiroPreloaderV6 {
 
     const tl = gsap.timeline();
 
-    // 2. Energetic Egg Wobble
+    // 2. Gentle, Organic Anticipatory Egg Rocking
     tl.to(this.eggMasterGroup.rotation, {
-      z: 0.18,
-      duration: 0.06,
-      repeat: 7,
+      z: 0.08,
+      duration: 0.22,
+      repeat: 3,
       yoyo: true,
       ease: 'sine.inOut'
     });
 
-    // 3. Shell Split: Top flies up/rotates, bottom drops downward
+    // 3. Shell Split: Graceful bloom opening
     tl.to(this.topShell.position, {
-      y: 2.2,
-      z: -0.6,
-      duration: 0.65,
-      ease: 'power3.out'
+      y: 1.8,
+      z: -0.3,
+      duration: 1.1,
+      ease: 'power2.out'
     }, '-=0.1');
 
     tl.to(this.topShell.rotation, {
-      x: 0.6,
-      z: -0.4,
-      duration: 0.65,
-      ease: 'power3.out'
+      x: 0.35,
+      z: -0.2,
+      duration: 1.1,
+      ease: 'power2.out'
     }, '<');
 
     tl.to(this.bottomShell.position, {
-      y: -2.2,
-      z: -0.4,
-      duration: 0.65,
-      ease: 'power3.out'
+      y: -1.6,
+      z: -0.2,
+      duration: 1.1,
+      ease: 'power2.out'
     }, '<');
 
     // 4. Kiro Spring-Bounce POP out into view!
     tl.fromTo(this.kiroHatchGroup.scale, 
       { x: 0.001, y: 0.001, z: 0.001 },
-      { x: 1.0, y: 1.0, z: 1.0, duration: 0.75, ease: 'elastic.out(1.25, 0.45)' },
-      '<+0.05'
+      { x: 1.0, y: 1.0, z: 1.0, duration: 1.2, ease: 'elastic.out(1.0, 0.65)' },
+      '<+0.08'
     );
 
-    // 5. Joyful arm celebration wave
-    tl.to(this.leftArm.rotation, { z: 0.8, yoyo: true, repeat: 3, duration: 0.15, ease: 'sine.inOut' }, '<+0.2');
-    tl.to(this.rightArm.rotation, { z: -0.8, yoyo: true, repeat: 3, duration: 0.15, ease: 'sine.inOut' }, '<');
+    // 5. Adorable hello wave
+    tl.to(this.leftArm.rotation, { z: 0.7, yoyo: true, repeat: 2, duration: 0.35, ease: 'sine.inOut' }, '<+0.25');
+    tl.to(this.rightArm.rotation, { z: -0.7, yoyo: true, repeat: 2, duration: 0.35, ease: 'sine.inOut' }, '<');
 
     // 6. Camera Focal Zoom & Radial Circular Clip-Path Wipe
     tl.to(this.camera.position, {
-      z: 1.4,
-      duration: 0.8,
+      z: 1.8,
+      duration: 1.1,
       ease: 'power2.inOut'
-    }, '+=0.2');
+    }, '+=0.3');
 
     tl.to(this.root, {
       clipPath: 'circle(0% at 50% 50%)',
       opacity: 0,
-      duration: 0.75,
-      ease: 'power3.inOut',
+      duration: 0.95,
+      ease: 'power2.inOut',
       onComplete: () => {
         this.dispose();
         if (typeof this.onComplete === 'function') {
           this.onComplete();
         }
       }
-    }, '-=0.45');
+    }, '-=0.5');
   }
 
   /* ─────────────────────────────────────────────────────────────────────────

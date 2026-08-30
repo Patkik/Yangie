@@ -190,27 +190,44 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3D Hatching Egg Preloader & Stutter-Free Warm-Up Engine (V6.0)
   let preloader = null;
   const introRoot = document.getElementById('intro-viewport-root');
-  if (introRoot) {
-    introRoot.style.display = 'flex';
-    preloader = new KiroPreloaderV6('intro-viewport-root', () => {
-      console.log('Sanctuary initialized and fully warmed! Kiro has hatched! 🐣✨');
-      if (KiroState.get('hasCompletedIntro')) {
+  const hasCompletedIntro = KiroState.get('hasCompletedIntro');
+
+  if (!hasCompletedIntro) {
+    // Unselected Profile: Run preloader first, then cleanly launch persona selection intro
+    if (introRoot) {
+      introRoot.style.display = 'flex';
+      preloader = new KiroPreloaderV6('intro-viewport-root', () => {
+        console.log('Sanctuary preloader complete. Launching Persona Intro Sequence... 🚀');
+        try {
+          introManager = new KiroIntroManager('intro-overlay', () => {
+            revealDashboard();
+          }, true);
+        } catch (e) {
+          console.error('Failed initializing KiroIntroManager:', e);
+          revealDashboard();
+        }
+      });
+    } else {
+      introManager = new KiroIntroManager('intro-overlay', () => {
         revealDashboard();
-      }
-    });
+      }, true);
+    }
   } else {
-    if (KiroState.get('hasCompletedIntro')) {
+    // Already Completed Intro: Preloader warms shaders and reveals sanctuary dashboard smoothly
+    if (introRoot) {
+      introRoot.style.display = 'flex';
+      preloader = new KiroPreloaderV6('intro-viewport-root', () => {
+        console.log('Sanctuary initialized and fully warmed! Kiro has hatched! 🐣✨');
+        revealDashboard();
+      });
+    } else {
       revealDashboard();
     }
-  }
 
-  try {
+    // Keep handle ready for settings replay without auto-running
     introManager = new KiroIntroManager('intro-overlay', () => {
       revealDashboard();
-    });
-  } catch (e) {
-    console.error('Failed initializing KiroIntroManager:', e);
-    revealDashboard();
+    }, false);
   }
 
   // 0. Boot Kiro's Agentic Orchestration Engine (Supervisor-Specialist MAS)
@@ -1503,12 +1520,12 @@ document.addEventListener('DOMContentLoaded', () => {
  * Projects speech dynamically above Kiro's 3D head with authentic anime pop & bounce.
  */
 export function triggerKiroDialogue(text, duration = 5000, force = false) {
-  // Preloader / Loading Screen Guard: Defer dialogue until 5s after dashboard is revealed
+  // Preloader / Loading Screen Guard: Defer dialogue until 3.5s after dashboard is revealed
   if (!force && !KiroState.get('isDashboardReady')) {
     KiroState.once('app:dashboard_ready', () => {
       setTimeout(() => {
         triggerKiroDialogue(text, duration, true);
-      }, 5000);
+      }, 3500);
     });
     return;
   }
@@ -1531,7 +1548,7 @@ export function triggerKiroDialogue(text, duration = 5000, force = false) {
   cloudText.textContent = text;
   cloud.style.display = 'flex';
   
-  // Play sweet tickle giggle sound as speech registers
+  // Play whisper-soft sweet dialogue chirp as speech registers
   if (synthEngine && typeof synthEngine.playGiggle === 'function') {
     synthEngine.playGiggle();
   }
@@ -1539,16 +1556,17 @@ export function triggerKiroDialogue(text, duration = 5000, force = false) {
   if (window.gsap) {
     gsap.killTweensOf(cloud);
     gsap.fromTo(cloud, 
-      { scale: 0.7, opacity: 0 }, 
-      { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.5)" }
+      { scale: 0.85, opacity: 0, y: 8 }, 
+      { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "back.out(1.2)" }
     );
 
     if (window._kiroDialogueTimeout) clearTimeout(window._kiroDialogueTimeout);
     window._kiroDialogueTimeout = setTimeout(() => {
       gsap.to(cloud, {
-        scale: 0.7,
+        scale: 0.85,
         opacity: 0,
-        duration: 0.35,
+        y: -6,
+        duration: 0.45,
         ease: "power2.in",
         onComplete: () => {
           cloud.style.display = 'none';

@@ -863,22 +863,22 @@ export class CosmicSynthEngine {
     const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
-    osc1.type = 'sawtooth';
+    osc1.type = 'sine';
     osc1.frequency.setValueAtTime(42, now);
-    osc1.frequency.linearRampToValueAtTime(58, now + duration);
+    osc1.frequency.linearRampToValueAtTime(55, now + duration);
 
     osc2.type = 'triangle';
     osc2.frequency.setValueAtTime(84, now);
-    osc2.frequency.linearRampToValueAtTime(116, now + duration);
+    osc2.frequency.linearRampToValueAtTime(110, now + duration);
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(90, now);
-    filter.frequency.exponentialRampToValueAtTime(240, now + duration);
-    filter.Q.value = 3.0;
+    filter.frequency.setValueAtTime(85, now);
+    filter.frequency.exponentialRampToValueAtTime(160, now + duration);
+    filter.Q.value = 1.5;
 
     gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.35, now + 1.2);
-    gain.gain.linearRampToValueAtTime(0.15, now + duration);
+    gain.gain.linearRampToValueAtTime(0.09, now + 1.2);
+    gain.gain.linearRampToValueAtTime(0.05, now + duration);
 
     osc1.connect(filter);
     osc2.connect(filter);
@@ -909,14 +909,14 @@ export class CosmicSynthEngine {
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.Q.value = 2.5;
-    filter.frequency.setValueAtTime(100, now);
-    filter.frequency.exponentialRampToValueAtTime(1500, now + duration * 0.5);
+    filter.Q.value = 1.6;
+    filter.frequency.setValueAtTime(120, now);
+    filter.frequency.exponentialRampToValueAtTime(950, now + duration * 0.5);
     filter.frequency.exponentialRampToValueAtTime(80, now + duration);
 
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.32, now + duration * 0.35);
+    gain.gain.linearRampToValueAtTime(0.08, now + duration * 0.35);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
     noiseSource.connect(filter);
@@ -935,13 +935,13 @@ export class CosmicSynthEngine {
     const subOsc = this.ctx.createOscillator();
     const subGain = this.ctx.createGain();
     subOsc.type = 'sine';
-    subOsc.frequency.setValueAtTime(50, now);
-    subOsc.frequency.linearRampToValueAtTime(95, now + duration * 0.6);
-    subOsc.frequency.exponentialRampToValueAtTime(35, now + duration);
+    subOsc.frequency.setValueAtTime(48, now);
+    subOsc.frequency.linearRampToValueAtTime(75, now + duration * 0.6);
+    subOsc.frequency.exponentialRampToValueAtTime(32, now + duration);
 
-    subGain.gain.setValueAtTime(0.01, now);
-    subGain.gain.linearRampToValueAtTime(0.3, now + 1.0);
-    subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    subGain.gain.setValueAtTime(0.001, now);
+    subGain.gain.linearRampToValueAtTime(0.07, now + 1.0);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
     subOsc.connect(subGain);
     subGain.connect(this.sfxGain || this.masterGain);
@@ -955,25 +955,30 @@ export class CosmicSynthEngine {
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
     const now = this.ctx.currentTime;
-    const chimeFreqs = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+    const chimeFreqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
 
     chimeFreqs.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
       const gain = this.ctx.createGain();
-      const delay = idx * 0.08;
+      const delay = idx * 0.09;
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, now + delay);
 
-      gain.gain.setValueAtTime(0, now + delay);
-      gain.gain.linearRampToValueAtTime(0.08, now + delay + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 2.2);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1100, now + delay);
 
-      osc.connect(gain);
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.035, now + delay + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 2.0);
+
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now + delay);
-      osc.stop(now + delay + 2.3);
+      osc.stop(now + delay + 2.1);
     });
   }
 
@@ -993,11 +998,11 @@ export class CosmicSynthEngine {
       osc.frequency.setValueAtTime(freq, now + i * 0.03);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(800, now);
-      filter.frequency.exponentialRampToValueAtTime(300, now + 1.2);
+      filter.frequency.setValueAtTime(650, now);
+      filter.frequency.exponentialRampToValueAtTime(260, now + 1.2);
 
       gain.gain.setValueAtTime(0, now + i * 0.03);
-      gain.gain.linearRampToValueAtTime(0.09, now + i * 0.03 + 0.06);
+      gain.gain.linearRampToValueAtTime(0.045, now + i * 0.03 + 0.06);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.03 + 1.4);
 
       osc.connect(filter);
@@ -1018,16 +1023,22 @@ export class CosmicSynthEngine {
 
     freqs.forEach((freq, i) => {
       const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
       const gain = this.ctx.createGain();
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, now + i * 0.03);
 
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(750, now);
+      filter.frequency.exponentialRampToValueAtTime(320, now + 1.2);
+
       gain.gain.setValueAtTime(0, now + i * 0.03);
-      gain.gain.linearRampToValueAtTime(0.08, now + i * 0.03 + 0.05);
+      gain.gain.linearRampToValueAtTime(0.04, now + i * 0.03 + 0.05);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.03 + 1.6);
 
-      osc.connect(gain);
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now + i * 0.03);
@@ -1041,41 +1052,47 @@ export class CosmicSynthEngine {
 
     const now = this.ctx.currentTime;
 
-    const burstFreqs = [587.33, 880.00, 1174.66, 1760.00];
+    const burstFreqs = [587.33, 880.00, 1174.66];
     burstFreqs.forEach((freq) => {
       const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(freq, now);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.2);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.2, now + 0.2);
 
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(900, now);
 
-      osc.connect(gain);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.85);
+      osc.stop(now + 0.75);
     });
 
     const noise = this.ctx.createBufferSource();
     noise.buffer = this.createPinkNoiseBuffer();
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1400, now);
-    filter.frequency.exponentialRampToValueAtTime(300, now + 0.9);
+    filter.frequency.setValueAtTime(1000, now);
+    filter.frequency.exponentialRampToValueAtTime(250, now + 0.8);
+    filter.Q.value = 1.8;
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+    gain.gain.setValueAtTime(0.07, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
 
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(this.sfxGain || this.masterGain);
 
     noise.start(now);
-    noise.stop(now + 0.95);
+    noise.stop(now + 0.85);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1300,7 +1317,7 @@ export class CosmicSynthEngine {
 
   /**
    * Kiro Sweet Dialogue Chirp / Giggle (playGiggle)
-   * The Sound: A joyful, bouncy 3-harmonic sine-triangle flutter that chirps when speaking in anime cloud bubbles.
+   * The Sound: A whisper-soft, cozy 3-harmonic sine flutter that chirps gently when speaking in anime cloud bubbles.
    */
   playGiggle() {
     if (!this.ctx) this.init();
@@ -1309,7 +1326,7 @@ export class CosmicSynthEngine {
 
     const now = this.ctx.currentTime;
     const mult = this.cutenessPitchMultiplier || 1.0;
-    const pitches = [587.33, 659.25, 880.0]; // D5, E5, A5
+    const pitches = [392.00, 493.88, 587.33]; // G4, B4, D5 (Warm, soothing pentatonic tri-tone)
 
     pitches.forEach((freq, idx) => {
       const t = now + idx * 0.045;
@@ -1319,21 +1336,22 @@ export class CosmicSynthEngine {
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq * mult, t);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.22 * mult, t + 0.045);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.06 * mult, t + 0.04);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(1600, t);
+      filter.frequency.setValueAtTime(850, t);
+      filter.Q.value = 1.0;
 
       gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.linearRampToValueAtTime(0.035, t + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.075);
+      gain.gain.linearRampToValueAtTime(0.015, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.095);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.sfxGain || this.masterGain);
 
       osc.start(t);
-      osc.stop(t + 0.08);
+      osc.stop(t + 0.10);
     });
   }
 
@@ -2007,7 +2025,7 @@ export class CosmicSynthEngine {
 
   /**
    * 🐣 3D Preloader V6.0: Procedural Egg Hatch Pop & Chime Synesthesia
-   * Synthesizes a resonant frequency pop sweep with ascending pentatonic sparkle chimes.
+   * Synthesizes a soft resonant frequency pop sweep with whisper-soft ascending pentatonic sparkle chimes.
    */
   playHatchPopChime() {
     if (!this.ctx) this.init();
@@ -2017,50 +2035,55 @@ export class CosmicSynthEngine {
     const now = this.ctx.currentTime;
     const dest = this.masterGain || this.ctx.destination;
 
-    // 1. Resonant Bubble Pop (Sweeping sine/bandpass from 320Hz to 1520Hz)
+    // 1. Soft Resonant Bubble Pop (Sweeping sine/lowpass from 260Hz to 1520Hz)
     const popOsc = this.ctx.createOscillator();
     const popGain = this.ctx.createGain();
     const popFilter = this.ctx.createBiquadFilter();
 
     popOsc.type = 'sine';
-    popOsc.frequency.setValueAtTime(320, now);
+    popOsc.frequency.setValueAtTime(260, now);
     popOsc.frequency.exponentialRampToValueAtTime(1520, now + 0.08);
 
-    popFilter.type = 'bandpass';
-    popFilter.frequency.setValueAtTime(750, now);
-    popFilter.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
-    popFilter.Q.value = 3.2;
+    popFilter.type = 'lowpass';
+    popFilter.frequency.setValueAtTime(600, now);
+    popFilter.frequency.exponentialRampToValueAtTime(950, now + 0.08);
+    popFilter.Q.value = 1.8;
 
     popGain.gain.setValueAtTime(0.001, now);
-    popGain.gain.linearRampToValueAtTime(0.35, now + 0.015);
-    popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    popGain.gain.linearRampToValueAtTime(0.08, now + 0.015);
+    popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
 
     popOsc.connect(popFilter);
     popFilter.connect(popGain);
     popGain.connect(dest);
 
     popOsc.start(now);
-    popOsc.stop(now + 0.20);
+    popOsc.stop(now + 0.24);
 
-    // 2. Ascending Sparkle Chimes (Pentatonic G5 -> C6 -> E6 -> G6)
-    const freqs = [783.99, 1046.50, 1318.51, 1567.98];
+    // 2. Gentle Ascending Sparkle Chimes (Pentatonic D5 -> G5 -> A5 -> C6)
+    const freqs = [587.33, 783.99, 880.00, 1046.50];
     freqs.forEach((f, idx) => {
       const chimeOsc = this.ctx.createOscillator();
+      const chimeFilter = this.ctx.createBiquadFilter();
       const chimeGain = this.ctx.createGain();
-      const chimeTime = now + 0.06 + idx * 0.05;
+      const chimeTime = now + 0.08 + idx * 0.06;
 
       chimeOsc.type = 'sine';
       chimeOsc.frequency.setValueAtTime(f, chimeTime);
 
-      chimeGain.gain.setValueAtTime(0.0001, chimeTime);
-      chimeGain.gain.linearRampToValueAtTime(0.20, chimeTime + 0.01);
-      chimeGain.gain.exponentialRampToValueAtTime(0.0001, chimeTime + 0.35);
+      chimeFilter.type = 'lowpass';
+      chimeFilter.frequency.setValueAtTime(1200, chimeTime);
 
-      chimeOsc.connect(chimeGain);
+      chimeGain.gain.setValueAtTime(0.0001, chimeTime);
+      chimeGain.gain.linearRampToValueAtTime(0.04, chimeTime + 0.012);
+      chimeGain.gain.exponentialRampToValueAtTime(0.0001, chimeTime + 0.45);
+
+      chimeOsc.connect(chimeFilter);
+      chimeFilter.connect(chimeGain);
       chimeGain.connect(dest);
 
       chimeOsc.start(chimeTime);
-      chimeOsc.stop(chimeTime + 0.38);
+      chimeOsc.stop(chimeTime + 0.48);
     });
   }
 
