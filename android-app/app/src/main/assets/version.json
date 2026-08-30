@@ -1,10 +1,10 @@
 {
-  "version": "2.6.6",
-  "build": 104,
+  "version": "2.6.7",
+  "build": 105,
   "name": "Kiro",
-  "description": "Space Capsule V10.4 — Panoramic Space Shuttle Cockpit Viewport & Extended Celestial Planetary Navigation",
+  "description": "Space Capsule V10.5 — Tactile Native Android Haptics Engine, 3D Cockpit Mini-Radar & Circadian Celestial Sky Lighting",
   "releaseDate": "2026-08-31",
   "minApkVersion": 1,
-  "changelog": "V10.4: Re-architected Space Shuttle POV into an ultra-wide panoramic canopy (6.6-radius upper arch, 7.0-radius console sill, and outward-tapered side pillars at X=+/-5.4) eliminating claustrophobic screen borders; expanded cockpit steering pitch/yaw range to +/-120 with enhanced celestial parallax multipliers (0.22); calibrated reachable planetary system coordinates; added interactive tap-to-navigate autopilot on distant target planets; and enabled D-Pad re-centering."
+  "changelog": "V10.5: Implemented native Android Vibrator/VibrationEffect bridge & Web Haptics engine supporting soothing purrs, treat pops, target lock clicks, and warp rumbles; rendered 3D holographic mini-radar globe with rotating scanner sweep line and live celestial blips in cockpit console; engineered real-time circadian sky lighting adapting ambient light, key lights, and color temperature to Patrick & Yangiee's local time."
 }
 

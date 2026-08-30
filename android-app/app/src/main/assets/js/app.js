@@ -544,6 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openShop();
       return;
     }
+    KiroState.triggerHaptic('treat');
     orchestrator.executeFeedingSOP(type);
     updateInventoryBadges();
   };
@@ -568,6 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Pilot Cockpit Telescope & D-Pad Steering Controls
   if (shuttleSteerBtn) {
     shuttleSteerBtn.addEventListener('click', () => {
+      KiroState.triggerHaptic('click');
       const active = !KiroState.get('telescopeActive');
       KiroState.set('telescopeActive', active);
     });
@@ -589,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (joystickHud) {
     joystickHud.querySelectorAll('.joystick-btn[data-dir]').forEach(btn => {
       btn.addEventListener('click', () => {
+        KiroState.triggerHaptic('click');
         const dir = btn.getAttribute('data-dir');
         let steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
         const step = 14;

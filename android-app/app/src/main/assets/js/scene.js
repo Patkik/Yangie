@@ -765,6 +765,9 @@ export class KiroSceneManager {
     // ─────────────────────────────────────────────────────────────────────────
     this.cockpitGroup = null;
     this.crosshairMesh = null;
+    this.hudRadarGroup = null;
+    this.radarSweepLine = null;
+    this.radarBlipMeshes = [];
     this.targetSystemMeshes = [];
     this.lastAlignedTargetId = null;
     this.spaceSystems = [
@@ -913,22 +916,23 @@ export class KiroSceneManager {
 
     // High-Contrast Balanced Warm Celestial Lighting (Elevated Gold & Cozy Twilight Radiance)
     const ambient = new THREE.AmbientLight(0x2D1F38, 0.90);
+    this.ambientLight = ambient;
     this.scene.add(ambient);
 
     const keyLight = new THREE.DirectionalLight(0xF9E2AF, 1.35);
-    keyLight.position.set(3.5, 6.0, 5.0);
+    this.keyLight = keyLight;
     this.scene.add(keyLight);
 
     const mintFill = new THREE.PointLight(0x4EC9B0, 1.4, 10);
-    mintFill.position.set(0, -1.2, 1.8);
+    this.mintFill = mintFill;
     this.scene.add(mintFill);
 
     const pinkRim = new THREE.DirectionalLight(0xFFB6C1, 0.85);
-    pinkRim.position.set(-3.5, 3.0, -3.0);
+    this.pinkRim = pinkRim;
     this.scene.add(pinkRim);
 
     const warmGlow = new THREE.PointLight(0xF9E2AF, 0.80, 8);
-    warmGlow.position.set(0, 2.4, 1.5);
+    this.warmGlow = warmGlow;
     this.scene.add(warmGlow);
 
     // 1. Instantiate the Master Background Celestial Group
@@ -1760,6 +1764,7 @@ export class KiroSceneManager {
           this.lastAlignedTargetId = lockedTargetId;
           KiroState.set('cockpitSteering.currentTarget', lockedTargetId);
           KiroState.set('cockpitSteering.aligned', true);
+          KiroState.triggerHaptic('target_lock');
           synthEngine.playTargetLockSound();
         }
       } else {
@@ -2390,6 +2395,95 @@ export class KiroSceneManager {
 
     this.cockpitGroup.add(this.hudReticleGroup);
 
+    // 3. Mini 3D Holographic Radar Sphere (Bottom-Left Console Viewport)
+    this.hudRadarGroup = new THREE.Group();
+    this.hudRadarGroup.name = 'hudRadarGroup';
+    this.hudRadarGroup.position.set(-3.2, -1.35, -2.2);
+
+    // Radar wireframe dome
+    const radarDomeGeo = new THREE.SphereGeometry(0.55, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.5);
+    radarDomeGeo.name = 'radarDomeGeo';
+    const radarDomeMat = new THREE.MeshBasicMaterial({
+      color: 0x4EC9B0,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.30
+    });
+    radarDomeMat.name = 'radarDomeMat';
+    const radarDome = new THREE.Mesh(radarDomeGeo, radarDomeMat);
+    radarDome.name = 'radarDomeMesh';
+    this.hudRadarGroup.add(radarDome);
+
+    // Radar baseline grid circle
+    const radarBaseGeo = new THREE.RingGeometry(0.50, 0.54, 32);
+    radarBaseGeo.name = 'radarBaseGeo';
+    const radarBaseMat = new THREE.MeshBasicMaterial({
+      color: 0x94E2D5,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide
+    });
+    radarBaseMat.name = 'radarBaseMat';
+    const radarBase = new THREE.Mesh(radarBaseGeo, radarBaseMat);
+    radarBase.name = 'radarBaseMesh';
+    radarBase.rotation.x = Math.PI * 0.5;
+    this.hudRadarGroup.add(radarBase);
+
+    // Center craft pip
+    const craftPipGeo = new THREE.SphereGeometry(0.028, 8, 8);
+    craftPipGeo.name = 'craftPipGeo';
+    const craftPipMat = new THREE.MeshBasicMaterial({ color: 0x94E2D5 });
+    craftPipMat.name = 'craftPipMat';
+    const craftPip = new THREE.Mesh(craftPipGeo, craftPipMat);
+    craftPip.name = 'craftPipMesh';
+    this.hudRadarGroup.add(craftPip);
+
+    // Rotating Radar Sweep Scanner Line
+    const sweepGeo = new THREE.BufferGeometry();
+    sweepGeo.name = 'sweepGeo';
+    const sweepVerts = new Float32Array([
+      0, 0, 0,
+      0.52, 0, 0
+    ]);
+    sweepGeo.setAttribute('position', new THREE.BufferAttribute(sweepVerts, 3));
+    const sweepMat = new THREE.LineBasicMaterial({ color: 0x94E2D5, transparent: true, opacity: 0.85 });
+    sweepMat.name = 'sweepMat';
+    this.radarSweepLine = new THREE.Line(sweepGeo, sweepMat);
+    this.radarSweepLine.name = 'radarSweepLine';
+    this.radarSweepLine.rotation.x = Math.PI * 0.5;
+    this.hudRadarGroup.add(this.radarSweepLine);
+
+    // Radar Target Blips for each space system
+    this.radarBlipMeshes = [];
+    this.spaceSystems.forEach(sys => {
+      const blipGeo = new THREE.SphereGeometry(0.024, 8, 8);
+      blipGeo.name = `blipGeo_${sys.id}`;
+      const blipMat = new THREE.MeshBasicMaterial({
+        color: sys.color || 0x4EC9B0,
+        transparent: true,
+        opacity: 0.85
+      });
+      blipMat.name = `blipMat_${sys.id}`;
+      const blipMesh = new THREE.Mesh(blipGeo, blipMat);
+      blipMesh.name = `blipMesh_${sys.id}`;
+      blipMesh.userData = { id: sys.id, basePos: new THREE.Vector3(sys.x, sys.y, sys.z) };
+      this.hudRadarGroup.add(blipMesh);
+      this.radarBlipMeshes.push(blipMesh);
+      this.registerDisposable(blipGeo);
+      this.registerDisposable(blipMat);
+    });
+
+    this.cockpitGroup.add(this.hudRadarGroup);
+
+    this.registerDisposable(radarDomeGeo);
+    this.registerDisposable(radarDomeMat);
+    this.registerDisposable(radarBaseGeo);
+    this.registerDisposable(radarBaseMat);
+    this.registerDisposable(craftPipGeo);
+    this.registerDisposable(craftPipMat);
+    this.registerDisposable(sweepGeo);
+    this.registerDisposable(sweepMat);
+
     this.registerDisposable(archGeo);
     this.registerDisposable(sillGeo);
     this.registerDisposable(strutGeo);
@@ -2910,6 +3004,9 @@ export class KiroSceneManager {
 
     // Trigger viscoelastic harmonic squish
     this.triggerViscoelasticSquish(0.24, 15.0, 3.0);
+
+    // Trigger soothing native & web purr haptic
+    KiroState.triggerHaptic('purr');
 
     // Synthesize cozy procedural purr & sweet pentatonic pet chime
     synthEngine.playPurrSound(1.4);
@@ -3525,6 +3622,7 @@ export class KiroSceneManager {
   }
 
   triggerWarpAcceleration() {
+    KiroState.triggerHaptic('warp');
     // FIX: warpZStretch removed — it pushed star Z coords past the frustum far plane
     // Warp visual = faster rotation speed + larger point size only
     if (window.gsap) {
@@ -3602,6 +3700,9 @@ export class KiroSceneManager {
       this.applyDynamicResolutionScaling(frameMs);
     }
 
+    // Circadian Sky Lighting Engine (Time-of-Day Adaptive Palette)
+    this.updateCircadianLighting(delta);
+
     // 0. High-Efficiency Early Exit for Active Minigames (Locked 120 FPS Background Pausing)
     if (this.minigameActive) {
       // Completely pause 3D WebGL render loop while 2D canvas minigame runs!
@@ -3638,6 +3739,35 @@ export class KiroSceneManager {
         this.crosshairMesh.rotation.z += 0.015;
         const isAligned = KiroState.get('cockpitSteering.aligned');
         this.crosshairMesh.material.color.setHex(isAligned ? 0x94E2D5 : 0x4EC9B0);
+      }
+
+      // Animate 3D Holographic Cockpit Radar
+      if (this.radarSweepLine) {
+        this.radarSweepLine.rotation.z -= delta * 2.4;
+      }
+      if (this.radarBlipMeshes && this.radarBlipMeshes.length > 0) {
+        const lockedId = KiroState.get('cockpitSteering.currentTarget');
+        this.radarBlipMeshes.forEach(blip => {
+          const bp = blip.userData.basePos;
+          const relX = (bp.x - (steering.yaw || 0) * 0.22) / 32.0;
+          const relZ = (bp.y - (steering.pitch || 0) * 0.22) / 32.0;
+          const dist = Math.hypot(relX, relZ);
+          const clampedDist = Math.min(0.48, dist);
+          const angle = Math.atan2(relZ, relX);
+          blip.position.set(
+            Math.cos(angle) * clampedDist,
+            0.02 + (1.0 - clampedDist / 0.5) * 0.08,
+            Math.sin(angle) * clampedDist
+          );
+          if (blip.userData.id === lockedId) {
+            blip.material.color.setHex(0xF9E2AF);
+            blip.scale.set(1.5, 1.5, 1.5);
+          } else {
+            const sys = this.spaceSystems.find(s => s.id === blip.userData.id);
+            blip.material.color.setHex(sys ? sys.color : 0x4EC9B0);
+            blip.scale.set(1.0, 1.0, 1.0);
+          }
+        });
       }
 
       this.camera.lookAt(0, 0, -10);
@@ -4365,6 +4495,50 @@ export class KiroSceneManager {
       this.scene.add(this.amorisSanctuaryGroup);
     }
     this.amorisSanctuaryGroup.visible = true;
+  }
+
+  /**
+   * 🌅 Circadian Sky Lighting Engine (V10.5)
+   * Dynamically modulates ambient light, key lights, and color temperature
+   * based on the local time of day for Patrick & Yangiee.
+   */
+  updateCircadianLighting(delta) {
+    if (!this.ambientLight || !this.keyLight) return;
+    const now = new Date();
+    const hour = now.getHours() + now.getMinutes() / 60.0;
+
+    let targetAmbHex = 0x2D1F38;
+    let targetAmbIntensity = 0.90;
+    let targetKeyHex = 0xF9E2AF;
+
+    if (hour >= 5.5 && hour < 8.0) {
+      // 🌅 Dawn / Golden Sunrise: warm gold & peach aura
+      targetAmbHex = 0xF9E2AF;
+      targetAmbIntensity = 0.95;
+      targetKeyHex = 0xF5C2E7;
+    } else if (hour >= 8.0 && hour < 17.0) {
+      // ☀️ High Celestial Starlight: vibrant mint teal & crisp diamond light
+      targetAmbHex = 0xCDD6F4;
+      targetAmbIntensity = 1.05;
+      targetKeyHex = 0x94E2D5;
+    } else if (hour >= 17.0 && hour < 19.5) {
+      // 🌇 Dusk / Sunset: rose blush & violet nebula
+      targetAmbHex = 0xF5B7C0;
+      targetAmbIntensity = 0.88;
+      targetKeyHex = 0xCBA6F7;
+    } else {
+      // 🌌 Deep Midnight Sanctuary: velvet navy void & glowing starlight
+      targetAmbHex = 0x2D1F38;
+      targetAmbIntensity = 0.82;
+      targetKeyHex = 0xF9E2AF;
+    }
+
+    const targetAmbColor = new THREE.Color(targetAmbHex);
+    const targetKeyColor = new THREE.Color(targetKeyHex);
+
+    this.ambientLight.color.lerp(targetAmbColor, 0.04);
+    this.ambientLight.intensity += (targetAmbIntensity - this.ambientLight.intensity) * 0.04;
+    this.keyLight.color.lerp(targetKeyColor, 0.04);
   }
 
   dispose() {

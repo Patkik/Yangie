@@ -13,6 +13,9 @@ import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.os.VibrationEffect
 import android.provider.Settings
 import android.util.Log
 import android.webkit.*
@@ -858,6 +861,79 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to launch MediaProjection request: ${e.message}")
                 }
+            }
+        }
+
+        /**
+         * 📳 v2.6.7: Native Android Haptic Feedback Engine
+         */
+        @Suppress("DEPRECATION")
+        @JavascriptInterface
+        fun triggerHaptic(type: String) {
+            try {
+                val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                    vibratorManager?.defaultVibrator ?: (getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)
+                } else {
+                    getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                } ?: return
+
+                if (!vibrator.hasVibrator()) return
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    when (type.lowercase()) {
+                        "click", "tick" -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+                            } else {
+                                vibrator.vibrate(VibrationEffect.createOneShot(12, 100))
+                            }
+                        }
+                        "heavy_click" -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK))
+                            } else {
+                                vibrator.vibrate(VibrationEffect.createOneShot(25, 200))
+                            }
+                        }
+                        "purr" -> {
+                            val timings = longArrayOf(0, 15, 30, 15, 30, 15)
+                            val amplitudes = intArrayOf(0, 70, 0, 70, 0, 70)
+                            vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+                        }
+                        "pop", "treat" -> {
+                            val timings = longArrayOf(0, 14, 18, 10)
+                            val amplitudes = intArrayOf(0, 160, 0, 90)
+                            vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+                        }
+                        "target_lock" -> {
+                            val timings = longArrayOf(0, 12, 35, 20)
+                            val amplitudes = intArrayOf(0, 140, 0, 220)
+                            vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+                        }
+                        "warp", "supernova" -> {
+                            val timings = longArrayOf(0, 25, 35, 45, 35, 70, 25, 110)
+                            val amplitudes = intArrayOf(0, 80, 0, 140, 0, 200, 0, 255)
+                            vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+                        }
+                        else -> {
+                            vibrator.vibrate(VibrationEffect.createOneShot(15, VibrationEffect.DEFAULT_AMPLITUDE))
+                        }
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    when (type.lowercase()) {
+                        "click", "tick" -> vibrator.vibrate(12)
+                        "heavy_click" -> vibrator.vibrate(25)
+                        "purr" -> vibrator.vibrate(longArrayOf(0, 15, 30, 15, 30, 15), -1)
+                        "pop", "treat" -> vibrator.vibrate(longArrayOf(0, 14, 18, 10), -1)
+                        "target_lock" -> vibrator.vibrate(longArrayOf(0, 12, 35, 20), -1)
+                        "warp", "supernova" -> vibrator.vibrate(longArrayOf(0, 25, 35, 45, 35, 70, 25, 110), -1)
+                        else -> vibrator.vibrate(18)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Haptic vibration error: ${e.message}")
             }
         }
     }

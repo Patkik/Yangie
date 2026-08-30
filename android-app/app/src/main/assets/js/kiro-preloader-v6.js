@@ -402,8 +402,11 @@ export default class KiroPreloaderV6 {
     if (this.statusLabel) this.statusLabel.textContent = 'Kiro Awakens! ✨';
     if (this.hatchMsg) this.hatchMsg.classList.add('visible');
 
-    // 1. Synthesize Procedural Pop Chime
+    // 1. Synthesize Procedural Pop Chime & Native Haptic Pop
     try {
+      if (typeof KiroState !== 'undefined' && KiroState.triggerHaptic) {
+        KiroState.triggerHaptic('pop');
+      }
       import('./synth.js').then(({ synthEngine }) => {
         if (synthEngine && typeof synthEngine.playHatchPopChime === 'function') {
           synthEngine.playHatchPopChime();

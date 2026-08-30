@@ -70,7 +70,7 @@ export class KiroStateManager extends StateEmitter {
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
       isDashboardReady: false,
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.6',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.7',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)
@@ -204,6 +204,48 @@ export class KiroStateManager extends StateEmitter {
     this.refreshMilestoneCaps();
     this.checkStarCandyDailyRestock();
     this.startPassiveStardustTick();
+  }
+
+  /**
+   * 📳 Native & Web Haptic Feedback Engine (V10.5)
+   */
+  triggerHaptic(type = 'click') {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.AndroidHost && typeof window.AndroidHost.triggerHaptic === 'function') {
+          window.AndroidHost.triggerHaptic(type);
+          return;
+        }
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          switch (type.toLowerCase()) {
+            case 'click':
+            case 'tick':
+              navigator.vibrate(10);
+              break;
+            case 'heavy_click':
+              navigator.vibrate(22);
+              break;
+            case 'purr':
+              navigator.vibrate([15, 30, 15, 30, 15]);
+              break;
+            case 'pop':
+            case 'treat':
+              navigator.vibrate([14, 18, 10]);
+              break;
+            case 'target_lock':
+              navigator.vibrate([12, 35, 20]);
+              break;
+            case 'warp':
+            case 'supernova':
+              navigator.vibrate([25, 35, 45, 35, 70, 25, 110]);
+              break;
+            default:
+              navigator.vibrate(15);
+              break;
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   loadPersistedVitals() {
