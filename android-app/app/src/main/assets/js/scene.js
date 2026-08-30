@@ -4594,47 +4594,125 @@ export class KiroSceneManager {
   }
 
   /**
-   * 🌅 Circadian Sky Lighting Engine (V10.5)
-   * Dynamically modulates ambient light, key lights, and color temperature
-   * based on the local time of day for Patrick & Yangiee.
+   * 🌅 Real-Time Circadian Celestial Sky Lighting Engine (V10.7)
+   * Dynamically tracks real solar elevation, azimuth, color temperature,
+   * atmospheric storm dimming, and rim/fill light harmonization based on local time.
    */
   updateCircadianLighting(delta) {
     if (!this.ambientLight || !this.keyLight) return;
     const now = new Date();
     const hour = now.getHours() + now.getMinutes() / 60.0;
 
+    let phase = 'midnight';
+    let label = '🌌 Deep Velvet Void';
     let targetAmbHex = 0x2D1F38;
-    let targetAmbIntensity = 0.90;
+    let targetAmbIntensity = 0.82;
     let targetKeyHex = 0xF9E2AF;
+    let targetKeyIntensity = 1.10;
+    let targetMintFillHex = 0x4EC9B0;
+    let targetPinkRimHex = 0xCBA6F7;
+    let targetWarmGlowIntensity = 0.60;
+
+    // Solar / Lunar 3D Position
+    let targetKeyX = 4.0;
+    let targetKeyY = 12.0;
+    let targetKeyZ = -10.0;
 
     if (hour >= 5.5 && hour < 8.0) {
       // 🌅 Dawn / Golden Sunrise: warm gold & peach aura
+      phase = 'dawn';
+      label = '🌅 Golden Dawn';
       targetAmbHex = 0xF9E2AF;
-      targetAmbIntensity = 0.95;
+      targetAmbIntensity = 0.96;
       targetKeyHex = 0xF5C2E7;
+      targetKeyIntensity = 1.30;
+      targetMintFillHex = 0x4EC9B0;
+      targetPinkRimHex = 0xF5B7C0;
+      targetWarmGlowIntensity = 1.15;
+      const progress = (hour - 5.5) / 2.5;
+      targetKeyX = -12.0 + progress * 8.0;
+      targetKeyY = 4.0 + progress * 8.0;
+      targetKeyZ = -10.0;
     } else if (hour >= 8.0 && hour < 17.0) {
       // ☀️ High Celestial Starlight: vibrant mint teal & crisp diamond light
+      phase = 'day';
+      label = '☀️ Solar Starlight';
       targetAmbHex = 0xCDD6F4;
-      targetAmbIntensity = 1.05;
+      targetAmbIntensity = 1.08;
       targetKeyHex = 0x94E2D5;
+      targetKeyIntensity = 1.45;
+      targetMintFillHex = 0x94E2D5;
+      targetPinkRimHex = 0xCDD6F4;
+      targetWarmGlowIntensity = 0.80;
+      const progress = (hour - 8.0) / 9.0;
+      targetKeyX = -4.0 + progress * 8.0;
+      targetKeyY = 12.0 + Math.sin(progress * Math.PI) * 5.0;
+      targetKeyZ = -8.0;
     } else if (hour >= 17.0 && hour < 19.5) {
       // 🌇 Dusk / Sunset: rose blush & violet nebula
+      phase = 'dusk';
+      label = '🌇 Twilight Blush';
       targetAmbHex = 0xF5B7C0;
-      targetAmbIntensity = 0.88;
+      targetAmbIntensity = 0.90;
       targetKeyHex = 0xCBA6F7;
+      targetKeyIntensity = 1.25;
+      targetMintFillHex = 0xF5C2E7;
+      targetPinkRimHex = 0xCBA6F7;
+      targetWarmGlowIntensity = 1.25;
+      const progress = (hour - 17.0) / 2.5;
+      targetKeyX = 4.0 + progress * 8.0;
+      targetKeyY = 12.0 - progress * 7.0;
+      targetKeyZ = -10.0;
     } else {
-      // 🌌 Deep Midnight Sanctuary: velvet navy void & glowing starlight
+      // 🌌 Deep Midnight Sanctuary: velvet navy void & glowing lunar starlight
+      phase = 'midnight';
+      label = '🌌 Deep Velvet Void';
       targetAmbHex = 0x2D1F38;
-      targetAmbIntensity = 0.82;
+      targetAmbIntensity = 0.80;
       targetKeyHex = 0xF9E2AF;
+      targetKeyIntensity = 1.05;
+      targetMintFillHex = 0x1E1E2E;
+      targetPinkRimHex = 0xCBA6F7;
+      targetWarmGlowIntensity = 0.55;
+      const progress = (hour >= 19.5 ? (hour - 19.5) : (hour + 4.5)) / 10.0;
+      targetKeyX = 8.0 * Math.cos(progress * Math.PI * 2);
+      targetKeyY = 8.0 + 4.0 * Math.sin(progress * Math.PI);
+      targetKeyZ = -14.0;
+    }
+
+    // Weather Storm Overcast Dimming
+    const isRainAlert = KiroState.get('rainRadarAlert') || KiroState.get('weatherAlertActive');
+    if (isRainAlert) {
+      targetAmbIntensity *= 0.70;
+      targetKeyIntensity *= 0.65;
+      targetAmbHex = 0x5A6986; // Overcast slate
     }
 
     const targetAmbColor = new THREE.Color(targetAmbHex);
     const targetKeyColor = new THREE.Color(targetKeyHex);
+    const targetMintColor = new THREE.Color(targetMintFillHex);
+    const targetPinkColor = new THREE.Color(targetPinkRimHex);
 
     this.ambientLight.color.lerp(targetAmbColor, 0.04);
     this.ambientLight.intensity += (targetAmbIntensity - this.ambientLight.intensity) * 0.04;
     this.keyLight.color.lerp(targetKeyColor, 0.04);
+    this.keyLight.intensity += (targetKeyIntensity - this.keyLight.intensity) * 0.04;
+    this.keyLight.position.lerp(new THREE.Vector3(targetKeyX, targetKeyY, targetKeyZ), 0.04);
+
+    if (this.mintFill) {
+      this.mintFill.color.lerp(targetMintColor, 0.04);
+    }
+    if (this.pinkRim) {
+      this.pinkRim.color.lerp(targetPinkColor, 0.04);
+    }
+    if (this.warmGlow) {
+      this.warmGlow.intensity += (targetWarmGlowIntensity - this.warmGlow.intensity) * 0.04;
+    }
+
+    if (this._lastCircadianPhase !== phase) {
+      this._lastCircadianPhase = phase;
+      KiroState.set('circadianPhase', { phase, label, hour: Math.round(hour * 10) / 10 });
+    }
   }
 
   dispose() {

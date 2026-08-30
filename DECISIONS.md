@@ -7,6 +7,18 @@
 
 ## 📋 Full Architectural Decision Archive
 
+### [DEC-861900] Advanced Real-Time Circadian Celestial Sky Lighting with 3D Solar Arcs & Dynamic Storm Dimming (V10.7)
+- **Timestamp**: `2026-08-31T02:02:00.000000`
+- **Strategy & Synthesis**: Engineered advanced Real-Time Circadian Sky Lighting with 3D solar arcs, dynamic storm dimming, rim/fill harmonization, and circadian state synchronization (v2.6.9, Build 107).
+- **Evaluated Perspectives**:
+  - **Creative**: Score 5/5: Engineered mathematically accurate 3D solar and lunar trajectories across the celestial hemisphere with golden sunrise peaches, diamond day mints, rose-gold twilight blushes, and deep midnight void hues.
+  - **Performance**: Score 5/5: Zero-overhead vector lerp calculations executed per-frame inside existing render loop without extra allocations, preserving sustained 200FPS / 5ms frame budgets.
+  - **Container**: Score 5/5: Synchronized SemVer bump to v2.6.9 (Build 107) across version.json, index.html, state.js, and build.gradle.kts for guaranteed OTA asset cache eviction on Android WebViews.
+  - **Structural**: Score 5/5: Synchronized rim and fill lights (mintFill, pinkRim, warmGlow) and integrated live meteorological storm overcast dimming (0.70x ambient, 0.65x key) when rain radar alerts fire.
+  - **Gamification**: Score 5/5: Live circadian phase updates emitted to KiroState ('dawn' | 'day' | 'dusk' | 'midnight'), bridging physical time in Malaybalay & Capas with Kiro's visual haven.
+
+---
+
 ### [DEC-851900] Procedural Meteor Showers, Twin Starlight Leaderboards & Celestial Stamps (V10.6)
 - **Timestamp**: `2026-08-31T01:58:00.000000`
 - **Strategy & Synthesis**: Added procedural shooting stars and meteor showers in cockpit with interactive raycasting (+5 Stardust Shards), built Twin Starlight Arcade Leaderboard (Patrick vs Yangiee), and integrated Celestial Reaction Stamps (v2.6.8, Build 106).

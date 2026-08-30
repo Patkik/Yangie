@@ -1,10 +1,10 @@
 {
-  "version": "2.6.8",
-  "build": 106,
+  "version": "2.6.9",
+  "build": 107,
   "name": "Kiro",
-  "description": "Space Capsule V10.6 — Procedural Meteor Showers, Twin Starlight Leaderboards & Celestial Stamps",
+  "description": "Space Capsule V10.7 — Advanced Real-Time Circadian Sky Lighting Engine with 3D Solar Arcs & Dynamic Storm Dimming",
   "releaseDate": "2026-08-31",
   "minApkVersion": 1,
-  "changelog": "V10.6: Added procedural shooting stars and meteor showers in panoramic space shuttle cockpit with interactive raycasting (+5 Stardust Shards on catch & sparkle audio); built Twin Starlight Arcade Leaderboards tracking Patrick vs Yangiee personal bests in minigames; and integrated animated Celestial Reaction Stamps in Starlight Mailbox with tactile haptic pops and pentatonic chimes."
+  "changelog": "V10.7: Engineered advanced Real-Time Circadian Sky Lighting tracking 3D solar/lunar orbital trajectories (elevation & azimuth), dynamic dawn/day/dusk/midnight color temperatures, rim/fill light harmonization, and live atmospheric storm desaturation dimming."
 }
 
