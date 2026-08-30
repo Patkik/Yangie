@@ -768,13 +768,13 @@ export class KiroSceneManager {
     this.targetSystemMeshes = [];
     this.lastAlignedTargetId = null;
     this.spaceSystems = [
-      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', x: 22.0, y: 12.0, z: -28.0, size: 0.95, color: 0xF5C2E7 },
-      { id: 'helix',     name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce', type: 'IONIZED NEBULA', dist: '655 ly', x: -24.0, y: 14.0, z: -32.0, size: 1.10, color: 0x94E2D5 },
-      { id: 'sombrero',  name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes', type: 'SPIRAL CORE', dist: '29.3 Mly', x: 26.0, y: -12.0, z: -34.0, size: 1.05, color: 0xF9E2AF },
-      { id: 'crab',      name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast', type: 'NEUTRON PULSAR', dist: '6.50 kly', x: -22.0, y: -14.0, z: -30.0, size: 0.90, color: 0xCBA6F7 },
-      { id: 'gliese',    name: 'Mint Ice World (Gliese 667)', game: 'Frozen Stardust', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', x: -16.0, y: -4.0, z: -36.0, size: 0.80, color: 0x4EC9B0 },
-      { id: 'kepler',    name: 'Lavender Ring Giant (Kepler 186)', game: 'Orbital Rings', type: 'RINGED GAS GIANT', dist: '582 ly', x: 18.0, y: 16.0, z: -38.0, size: 0.85, color: 0xCBA6F7 },
-      { id: 'trappist',  name: 'Pastel Star Sanctuary (Trappist 1)', game: 'Starlight Catch', type: 'RED DWARF HABITAT', dist: '39.6 ly', x: 8.0, y: -18.0, z: -40.0, size: 0.75, color: 0xFFB6C1 }
+      { id: 'butterfly', name: 'Butterfly Galaxy (NGC 6302)', game: 'Nebula Dodge', type: 'GALACTIC SANCTUARY', dist: '3.80 kly', x: 13.0, y: 7.0, z: -26.0, size: 0.95, color: 0xF5C2E7 },
+      { id: 'helix',     name: 'Eye of Helix Nebula (NGC 7293)', game: 'Celestial Bounce', type: 'IONIZED NEBULA', dist: '655 ly', x: -14.0, y: 8.0, z: -28.0, size: 1.10, color: 0x94E2D5 },
+      { id: 'sombrero',  name: 'Sombrero Vortex (M104)', game: 'Cosmic Chimes', type: 'SPIRAL CORE', dist: '29.3 Mly', x: 15.0, y: -7.0, z: -30.0, size: 1.05, color: 0xF9E2AF },
+      { id: 'crab',      name: 'Crab Pulsar Core (M1)', game: 'Supernova Blast', type: 'NEUTRON PULSAR', dist: '6.50 kly', x: -13.0, y: -8.0, z: -26.0, size: 0.90, color: 0xCBA6F7 },
+      { id: 'gliese',    name: 'Mint Ice World (Gliese 667)', game: 'Frozen Stardust', type: 'EXOPLANET SANCTUARY', dist: '23.6 ly', x: -9.0, y: -3.0, z: -25.0, size: 0.80, color: 0x4EC9B0 },
+      { id: 'kepler',    name: 'Lavender Ring Giant (Kepler 186)', game: 'Orbital Rings', type: 'RINGED GAS GIANT', dist: '582 ly', x: 10.0, y: 9.0, z: -28.0, size: 0.85, color: 0xCBA6F7 },
+      { id: 'trappist',  name: 'Pastel Star Sanctuary (Trappist 1)', game: 'Starlight Catch', type: 'RED DWARF HABITAT', dist: '39.6 ly', x: 4.0, y: -10.0, z: -28.0, size: 0.75, color: 0xFFB6C1 }
     ];
     this.warpSpeed = 0.02;
     this.warpStarSize = 0.42;
@@ -1702,7 +1702,7 @@ export class KiroSceneManager {
       const reticleNdc = reticleWorldPos.project(this.camera);
 
       // Inner reticle focal radius threshold in NDC (tight focal cone)
-      const FOCAL_LOCK_THRESHOLD = 0.15;
+      const FOCAL_LOCK_THRESHOLD = 0.22;
 
       const targetWorldPos = new THREE.Vector3();
       this.targetSystemMeshes.forEach(target => {
@@ -2284,30 +2284,53 @@ export class KiroSceneManager {
     this.cockpitGroup.visible = false;
     this.scene.add(this.cockpitGroup);
 
-    // 1. Cockpit Arch Canopy Struts (Sleek Space Shuttle Glass Window Frame at Z = -1.8)
+    // 1. Panoramic Space Shuttle Cockpit Canopy (Expansive Wide-Angle Glass Bezel at Z = -1.5)
     const canopyMat = new THREE.MeshBasicMaterial({
-      color: 0x181825,
+      color: 0x11111b,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.88
+    });
+    const accentMat = new THREE.MeshBasicMaterial({
+      color: 0x4EC9B0,
+      transparent: true,
+      opacity: 0.35
     });
 
-    // Top canopy arch
-    const archGeo = new THREE.TorusGeometry(2.8, 0.07, 12, 48, Math.PI);
+    // Top panoramic canopy arch (spanning wide across the upper viewport)
+    const archGeo = new THREE.TorusGeometry(6.6, 0.05, 12, 64, Math.PI);
     const archMesh = new THREE.Mesh(archGeo, canopyMat);
-    archMesh.position.set(0, 0.25, -1.8);
+    archMesh.position.set(0, 1.85, -1.5);
     this.cockpitGroup.add(archMesh);
 
-    // Side struts
-    const strutGeo = new THREE.CylinderGeometry(0.04, 0.04, 3.5, 12);
+    // Bottom dashboard console sill curve
+    const sillGeo = new THREE.TorusGeometry(7.0, 0.06, 12, 64, Math.PI);
+    const sillMesh = new THREE.Mesh(sillGeo, canopyMat);
+    sillMesh.position.set(0, -2.8, -1.5);
+    sillMesh.rotation.z = Math.PI;
+    this.cockpitGroup.add(sillMesh);
+
+    // Wide-angle side pillars (tapered outwards to frame the screen perimeter)
+    const strutGeo = new THREE.CylinderGeometry(0.04, 0.04, 7.2, 12);
     const leftStrut = new THREE.Mesh(strutGeo, canopyMat);
-    leftStrut.position.set(-2.2, -0.2, -1.8);
-    leftStrut.rotation.z = 0.25;
+    leftStrut.position.set(-5.4, -0.1, -1.5);
+    leftStrut.rotation.z = 0.28;
     this.cockpitGroup.add(leftStrut);
 
     const rightStrut = new THREE.Mesh(strutGeo, canopyMat);
-    rightStrut.position.set(2.2, -0.2, -1.8);
-    rightStrut.rotation.z = -0.25;
+    rightStrut.position.set(5.4, -0.1, -1.5);
+    rightStrut.rotation.z = -0.28;
     this.cockpitGroup.add(rightStrut);
+
+    // Subtle corner accent brackets
+    const cornerGeo = new THREE.RingGeometry(0.55, 0.58, 16, 1, 0, Math.PI * 0.5);
+    const leftCorner = new THREE.Mesh(cornerGeo, accentMat);
+    leftCorner.position.set(-4.6, 2.2, -1.5);
+    this.cockpitGroup.add(leftCorner);
+
+    const rightCorner = new THREE.Mesh(cornerGeo, accentMat);
+    rightCorner.position.set(4.6, 2.2, -1.5);
+    rightCorner.rotation.z = -Math.PI * 0.5;
+    this.cockpitGroup.add(rightCorner);
 
     // 2. Holographic Flight Reticle (Centered in screen at Z = -2.5)
     this.hudReticleGroup = new THREE.Group();
@@ -2345,8 +2368,8 @@ export class KiroSceneManager {
     [-0.55, -0.28, 0.28, 0.55].forEach((ladderY) => {
       const lineGeo = new THREE.BufferGeometry();
       const verts = new Float32Array([
-        -0.22, ladderY, 0,
-         0.22, ladderY, 0
+        -0.30, ladderY, 0,
+         0.30, ladderY, 0
       ]);
       lineGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
       const lineMat = new THREE.LineBasicMaterial({ color: 0x4EC9B0, transparent: true, opacity: 0.55 });
@@ -2355,11 +2378,11 @@ export class KiroSceneManager {
       this.registerDisposable(lineMat);
     });
 
-    // Horizon line
+    // Panoramic Horizon line
     const horizonGeo = new THREE.BufferGeometry();
     const hVerts = new Float32Array([
-      -1.4, 0, 0,
-       1.4, 0, 0
+      -3.8, 0, 0,
+       3.8, 0, 0
     ]);
     horizonGeo.setAttribute('position', new THREE.BufferAttribute(hVerts, 3));
     const horizonMat = new THREE.LineBasicMaterial({ color: 0x94E2D5, transparent: true, opacity: 0.65 });
@@ -2368,8 +2391,11 @@ export class KiroSceneManager {
     this.cockpitGroup.add(this.hudReticleGroup);
 
     this.registerDisposable(archGeo);
+    this.registerDisposable(sillGeo);
     this.registerDisposable(strutGeo);
+    this.registerDisposable(cornerGeo);
     this.registerDisposable(canopyMat);
+    this.registerDisposable(accentMat);
     this.registerDisposable(pipGeo);
     this.registerDisposable(pipMat);
     this.registerDisposable(innerRingGeo);
@@ -2405,8 +2431,8 @@ export class KiroSceneManager {
       if (isDraggingFlight && KiroState.get('telescopeActive')) {
         const deltaX = clientX - flightStartX;
         const deltaY = clientY - flightStartY;
-        const pitch = Math.max(-50, Math.min(50, startPitch - deltaY * 0.18));
-        const yaw = Math.max(-50, Math.min(50, startYaw + deltaX * 0.18));
+        const pitch = Math.max(-120, Math.min(120, startPitch - deltaY * 0.26));
+        const yaw = Math.max(-120, Math.min(120, startYaw + deltaX * 0.26));
         KiroState.set('cockpitSteering', { pitch, yaw });
         const speed = Math.min(1.0, (Math.abs(pitch) + Math.abs(yaw)) / 60);
         if (!this.minigameActive && !KiroState.get('minigameActive')) {
@@ -2501,11 +2527,52 @@ export class KiroSceneManager {
       }
     }, { passive: true });
 
-    // Interactive Kiro Petting Raycast
+    // Interactive Kiro Petting & Telescope Tap-To-Navigate Raycast
     window.addEventListener('click', (e) => {
-      if (!this.kiroGroup || !this.camera) return;
-      if (KiroState.get('telescopeActive')) return;
+      if (!this.camera) return;
 
+      if (KiroState.get('telescopeActive')) {
+        // Tap-to-Navigate on Distant Target Planets
+        if (this.targetSystemMeshes && this.targetSystemMeshes.length > 0) {
+          const normX = (e.clientX / window.innerWidth) * 2 - 1;
+          const normY = -(e.clientY / window.innerHeight) * 2 + 1;
+          const clickRay = new THREE.Raycaster();
+          clickRay.setFromCamera(new THREE.Vector2(normX, normY), this.camera);
+          
+          let clickedTarget = null;
+          for (const target of this.targetSystemMeshes) {
+            const hits = clickRay.intersectObjects(target.children, true);
+            if (hits.length > 0) {
+              clickedTarget = target;
+              break;
+            }
+          }
+
+          if (clickedTarget && clickedTarget.userData) {
+            const basePos = clickedTarget.userData.basePos;
+            const targetYaw = Math.max(-120, Math.min(120, basePos.x / 0.22));
+            const targetPitch = Math.max(-120, Math.min(120, basePos.y / 0.22));
+            const currentSteering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
+            
+            if (window.gsap) {
+              gsap.to(currentSteering, {
+                pitch: targetPitch,
+                yaw: targetYaw,
+                duration: 0.8,
+                ease: "power2.out",
+                onUpdate: () => {
+                  KiroState.set('cockpitSteering', { ...currentSteering });
+                }
+              });
+            } else {
+              KiroState.set('cockpitSteering', { pitch: targetPitch, yaw: targetYaw });
+            }
+          }
+        }
+        return;
+      }
+
+      if (!this.kiroGroup) return;
       const normX = (e.clientX / window.innerWidth) * 2 - 1;
       const normY = -(e.clientY / window.innerHeight) * 2 + 1;
       const clickRay = new THREE.Raycaster();
@@ -3559,12 +3626,12 @@ export class KiroSceneManager {
         this.kiroGroup.position.y = -4;
         this.kiroGroup.visible = false;
       }
-      const targetGroupX = -(steering.yaw || 0) * 0.12;
-      const targetGroupY = -(steering.pitch || 0) * 0.12;
-      this.backgroundCelestialGroup.position.x += (targetGroupX - this.backgroundCelestialGroup.position.x) * 0.10;
-      this.backgroundCelestialGroup.position.y += (targetGroupY - this.backgroundCelestialGroup.position.y) * 0.10;
-      this.backgroundCelestialGroup.rotation.y += ((steering.yaw || 0) * 0.005 - this.backgroundCelestialGroup.rotation.y) * 0.10;
-      this.backgroundCelestialGroup.rotation.x += (-(steering.pitch || 0) * 0.005 - this.backgroundCelestialGroup.rotation.x) * 0.10;
+      const targetGroupX = -(steering.yaw || 0) * 0.22;
+      const targetGroupY = -(steering.pitch || 0) * 0.22;
+      this.backgroundCelestialGroup.position.x += (targetGroupX - this.backgroundCelestialGroup.position.x) * 0.12;
+      this.backgroundCelestialGroup.position.y += (targetGroupY - this.backgroundCelestialGroup.position.y) * 0.12;
+      this.backgroundCelestialGroup.rotation.y += ((steering.yaw || 0) * 0.008 - this.backgroundCelestialGroup.rotation.y) * 0.12;
+      this.backgroundCelestialGroup.rotation.x += (-(steering.pitch || 0) * 0.008 - this.backgroundCelestialGroup.rotation.x) * 0.12;
 
       // Animate reticle ring and dynamic target alignment color
       if (this.crosshairMesh) {

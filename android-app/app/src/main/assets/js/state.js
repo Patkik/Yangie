@@ -70,7 +70,7 @@ export class KiroStateManager extends StateEmitter {
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
       isDashboardReady: false,
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.5',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.6.6',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)

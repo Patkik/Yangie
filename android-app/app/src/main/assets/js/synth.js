@@ -92,7 +92,7 @@ export class CosmicSynthEngine {
 
     KiroState.on('cockpitSteering:change', (steering) => {
       if (steering) {
-        const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
+        const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 80);
         this.updateThrusterSpeed(speed);
       }
     });

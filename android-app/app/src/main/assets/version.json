@@ -1,10 +1,10 @@
 {
-  "version": "2.6.5",
-  "build": 103,
+  "version": "2.6.6",
+  "build": 104,
   "name": "Kiro",
-  "description": "Space Capsule V10.3 — Intro Pacing Refinement, Smooth Animation Sequences & Whisper-Soft Dialogue Audio",
+  "description": "Space Capsule V10.4 — Panoramic Space Shuttle Cockpit Viewport & Extended Celestial Planetary Navigation",
   "releaseDate": "2026-08-31",
   "minApkVersion": 1,
-  "changelog": "V10.3: Refactored startup flow into a clean sequential pipeline eliminating concurrent WebGL overlay collisions; lengthened preloader progress timeline to a calm 4.6s with gentle organic egg rocking and bloom hatching physics; smoothed intro warp transitions; harmonized dialogue cloud bubble sound (playGiggle) into a warm, whisper-soft anime chime; and softened preloader hatch pop, engine drone, and warp swoosh gain levels by 60%."
+  "changelog": "V10.4: Re-architected Space Shuttle POV into an ultra-wide panoramic canopy (6.6-radius upper arch, 7.0-radius console sill, and outward-tapered side pillars at X=+/-5.4) eliminating claustrophobic screen borders; expanded cockpit steering pitch/yaw range to +/-120 with enhanced celestial parallax multipliers (0.22); calibrated reachable planetary system coordinates; added interactive tap-to-navigate autopilot on distant target planets; and enabled D-Pad re-centering."
 }
 

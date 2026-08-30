@@ -591,15 +591,22 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => {
         const dir = btn.getAttribute('data-dir');
         let steering = KiroState.get('cockpitSteering') || { pitch: 0, yaw: 0 };
-        const step = 8;
+        const step = 14;
 
-        if (dir === 'up') steering.pitch = Math.min(50, (steering.pitch || 0) + step);
-        if (dir === 'down') steering.pitch = Math.max(-50, (steering.pitch || 0) - step);
-        if (dir === 'left') steering.yaw = Math.max(-50, (steering.yaw || 0) - step);
-        if (dir === 'right') steering.yaw = Math.min(50, (steering.yaw || 0) + step);
+        if (dir === 'center') {
+          steering = { pitch: 0, yaw: 0 };
+        } else if (dir === 'up') {
+          steering.pitch = Math.min(120, (steering.pitch || 0) + step);
+        } else if (dir === 'down') {
+          steering.pitch = Math.max(-120, (steering.pitch || 0) - step);
+        } else if (dir === 'left') {
+          steering.yaw = Math.max(-120, (steering.yaw || 0) - step);
+        } else if (dir === 'right') {
+          steering.yaw = Math.min(120, (steering.yaw || 0) + step);
+        }
 
         KiroState.set('cockpitSteering', { ...steering });
-        const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 60);
+        const speed = Math.min(1.0, (Math.abs(steering.pitch || 0) + Math.abs(steering.yaw || 0)) / 80);
         if (!KiroState.get('minigameActive')) {
           synthEngine.updateThrusterSpeed(speed);
         }
