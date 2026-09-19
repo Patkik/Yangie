@@ -62,10 +62,31 @@ export class CorAmorisEngine {
     if (typeof window === 'undefined') return;
     if (this.idleHintTimer) clearInterval(this.idleHintTimer);
 
+    if (!this._lifecycleBound) {
+      this._lifecycleBound = true;
+      window.addEventListener('app:paused', () => {
+        if (this.idleHintTimer) {
+          clearInterval(this.idleHintTimer);
+          this.idleHintTimer = null;
+        }
+      });
+      window.addEventListener('app:resumed', () => {
+        const corState = KiroState.getCorAmorisState();
+        if (corState && !corState.unlocked && !this.idleHintTimer) {
+          this.startIdleMonitor();
+        }
+      });
+    }
+
     this.idleHintTimer = setInterval(() => {
       if (this.isCutscenePlaying) return;
       const corState = KiroState.getCorAmorisState();
-      if (!corState || corState.unlocked) return;
+      if (!corState) return;
+      if (corState.unlocked) {
+        clearInterval(this.idleHintTimer);
+        this.idleHintTimer = null;
+        return;
+      }
 
       const elapsed = Date.now() - this.lastInteractionTime;
       if (elapsed >= 20000) {

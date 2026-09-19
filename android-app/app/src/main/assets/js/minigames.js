@@ -150,6 +150,16 @@ export class KiroMinigameEngine {
     this.isPaused = false;
     this.isGameOver = false;
 
+    if (typeof window !== 'undefined') {
+      window.addEventListener('app:paused', () => {
+        if (this.activeGame && !this.isPaused && !this.isGameOver) {
+          this.isPaused = true;
+          const pauseBtn = this.modal ? this.modal.querySelector('#minigame-pause-btn') : null;
+          if (pauseBtn) pauseBtn.classList.add('active');
+        }
+      });
+    }
+
     this.initDOM();
   }
 

@@ -34,6 +34,8 @@ import { synthEngine } from './synth.js';
 import KiroPhysicsAgent from './physics-agent.js';
 import { ARTEngine } from './art-engine.js';
 import { createWormholeVortexShaderMaterial, createGuardianShaderMaterial } from './anime-shader-pipeline.js';
+import { performanceManager } from './performance-manager.js';
+import { disposalManager } from './disposal-manager.js';
 
 // Pre-allocated Module Scratch Objects (Zero-Allocation Render Tick Standard)
 const _scratchVec1 = new THREE.Vector3();
@@ -887,8 +889,17 @@ export class KiroSceneManager {
     });
     this.renderer.setClearColor(0x000000, 1.0);
     this.renderer.setSize(width, height);
-    const maxDpr = this.ecoModeActive ? 1.0 : Math.min(window.devicePixelRatio || 1.0, 1.75);
+    // Pillar 1: DPR clamped to 1.75x max (scaled adaptively via performanceManager: Low=1.0, Mid=1.35, High=1.75)
+    const maxDpr = typeof performanceManager !== 'undefined' ? performanceManager.getDpr(window.devicePixelRatio || 1.0) : (this.ecoModeActive ? 1.0 : Math.min(window.devicePixelRatio || 1.0, 1.75));
     this.renderer.setPixelRatio(maxDpr);
+
+    if (typeof performanceManager !== 'undefined') {
+      performanceManager.onProfileChange(() => {
+        if (this.renderer) {
+          this.renderer.setPixelRatio(performanceManager.getDpr(window.devicePixelRatio || 1.0));
+        }
+      });
+    }
 
     if (ARTEngine && ARTEngine.telemetryHUD) {
       ARTEngine.telemetryHUD.setRenderer(this.renderer);
@@ -1012,6 +1023,9 @@ export class KiroSceneManager {
   registerDisposable(resource) {
     if (resource) {
       this.celestialDisposalRegistry.add(resource);
+      if (typeof disposalManager !== 'undefined') {
+        disposalManager.track(resource, 'scene');
+      }
     }
   }
 
@@ -3755,9 +3769,15 @@ export class KiroSceneManager {
     if (this.isDisposed) return;
     this.animationFrameId = requestAnimationFrame((ts) => this.animate(ts));
 
+    // Battery Guard: Suspend render tick immediately when app is backgrounded/paused
+    if (window.appLifecycle && window.appLifecycle.isPaused) {
+      return;
+    }
+
     // Enforce target frame budget (16.6ms for 60 FPS in standard, 33.3ms for 30 FPS in eco mode)
     const now = (typeof timestamp === 'number' && timestamp > 0) ? timestamp : performance.now();
-    const targetFps = this.ecoModeActive ? 30 : (this.targetFPS || 60);
+    const perfProfile = typeof performanceManager !== 'undefined' ? performanceManager.getProfile() : null;
+    const targetFps = this.ecoModeActive ? 30 : (perfProfile ? perfProfile.renderFpsCap : (this.targetFPS || 60));
     const interval = 1000 / targetFps;
     const deltaMs = now - this.lastRenderTime;
 

@@ -7,6 +7,8 @@
 class StateEmitter {
   constructor() {
     this.listeners = new Map();
+    this._batchDepth = 0;
+    this._queuedEmits = null;
   }
 
   on(event, callback) {
@@ -43,18 +45,44 @@ class StateEmitter {
   off(event, callback) {
     if (!this.listeners.has(event)) return;
     const callbacks = this.listeners.get(event).filter(cb => cb !== callback);
-    this.listeners.set(event, callbacks);
+    if (callbacks.length === 0) {
+      this.listeners.delete(event);
+    } else {
+      this.listeners.set(event, callbacks);
+    }
+  }
+
+  batch(fn) {
+    this._batchDepth++;
+    if (!this._queuedEmits) this._queuedEmits = [];
+    try {
+      fn();
+    } finally {
+      this._batchDepth--;
+      if (this._batchDepth === 0 && this._queuedEmits) {
+        const queue = this._queuedEmits;
+        this._queuedEmits = null;
+        for (let i = 0; i < queue.length; i++) {
+          this.emit(queue[i].event, queue[i].data);
+        }
+      }
+    }
   }
 
   emit(event, data) {
+    if (this._batchDepth > 0) {
+      this._queuedEmits.push({ event, data });
+      return;
+    }
     if (this.listeners.has(event)) {
-      this.listeners.get(event).forEach(callback => {
+      const callbacks = this.listeners.get(event).slice();
+      for (let i = 0; i < callbacks.length; i++) {
         try {
-          callback(data);
+          callbacks[i](data);
         } catch (e) {
           console.error(`[KiroState Error in "${event}"]:`, e);
         }
-      });
+      }
     }
   }
 }
@@ -70,7 +98,7 @@ export class KiroStateManager extends StateEmitter {
       currentUser: localStorage.getItem('starlight_persona') || 'pat',
       hasCompletedIntro: localStorage.getItem('kiro_intro_completed') === 'true',
       isDashboardReady: false,
-      installedVersion: localStorage.getItem('gn_installed_version') || '2.7.0',
+      installedVersion: localStorage.getItem('gn_installed_version') || '2.8.0',
       isOtaActive: false,
 
       // Unified Tri-Vital System (V8.2)

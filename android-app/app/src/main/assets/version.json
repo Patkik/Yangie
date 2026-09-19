@@ -1,11 +1,11 @@
 {
-  "version": "2.7.0",
-  "build": 108,
+  "version": "2.8.0",
+  "build": 109,
   "name": "Kiro",
-  "description": "Space Capsule V11.0 — Runtime Efficiency Suite: Minigame 60 FPS Cap, Batched Canvas Draw Calls & O(1) Particle Pool",
-  "releaseDate": "2026-08-31",
+  "description": "Space Capsule V11.1 — Full Mobile Performance Refactor Suite (Adaptive Quality Tiering, Centralized Disposal Manager, Lifecycle Battery Guard & Performance Budgets)",
+  "releaseDate": "2026-09-20",
   "minApkVersion": 1,
-  "changelog": "V11.0: 5-fix performance suite — minigame guard moved to top of RAF loop (eliminates circadian trig during gameplay), 60 FPS cap on all minigame loops (saves 50-75% GPU on high-refresh panels), Tetris grid batched from 28 individual strokes to 2 paths, NebulaDodge plasma jets batched by color group eliminating per-object save/restore flushes, and ParticlePool upgraded from O(n) linear scan to O(1) free-list head pointer."
+  "changelog": "V11.1: Full mobile performance refactor — Adaptive Hardware Tiering (High/Mid/Low), Centralized DisposalManager for zero-GC memory safety, Android lifecycle WebView pause/resume eliminating background drain, batched DocumentFragment message feed rendering, adaptive glassmorphism CSS, and CI performance budget validation suite."
 }
 
 

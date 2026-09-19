@@ -2870,3 +2870,30 @@ body.pointer-locked * {
   }
 }
 
+/* ==========================================================================
+   Adaptive Quality Tier Glassmorphic Overrides (V10.8)
+   ========================================================================== */
+body.tier-low .glass-panel,
+body.tier-low .modal-content,
+body.tier-low .hud-card,
+body.tier-low .cockpit-dashboard-overlay,
+body.tier-low .settings-modal-content,
+body.tier-low .mailbox-modal-content,
+body.tier-low .telemetry-station-card,
+body.tier-low .sanctuary-bottom-sheet {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(17, 17, 27, 0.94) !important;
+}
+
+body.tier-mid .glass-panel,
+body.tier-mid .modal-content,
+body.tier-mid .hud-card,
+body.tier-mid .settings-modal-content,
+body.tier-mid .mailbox-modal-content,
+body.tier-mid .telemetry-station-card,
+body.tier-mid .sanctuary-bottom-sheet {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+

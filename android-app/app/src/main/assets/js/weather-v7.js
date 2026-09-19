@@ -476,6 +476,9 @@ export default class KiroWeatherStationV7 {
      */
     async syncLiveSanctuaryWeather() {
         if (this.isSyncingWeather) return;
+        if (typeof window !== 'undefined' && window.appLifecycle && window.appLifecycle.isPaused) {
+            return;
+        }
         this.isSyncingWeather = true;
 
         const refreshBtn = document.getElementById('refresh-live-weather-btn');
@@ -567,6 +570,20 @@ export default class KiroWeatherStationV7 {
         // Register global bridge hook
         if (typeof window !== 'undefined') {
             window.handleRainFeedback = (action, city) => this.handleRainFeedback(action, city);
+
+            // Suspend periodic weather reminders when app is backgrounded to save battery
+            window.addEventListener('app:paused', () => {
+                if (this.reminderInterval) {
+                    clearInterval(this.reminderInterval);
+                    this.reminderInterval = null;
+                }
+            });
+            window.addEventListener('app:resumed', () => {
+                if (!this.reminderInterval && KiroState.get('isDashboardReady')) {
+                    auditRain();
+                    this.reminderInterval = setInterval(auditRain, 20000);
+                }
+            });
         }
 
         const scheduleInitialAudit = () => {

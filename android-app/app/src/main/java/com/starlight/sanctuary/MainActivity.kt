@@ -18,6 +18,7 @@ import android.os.VibratorManager
 import android.os.VibrationEffect
 import android.provider.Settings
 import android.util.Log
+import android.view.View
 import android.webkit.*
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -397,6 +398,9 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     @Suppress("DEPRECATION")
     private fun setupWebViewSettings() {
+        // Enforce GPU hardware layer acceleration for 60-120 FPS WebGL rendering
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -486,12 +490,14 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         webView.onResume()
+        webView.resumeTimers()
         webView.evaluateJavascript("javascript:if(window.appLifecycle && typeof window.appLifecycle.resumeGame === 'function') window.appLifecycle.resumeGame();", null)
     }
 
     override fun onPause() {
         super.onPause()
         webView.onPause()
+        webView.pauseTimers()
         webView.evaluateJavascript("javascript:if(window.appLifecycle && typeof window.appLifecycle.pauseGame === 'function') window.appLifecycle.pauseGame();", null)
     }
 
@@ -509,6 +515,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "Memory Trim: Critical level $level. Flushing WebView caches and notifying WebGL engine.")
                 webView.clearCache(false)
                 webView.evaluateJavascript("window.dispatchEvent(new CustomEvent('webviewlowmemory', { detail: { level: $level } }));", null)
+                webView.evaluateJavascript("if (window.disposalManager && typeof window.disposalManager.handleLowMemory === 'function') window.disposalManager.handleLowMemory($level);", null)
             }
         }
     }

@@ -198,6 +198,9 @@ def run_integrity_checks():
     # Test 8: Dynamic Headless WebGL & WebAudio Runtime Audit
     passed = audit_headless_gl_runtime() and passed
 
+    # Test 9: Mobile WebGL, Memory & Asset Performance Budgets
+    passed = audit_performance_budgets() and passed
+
     print(f"\n{Colors.BRIGHT}========================================{Colors.RESET}")
     if passed:
         print(f"{Colors.GREEN}{Colors.BRIGHT}🎉 WORKSPACE VERIFICATION SUCCESSFUL: Ready for Android Studio compile! ✨{Colors.RESET}\n")
@@ -544,6 +547,26 @@ def audit_headless_gl_runtime():
             return False
     except Exception as e:
         print(f"  {Colors.YELLOW}⚠️  Node runtime unavailable or headless audit skipped: {e}{Colors.RESET}")
+        return True
+
+def audit_performance_budgets():
+    print(f"\n{Colors.TEAL}9. Auditing Mobile WebGL, Memory, & Asset Performance Budgets (scripts/perf-budget.js)...{Colors.RESET}")
+    budget_script = PROJECT_ROOT / "scripts" / "perf-budget.js"
+    if not budget_script.exists():
+        print(f"  {Colors.YELLOW}⚠️  Performance budget script not found at: {budget_script}{Colors.RESET}")
+        return True
+
+    import subprocess
+    try:
+        res = subprocess.run(["node", str(budget_script)], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if res.returncode == 0:
+            print(f"  {Colors.GREEN}✔ All mobile performance budgets & frame latency limits passed! 🚀{Colors.RESET}")
+            return True
+        else:
+            print(f"  {Colors.RED}❌ Performance budget failure:\n{res.stdout}\n{res.stderr}{Colors.RESET}")
+            return False
+    except Exception as e:
+        print(f"  {Colors.YELLOW}⚠️  Node runtime unavailable or budget audit skipped: {e}{Colors.RESET}")
         return True
 
 # ─────────────────────────────────────────────────────────────────────────────

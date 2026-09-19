@@ -88,6 +88,19 @@ export class CosmicSynthEngine {
       ['touchstart', 'mousedown', 'keydown', 'pointerdown'].forEach(evt => {
         window.addEventListener(evt, () => this.resetInactivityWatchdog(), { passive: true });
       });
+
+      // Battery Guard: Suspend Web Audio during Android background lifecycle
+      window.addEventListener('app:paused', () => this.suspend());
+      window.addEventListener('app:resumed', () => {
+        if (!this.isDutyCycleAsleep) this.resume();
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.suspend();
+        } else if (!this.isDutyCycleAsleep) {
+          this.resume();
+        }
+      });
     }
 
     KiroState.on('cockpitSteering:change', (steering) => {
@@ -283,13 +296,14 @@ export class CosmicSynthEngine {
       this.wakeFromDutyCycleSleep();
     }
     if (this.inactivityTimer) clearTimeout(this.inactivityTimer);
+    const timeoutMs = (this.isEcoAudio || (typeof window !== 'undefined' && window.performanceManager && window.performanceManager.currentTier === 'low')) ? 30000 : 120000;
     this.inactivityTimer = setTimeout(() => {
       // If no ambient channel has active volume and thrusters are off, suspend context
       const hasActiveAmbient = Object.values(this.channels).some(ch => ch.volume > 0);
       if (!hasActiveAmbient && (!this.thruster || !this.thruster.active)) {
         this.enterDutyCycleSleep();
       }
-    }, 120000); // 120-second watchdog
+    }, timeoutMs || 120000); // 120-second watchdog
   }
 
   getAudioReactiveLevel() {

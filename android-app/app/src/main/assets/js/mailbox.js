@@ -828,16 +828,39 @@ export class StarlightMessenger {
     const feed = this.overlay.querySelector('#mailbox-feed');
     if (!feed) return;
     feed.innerHTML = '';
-    for (const msg of this.messages) {
-      this._createMessageElement(msg.sender, msg.content, msg.type || 'text', msg.time);
+
+    const fragment = document.createDocumentFragment();
+    const maxInitial = 50;
+    const startIndex = Math.max(0, this.messages.length - maxInitial);
+
+    if (startIndex > 0) {
+      const loadMoreBtn = document.createElement('div');
+      loadMoreBtn.className = 'load-earlier-messages-btn';
+      loadMoreBtn.textContent = `▲ Load ${startIndex} earlier messages`;
+      loadMoreBtn.style.cssText = 'text-align:center; font-size:11px; padding:6px; color:var(--lavender-gray); cursor:pointer; opacity:0.8;';
+      loadMoreBtn.addEventListener('click', () => {
+        loadMoreBtn.remove();
+        const earlierFrag = document.createDocumentFragment();
+        for (let i = 0; i < startIndex; i++) {
+          const msg = this.messages[i];
+          const elem = this._buildMessageNode(msg.sender, msg.content, msg.type || 'text', msg.time);
+          if (elem) earlierFrag.appendChild(elem);
+        }
+        feed.insertBefore(earlierFrag, feed.firstChild);
+      });
+      fragment.appendChild(loadMoreBtn);
     }
+
+    for (let i = startIndex; i < this.messages.length; i++) {
+      const msg = this.messages[i];
+      const elem = this._buildMessageNode(msg.sender, msg.content, msg.type || 'text', msg.time);
+      if (elem) fragment.appendChild(elem);
+    }
+    feed.appendChild(fragment);
     this.scrollToBottom();
   }
 
-  _createMessageElement(sender, content, type = 'text', time = null) {
-    const feed = this.overlay.querySelector('#mailbox-feed');
-    if (!feed) return null;
-
+  _buildMessageNode(sender, content, type = 'text', time = null) {
     const normSender = (sender === 'yang' || sender === 'yangiee') ? 'yangiee' : 'patrick';
     const isOutgoing = (normSender === this.localUser);
     
@@ -877,8 +900,14 @@ export class StarlightMessenger {
         <span class="message-time">${displayTime}</span>
       </div>
     `;
+    return row;
+  }
 
-    feed.appendChild(row);
+  _createMessageElement(sender, content, type = 'text', time = null) {
+    const feed = this.overlay.querySelector('#mailbox-feed');
+    if (!feed) return null;
+    const row = this._buildMessageNode(sender, content, type, time);
+    if (row) feed.appendChild(row);
     return row;
   }
 

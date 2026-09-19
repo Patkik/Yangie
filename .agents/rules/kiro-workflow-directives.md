@@ -122,6 +122,7 @@ Commands:
 ### 🧠 REPO-SPECIFIC LEARNINGS (DYNAMICALLY SYNCD FROM DECISION LOGS)
 > Master decision logs and 5-perspective evaluations are archived in [`agent-decisions-log.json`](file:///./agent-decisions-log.json) and [`DECISIONS.md`](file:///./DECISIONS.md).
 
+- **[DEC-871900]** Master Mobile Performance Refactor, Adaptive Quality Tiering, Centralized Disposal & Battery Guard (V10.8 / V2.8.0)
 - **[DEC-861900]** Advanced Real-Time Circadian Celestial Sky Lighting with 3D Solar Arcs & Dynamic Storm Dimming (V10.7)
 - **[DEC-851900]** Procedural Meteor Showers, Twin Starlight Leaderboards & Celestial Stamps (V10.6)
 - **[DEC-841900]** Tactile Native Android Haptics Engine, 3D Cockpit Mini-Radar & Circadian Celestial Sky Lighting (V10.5)
